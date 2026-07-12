@@ -44,21 +44,25 @@ test('isDue accepts overdue and unscheduled cards', () => {
   assert.equal(SRS.isDue({}, now), true);
 });
 
-test('simulatedNow advances by whole days without changing the base date', () => {
-  assert.equal(SRS.simulatedNow(2, now).toISOString(), '2026-07-14T10:00:00.000Z');
-  assert.equal(now.toISOString(), '2026-07-12T10:00:00.000Z');
-});
-
 test('review advances only after a fully correct drawing', () => {
   assert.equal(SRS.shouldAdvanceReview('good'), true);
   assert.equal(SRS.shouldAdvanceReview('hard'), false);
   assert.equal(SRS.shouldAdvanceReview('again'), false);
 });
 
+test('review mode requires a guided retry and then an unassisted confirmation', () => {
+  assert.equal(SRS.nextReviewMode('test', 'again'), 'guided');
+  assert.equal(SRS.nextReviewMode('guided', 'hard'), 'guided');
+  assert.equal(SRS.nextReviewMode('guided', 'good'), 'confirm');
+  assert.equal(SRS.nextReviewMode('confirm', 'good'), 'complete');
+  assert.equal(SRS.nextReviewMode('confirm', 'again'), 'guided');
+});
+
 test('drawing classification distinguishes exact, technique, and wrong answers', () => {
   const references = [['水', 'VV32', 1], ['水', 'VV32', 2], ['木', 'HV32', 0]];
-  assert.equal(SRS.classifyDrawing('水', 'VV32', 1, references), 'good');
-  assert.equal(SRS.classifyDrawing('水', 'VV32', 4, references), 'hard');
-  assert.equal(SRS.classifyDrawing('水', 'V3V2', 1, references), 'hard');
-  assert.equal(SRS.classifyDrawing('水', 'HV32', 0, references), 'again');
+  const directions = { 水: ['S', 'E', 'SW', 'SE'] };
+  assert.equal(SRS.classifyDrawing('水', 'VV32', ['S', 'E', 'SW', 'SE'], references, [], directions), 'good');
+  assert.equal(SRS.classifyDrawing('水', 'VV32', ['N', 'E', 'SW', 'SE'], references, [], directions), 'hard');
+  assert.equal(SRS.classifyDrawing('水', 'V3V2', ['S', 'E', 'SW', 'SE'], references, [], directions), 'hard');
+  assert.equal(SRS.classifyDrawing('水', 'HV32', ['E', 'S', 'SW', 'SE'], references, [], directions), 'again');
 });

@@ -6,11 +6,6 @@
   const DAY_MS = 24 * 60 * 60 * 1000;
   const MINUTE_MS = 60 * 1000;
 
-  function simulatedNow(dayOffset = 0, now = new Date()) {
-    const offset = Number.isFinite(Number(dayOffset)) ? Number(dayOffset) : 0;
-    return new Date(now.getTime() + offset * DAY_MS);
-  }
-
   function schedule(card, rating, now = new Date()) {
     const currentInterval = Number(card.interval) || 0;
     const currentEase = Number(card.ease) || 2.5;
@@ -59,10 +54,21 @@
     return rating === 'good';
   }
 
-  function classifyDrawing(character, strokeSignature, directionChanges, references, candidates = []) {
+  function nextReviewMode(mode, rating) {
+    if (rating !== 'good') return 'guided';
+    if (mode === 'guided') return 'confirm';
+    return 'complete';
+  }
+
+  function classifyDrawing(character, strokeSignature, strokeDirections, references, candidates = [], directionReferences = {}) {
     const targetReferences = references.filter(reference => reference[0] === character);
     const exact = targetReferences.filter(reference => reference[1] === strokeSignature);
-    if (exact.some(reference => Number(reference[2] || 0) === Number(directionChanges || 0))) return 'good';
+    const expectedDirections = directionReferences[character];
+    const directionsMatch = !expectedDirections || (
+      expectedDirections.length === strokeDirections.length &&
+      expectedDirections.every((direction, index) => direction === strokeDirections[index])
+    );
+    if (exact.length && directionsMatch) return 'good';
     if (exact.length) return 'hard';
 
     const normalized = value => [...value].sort().join('');
@@ -72,5 +78,5 @@
     return 'again';
   }
 
-  return { schedule, isDue, simulatedNow, shouldAdvanceReview, classifyDrawing, DAY_MS, MINUTE_MS };
+  return { schedule, isDue, shouldAdvanceReview, nextReviewMode, classifyDrawing, DAY_MS, MINUTE_MS };
 });

@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f7f4ee" />
     <title>Кандзи — распознавание и словарь</title>
     <link rel="stylesheet" href="styles.css?v=3" />
-    <link rel="stylesheet" href="kanji.css?v=3" />
+    <link rel="stylesheet" href="kanji.css?v=4" />
   </head>
   <body>
     <header class="topbar">
@@ -15,7 +15,31 @@
         <a href="index.html">Прописи</a>
         <a class="active" href="kanji.html">Кандзи и словарь</a>
       </nav>
+      <div class="account-area">
+        <button id="openAccount" type="button">
+          <span id="signedOutAccount">Войти</span>
+          <span id="signedInAccount" hidden><span id="accountEmail"></span></span>
+        </button>
+        <small id="syncStatus">Прогресс хранится на этом устройстве</small>
+      </div>
     </header>
+
+    <dialog class="account-dialog" id="accountDialog">
+      <button class="dialog-close" id="closeAccount" type="button" aria-label="Закрыть">×</button>
+      <p class="eyebrow">Облачный прогресс</p>
+      <h2>Ваш аккаунт</h2>
+      <p>Войдите или зарегистрируйтесь, чтобы сохранить словарь и расписание повторений.</p>
+      <form id="accountForm">
+        <label>Электронная почта<input id="accountEmailInput" type="email" required autocomplete="email" /></label>
+        <label>Пароль<input id="accountPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
+        <div class="account-actions">
+          <button type="submit" name="action" value="signin">Войти</button>
+          <button type="submit" name="action" value="signup">Регистрация</button>
+        </div>
+        <p id="accountStatus" aria-live="polite"></p>
+      </form>
+      <button class="sign-out" id="signOut" type="button">Выйти из аккаунта</button>
+    </dialog>
 
     <main class="kanji-main">
       <section class="kanji-heading">
@@ -26,7 +50,10 @@
       <div class="kanji-layout">
         <section class="recognizer-card">
           <div class="draw-panel">
-            <canvas id="can" width="360" height="360" aria-label="Поле для рисования кандзи"></canvas>
+            <div class="canvas-wrap">
+              <canvas id="can" width="360" height="360" aria-label="Поле для рисования кандзи"></canvas>
+              <div class="canvas-stroke-guide" id="reviewStrokeGuide" hidden></div>
+            </div>
             <div class="draw-actions">
               <button id="jhr-undo" type="button">← Отменить штрих</button>
               <button id="jhr-clear" type="button">Очистить</button>
@@ -52,6 +79,7 @@
           <div id="selectionEmpty" class="selection-empty"><span>字</span><h2>Выберите кандзи</h2><p>После подтверждения предложим значения и добавим карточку в словарь.</p></div>
           <form id="kanjiForm" hidden>
             <div class="selected-kanji" id="selectedKanji">字</div>
+            <div class="add-stroke-example" id="addStrokeExample" hidden></div>
             <label>Перевод<input id="translationInput" required autocomplete="off" placeholder="Например: вода" /></label>
             <div class="meaning-suggestions" id="meaningSuggestions"></div>
             <label>Заметка<textarea id="noteInput" rows="3" placeholder="Чтение, ассоциация или пример"></textarea></label>
@@ -71,12 +99,6 @@
           <div><p class="eyebrow">Интервальные повторения</p><h2>Тест на повторение</h2></div>
           <button id="startReview" type="button">Начать тест <span id="dueCount">0</span></button>
         </div>
-        <div class="srs-time-controls" aria-label="Симуляция даты для тестирования SRS">
-          <div><strong>Тестовая дата: <span id="simulatedDate"></span></strong><small id="dayOffsetLabel">Сегодня</small></div>
-          <button id="advanceOneDay" type="button">+1 день</button>
-          <button id="advanceTwoDays" type="button">+2 дня</button>
-          <button id="resetDayOffset" type="button">Сегодня</button>
-        </div>
         <div class="review-empty" id="reviewEmpty">Добавьте карточки в словарь — новые кандзи сразу появятся здесь.</div>
         <div class="review-card" id="reviewCard" hidden>
           <p id="reviewProgress"></p>
@@ -94,8 +116,15 @@
     </main>
 
     <footer><span>Распознавание работает локально.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
+    <script src="supabase-config.js?v=1"></script>
+    <script src="progress-sync.js?v=1"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
-    <script src="srs.js?v=2"></script>
-    <script src="kanji-app.js?v=5"></script>
+    <script src="kanjivg-directions.js?v=1"></script>
+    <script src="kanjivg-strokes.js?v=1"></script>
+    <script src="stroke-guide.js?v=1"></script>
+    <script src="recognizer-geometry.js?v=1"></script>
+    <script src="recognizer-fixes.js?v=1"></script>
+    <script src="srs.js?v=3"></script>
+    <script src="kanji-app.js?v=7"></script>
   </body>
 </html>
