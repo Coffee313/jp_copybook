@@ -1,31 +1,11 @@
 const STORAGE_KEY = 'kana-kanji-dictionary-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v1';
-const SRS_DAY_OFFSET_KEY = 'kana-kanji-srs-day-offset-v1';
 let selectedCharacter = '';
 const meaningRequests = new Map();
 let reviewQueue = [];
 let reviewIndex = 0;
 let reviewActive = false;
-
-function getDayOffset() {
-  const value = Number(localStorage.getItem(SRS_DAY_OFFSET_KEY));
-  return Number.isInteger(value) && value >= 0 ? value : 0;
-}
-
-function currentSrsTime() { return SRS.simulatedNow(getDayOffset()); }
-
-function renderSimulatedDate() {
-  const offset = getDayOffset();
-  document.querySelector('#simulatedDate').textContent = currentSrsTime().toLocaleDateString('ru-RU');
-  document.querySelector('#dayOffsetLabel').textContent = offset ? `+${offset} ${offset === 1 ? 'день' : 'дн.'}` : 'Сегодня';
-  document.querySelector('#resetDayOffset').disabled = offset === 0;
-}
-
-function changeDayOffset(days) {
-  localStorage.setItem(SRS_DAY_OFFSET_KEY, String(Math.max(0, getDayOffset() + days)));
-  renderSimulatedDate();
-  updateReviewSummary();
-}
+let reviewMode = 'test';
 
 async function fetchJson(url, timeout = 5000) {
   const controller = new AbortController();
@@ -67,7 +47,21 @@ const readJson = (key, fallback) => {
 };
 
 function getDictionary() { return readJson(STORAGE_KEY, []); }
-function saveDictionary(items) { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+function saveDictionary(items) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  window.ProgressSync?.queueSave();
+}
+
+function mergeDictionary(remoteItems = []) {
+  const merged = new Map(remoteItems.map(item => [item.character, item]));
+  getDictionary().forEach(localItem => {
+    const remoteItem = merged.get(localItem.character);
+    const localDate = Date.parse(localItem.lastReviewed || localItem.createdAt || 0) || 0;
+    const remoteDate = Date.parse(remoteItem?.lastReviewed || remoteItem?.createdAt || 0) || 0;
+    if (!remoteItem || localDate >= remoteDate) merged.set(localItem.character, localItem);
+  });
+  return [...merged.values()];
+}
 
 function selectKanji(character, source) {
   selectedCharacter = character;
@@ -75,6 +69,7 @@ function selectKanji(character, source) {
   document.querySelector('#selectionEmpty').hidden = true;
   document.querySelector('#kanjiForm').hidden = false;
   document.querySelector('#selectedKanji').textContent = character;
+  renderStrokeGuide(document.querySelector('#addStrokeExample'), character);
   document.querySelector('#translationInput').value = '';
   document.querySelector('#noteInput').value = '';
   loadMeanings(character);
@@ -163,8 +158,8 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
     character: selectedCharacter,
     translation,
     note: document.querySelector('#noteInput').value.trim(),
-    createdAt: existing?.createdAt || currentSrsTime().toISOString(),
-    nextReview: currentSrsTime().toISOString(),
+    createdAt: existing?.createdAt || new Date().toISOString(),
+    nextReview: new Date().toISOString(),
     interval: existing?.interval || 0,
     ease: existing?.ease || 2.5,
     repetitions: existing?.repetitions || 0
@@ -201,7 +196,7 @@ function renderDictionary() {
 }
 
 function updateReviewSummary(items = getDictionary()) {
-  const due = items.filter(item => SRS.isDue(item, currentSrsTime()));
+  const due = items.filter(item => SRS.isDue(item));
   const startButton = document.querySelector('#startReview');
   document.querySelector('#dueCount').textContent = due.length;
   startButton.disabled = due.length === 0;
@@ -234,6 +229,15 @@ function showReviewCard() {
   reviewCard.hidden = false;
   document.querySelector('#reviewProgress').textContent = `Карточка ${reviewIndex + 1} из ${reviewQueue.length}`;
   document.querySelector('#reviewTranslation').textContent = card.translation;
+  const prompt = document.querySelector('.review-prompt');
+  const guide = document.querySelector('#reviewStrokeGuide');
+  renderStrokeGuide(guide, card.character);
+  guide.hidden = reviewMode !== 'guided' || !KANJIVG_STROKES[card.character];
+  prompt.textContent = reviewMode === 'guided'
+    ? 'Повторите кандзи по образцу. После правильного написания нужно будет написать его ещё раз без подсказки.'
+    : reviewMode === 'confirm'
+      ? 'Теперь напишите тот же кандзи ещё раз без образца.'
+      : 'Нарисуйте кандзи для этого перевода. Соблюдайте порядок и направление штрихов.';
   const feedback = document.querySelector('#reviewFeedback');
   feedback.hidden = true;
   feedback.removeAttribute('data-result');
@@ -243,9 +247,10 @@ function showReviewCard() {
 
 document.querySelector('#startReview').addEventListener('click', () => {
   reviewQueue = getDictionary()
-    .filter(item => SRS.isDue(item, currentSrsTime()))
+    .filter(item => SRS.isDue(item))
     .sort((a, b) => Date.parse(a.nextReview || 0) - Date.parse(b.nextReview || 0));
   reviewIndex = 0;
+  reviewMode = 'test';
   document.querySelector('#reviewCanvasHost').append(document.querySelector('.draw-panel'));
   document.querySelector('.recognizer-card').hidden = true;
   document.querySelector('.candidate-panel').hidden = true;
@@ -264,35 +269,44 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
   const reviewed = reviewQueue[reviewIndex];
   const candidates = [...document.querySelectorAll('.candidate-list .kmatch')]
     .map(candidate => candidate.textContent.trim());
-  const rating = SRS.classifyDrawing(reviewed.character, testk, dir_count, kanji, candidates);
+  const rating = SRS.classifyDrawing(reviewed.character, testk, getStrokeDirections(), kanji, candidates, KANJIVG_DIRECTIONS);
+  const attemptMode = reviewMode;
+  const nextMode = SRS.nextReviewMode(attemptMode, rating);
   const messages = {
     good: `Верно: ${reviewed.character}. Порядок и направление штрихов правильные.`,
     hard: `Это ${reviewed.character}, но порядок или направление штрихов нужно повторить.`,
     again: `Неверно. Правильный кандзи: ${reviewed.character}.`
   };
-  feedback.textContent = messages[rating];
+  feedback.textContent = rating === 'good' && attemptMode === 'guided'
+    ? `Верно: ${reviewed.character}. Теперь повторите без образца.`
+    : messages[rating];
   feedback.dataset.result = rating;
   feedback.hidden = false;
   checkButton.disabled = true;
 
-  const items = getDictionary();
-  const storedIndex = items.findIndex(item => item.character === reviewed.character);
-  if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], rating, currentSrsTime());
-  saveDictionary(items);
-  renderDictionary();
+  if (attemptMode !== 'guided') {
+    const items = getDictionary();
+    const storedIndex = items.findIndex(item => item.character === reviewed.character);
+    if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], rating);
+    saveDictionary(items);
+    renderDictionary();
+  }
   setTimeout(() => {
-    if (SRS.shouldAdvanceReview(rating)) reviewIndex += 1;
+    if (nextMode === 'complete') {
+      reviewIndex += 1;
+      reviewMode = 'test';
+    } else {
+      reviewMode = nextMode;
+    }
     showReviewCard();
   }, 1200);
 });
 
-document.querySelector('#advanceOneDay').addEventListener('click', () => changeDayOffset(1));
-document.querySelector('#advanceTwoDays').addEventListener('click', () => changeDayOffset(2));
-document.querySelector('#resetDayOffset').addEventListener('click', () => {
-  localStorage.removeItem(SRS_DAY_OFFSET_KEY);
-  renderSimulatedDate();
-  updateReviewSummary();
-});
-
-renderSimulatedDate();
 renderDictionary();
+ProgressSync.initialize({
+  getLocalProgress: () => ({ dictionary: getDictionary() }),
+  applyRemoteProgress: remote => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary)));
+    renderDictionary();
+  }
+});
