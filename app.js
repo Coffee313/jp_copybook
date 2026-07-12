@@ -37,6 +37,13 @@ let mastery = readMastery();
 let testActive = false;
 let testQueue = [];
 let testIndex = 0;
+let testLayerIndex = 0;
+
+const TEST_LAYERS = [
+  { key: 'order', label: 'stroke-order guide' },
+  { key: 'example', label: 'background example' },
+  { key: 'blank', label: 'blank background' }
+];
 
 function readMastery() {
   try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
@@ -73,6 +80,16 @@ function makeStrokeDiagram() {
   return diagram;
 }
 
+function makeTestGuide() {
+  const layer = TEST_LAYERS[testLayerIndex];
+  if (!layer || layer.key !== 'order') return null;
+  const guide = document.createElement('div');
+  guide.className = `test-guide test-guide-${layer.key}`;
+  guide.setAttribute('aria-hidden', 'true');
+  guide.append(makeVectorKana(selected[0], true));
+  return guide;
+}
+
 function makeVectorKana(character, numbered = false) {
   const namespace = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(namespace, 'svg');
@@ -99,20 +116,33 @@ function makeVectorKana(character, numbered = false) {
 function makeSheet() {
   sheet.innerHTML = '';
   const cellCount = testActive ? 1 : 15;
+  const testLayer = testActive ? TEST_LAYERS[testLayerIndex] : null;
   for (let i = 0; i < cellCount; i++) {
     const cell = document.createElement('div');
-    cell.className = `cell${!testActive && i === 0 ? ' stroke-cell' : ''}${testActive ? ' test-cell' : ''}`;
+    cell.className = `cell${!testActive && i === 0 ? ' stroke-cell' : ''}${testActive ? ` test-cell test-cell-${TEST_LAYERS[testLayerIndex]?.key || 'blank'}` : ''}`;
     if (!testActive && i === 0) {
       cell.append(makeStrokeDiagram());
       sheet.append(cell);
       continue;
     }
-    const ghost = document.createElement('span');
-    ghost.className = 'ghost';
-    ghost.append(makeVectorKana(selected[0]));
-    ghost.hidden = !ghostToggle.checked;
+    if (testActive) {
+      const guide = makeTestGuide();
+      if (guide) cell.append(guide);
+      if (testLayer?.key === 'example') {
+        const ghost = document.createElement('span');
+        ghost.className = 'ghost';
+        ghost.append(makeVectorKana(selected[0]));
+        cell.append(ghost);
+      }
+    } else {
+      const ghost = document.createElement('span');
+      ghost.className = 'ghost';
+      ghost.append(makeVectorKana(selected[0]));
+      ghost.hidden = !ghostToggle.checked;
+      cell.append(ghost);
+    }
     const canvas = document.createElement('canvas');
-    cell.append(ghost, canvas);
+    cell.append(canvas);
     sheet.append(cell);
     setupCanvas(canvas);
   }
@@ -393,11 +423,17 @@ function handleTestResult(result) {
     }, 1100);
     return;
   }
-  saveMastery(KanaProgress.markMastered(mastery, selected[0]));
   const canvas = document.querySelector('.test-cell canvas');
   if (canvas) canvas.style.pointerEvents = 'none';
   setTimeout(() => {
+    if (testLayerIndex < TEST_LAYERS.length - 1) {
+      testLayerIndex += 1;
+      updateLesson();
+      return;
+    }
+    saveMastery(KanaProgress.markMastered(mastery, selected[0]));
     testIndex += 1;
+    testLayerIndex = 0;
     if (testIndex >= testQueue.length) {
       stopKanaTest('Test complete');
       return;
@@ -410,6 +446,7 @@ function handleTestResult(result) {
 function startKanaTest() {
   testActive = true;
   testIndex = 0;
+  testLayerIndex = 0;
   testQueue = KanaProgress.shuffled(kana[script]);
   selected = testQueue[0];
   document.querySelector('#startKanaTest').textContent = 'End test';
@@ -420,6 +457,7 @@ function startKanaTest() {
 function stopKanaTest(message = 'Start test') {
   testActive = false;
   testQueue = [];
+  testLayerIndex = 0;
   selected = kana[script][0];
   document.querySelector('#startKanaTest').textContent = message;
   document.querySelector('.practice-card').classList.remove('test-active');
@@ -449,7 +487,7 @@ function updateLesson() {
   document.querySelector('#referenceKana').textContent = testActive ? '?' : selected[0];
   document.querySelector('#referenceRomanji').textContent = selected[1];
   document.querySelector('.reference-hint').textContent = testActive
-    ? `Test ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without a guide`
+    ? `Test ${testIndex + 1} of ${testQueue.length}, layer ${testLayerIndex + 1} of ${TEST_LAYERS.length}: write “${selected[1]}” with the ${TEST_LAYERS[testLayerIndex].label}`
     : 'Repeat the character in each cell';
   renderPicker();
   makeSheet();
