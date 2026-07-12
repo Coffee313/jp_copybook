@@ -19,12 +19,19 @@
     renderAccount();
   }
 
+  async function readJson(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try { return JSON.parse(text); }
+    catch { return {}; }
+  }
+
   async function authRequest(path, options = {}) {
     const response = await fetch(`${config.url}/auth/v1/${path}`, {
       ...options,
       headers: { apikey: config.publishableKey, 'Content-Type': 'application/json', ...options.headers }
     });
-    const data = await response.json().catch(() => ({}));
+    const data = await readJson(response);
     if (!response.ok) throw new Error(data.msg || data.message || data.error_description || 'Authentication failed.');
     return data;
   }
@@ -57,10 +64,10 @@
       }
     });
     if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
+      const data = await readJson(response);
       throw new Error(data.message || 'Could not sync progress.');
     }
-    return response.status === 204 ? null : response.json();
+    return response.status === 204 ? null : readJson(response);
   }
 
   async function loadAndMergeProgress() {

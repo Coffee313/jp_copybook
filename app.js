@@ -30,6 +30,7 @@ let selected = kana.hiragana[0];
 const sheet = document.querySelector('#sheet');
 const picker = document.querySelector('#kanaPicker');
 const ghostToggle = document.querySelector('#ghostToggle');
+const guideControl = document.querySelector('#guideControl');
 const penOnlyToggle = document.querySelector('#penOnlyToggle');
 const MASTERY_KEY = 'kana-mastery-v1';
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
@@ -449,6 +450,7 @@ function startKanaTest() {
   testLayerIndex = 0;
   testQueue = KanaProgress.shuffled(kana[script]);
   selected = testQueue[0];
+  if (guideControl) guideControl.hidden = true;
   document.querySelector('#startKanaTest').textContent = 'End test';
   document.querySelector('.practice-card').classList.add('test-active');
   updateLesson();
@@ -459,6 +461,7 @@ function stopKanaTest(message = 'Start test') {
   testQueue = [];
   testLayerIndex = 0;
   selected = kana[script][0];
+  if (guideControl) guideControl.hidden = false;
   document.querySelector('#startKanaTest').textContent = message;
   document.querySelector('.practice-card').classList.remove('test-active');
   updateLesson();
