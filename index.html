@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f4ee" />
+    <title>Кана — прописи</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Кана — в начало">
+        <span class="brand-mark">あ</span>
+        <span>Кана</span>
+      </a>
+      <button class="clear-button" id="clearButton" type="button">
+        <span aria-hidden="true">↻</span> Очистить
+      </button>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">Японские прописи</p>
+        <h1>Пишите. Стирайте.<br />Повторяйте.</h1>
+        <p class="lead">Выберите знак и тренируйте движение руки в клетках — пальцем, стилусом или мышью.</p>
+      </section>
+
+      <section class="practice-card" aria-label="Поле для тренировки">
+        <div class="controls">
+          <div class="script-switch" role="group" aria-label="Выбор азбуки">
+            <button class="script-button active" data-script="hiragana" type="button">Хирагана</button>
+            <button class="script-button" data-script="katakana" type="button">Катакана</button>
+          </div>
+          <label class="ghost-control">
+            <input id="ghostToggle" type="checkbox" checked />
+            <span class="toggle" aria-hidden="true"></span>
+            <span>Образец в клетках</span>
+          </label>
+          <label class="ghost-control pen-control">
+            <input id="penOnlyToggle" type="checkbox" checked />
+            <span class="toggle" aria-hidden="true"></span>
+            <span>Только стилус</span>
+          </label>
+        </div>
+
+        <div class="lesson">
+          <aside class="reference" aria-live="polite">
+            <div class="reference-kana" id="referenceKana">あ</div>
+            <div>
+              <div class="reference-romanji" id="referenceRomanji">a</div>
+              <div class="reference-hint">Повторите знак в каждой клетке</div>
+            </div>
+          </aside>
+
+          <div class="sheet-wrap">
+            <div class="sheet" id="sheet"></div>
+          </div>
+        </div>
+
+        <div class="kana-picker" id="kanaPicker" aria-label="Выберите знак"></div>
+        <div class="score-legend" aria-label="Оценка написания">
+          <span><i class="legend-dot good"></i>Похоже на эталон</span>
+          <span><i class="legend-dot order"></i>Нарушен порядок</span>
+          <span><i class="legend-dot direction"></i>Неверное направление</span>
+          <span><i class="legend-dot retry"></i>Попробуйте ещё раз</span>
+        </div>
+        <p class="tablet-tip"><span aria-hidden="true">✦</span> Наклоните планшет горизонтально — так клетки будут крупнее. Сила нажатия стилуса меняет толщину линии.</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>Практика важнее идеальной линии.</span>
+      <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noreferrer">Траектории: KanjiVG, CC BY-SA 3.0</a>
+    </footer>
+    <script src="kana-guides.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
