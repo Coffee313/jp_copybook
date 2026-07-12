@@ -116,8 +116,14 @@
   }
 
   async function signUp(email, password) {
+    const redirectTo = config.appUrl || new URL('./', window.location.href).href;
     const data = await authRequest('signup', {
-      method: 'POST', body: JSON.stringify({ email, password })
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        options: { emailRedirectTo: redirectTo }
+      })
     });
     if (data.access_token) {
       storeSession(data);

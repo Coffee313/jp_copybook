@@ -112,6 +112,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 #startKanaTest { border: 0; border-radius: 11px; padding: 9px 14px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .test-active .sheet { grid-template-columns: minmax(220px, 340px); min-width: 0; justify-content: center; }
 .test-active .test-cell { width: min(100%, 340px); }
+.test-active .guide-control { display: none; }
 .test-active .kana-picker { opacity: .5; pointer-events: none; }
 
 .controls {
