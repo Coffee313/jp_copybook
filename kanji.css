@@ -1,0 +1,78 @@
+.kanji-main { margin-top: 20px; }
+.kanji-heading { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 20px; }
+.kanji-heading h1 { margin-top: 5px; }
+.kanji-heading > p { max-width: 480px; margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.kanji-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .75fr); gap: 18px; align-items: stretch; }
+.recognizer-card, .dictionary-card, .my-dictionary, .review-section { border: 1px solid rgba(216,210,199,.8); border-radius: 24px; background: var(--paper); box-shadow: 0 16px 50px rgba(55,46,32,.055); }
+.recognizer-card { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(290px, 1.1fr); overflow: hidden; }
+.recognizer-card[hidden] { display: none; }
+.draw-panel { padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fbf9f5; border-right: 1px solid #e9e4dc; }
+#can { width: min(100%, 360px); height: auto; aspect-ratio: 1; border: 1.5px solid #9f988c; background: #fffefa; touch-action: none; cursor: crosshair; }
+.draw-actions { width: min(100%, 360px); display: flex; gap: 8px; margin-top: 12px; }
+.draw-actions button { flex: 1; border: 1px solid var(--line); border-radius: 11px; padding: 9px; background: var(--paper); cursor: pointer; font-size: 13px; }
+.candidate-panel { padding: 26px; min-height: 430px; }
+.panel-label { margin: 0; font-weight: 700; font-size: 18px; }
+.candidate-help { margin: 6px 0 20px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.candidate-group { margin: 14px 0; }
+.candidate-group > span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; }
+.candidate-list { display: flex; flex-wrap: wrap; gap: 7px; min-height: 2px; }
+.candidate-list .kmatch { display: grid; place-items: center; width: 45px; height: 45px; border: 1px solid var(--line); border-radius: 10px; background: white !important; color: var(--ink); font: 500 24px/1 'Noto Sans JP', sans-serif; text-decoration: none; cursor: pointer; }
+.candidate-list .kmatch:hover, .candidate-list .kmatch.selected { color: white; border-color: var(--accent); background: var(--accent) !important; }
+.candidate-panel details { margin-top: 10px; }
+.candidate-panel summary { color: var(--muted); font-size: 12px; cursor: pointer; }
+.empty-candidates { color: var(--muted); font-size: 13px; }
+.dictionary-card { padding: 26px; min-height: 430px; }
+.selection-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--muted); }
+.selection-empty > span { font: 400 92px/1 'Noto Sans JP', sans-serif; color: var(--accent-soft); }
+.selection-empty h2 { margin: 16px 0 5px; color: var(--ink); font-size: 21px; }
+.selection-empty p { max-width: 260px; margin: 0; font-size: 12px; line-height: 1.6; }
+.selected-kanji { font: 400 90px/1 'Noto Sans JP', sans-serif; color: var(--green); margin-bottom: 22px; }
+#kanjiForm label { display: block; margin: 15px 0; color: var(--muted); font-size: 12px; }
+#kanjiForm input, #kanjiForm textarea { width: 100%; margin-top: 7px; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; background: #fbfaf7; color: var(--ink); outline: none; resize: vertical; }
+#kanjiForm input:focus, #kanjiForm textarea:focus { border-color: var(--green); }
+.meaning-suggestions { display: flex; flex-wrap: wrap; gap: 6px; }
+.meaning-suggestions button { border: 1px solid var(--accent-soft); border-radius: 999px; padding: 6px 10px; color: #a94534; background: #fff7f4; cursor: pointer; font-size: 11px; }
+.reading-info { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.save-kanji { width: 100%; border: 0; border-radius: 12px; padding: 12px; color: white; background: var(--green); cursor: pointer; font-weight: 700; }
+.my-dictionary { margin-top: 18px; padding: 24px; }
+.dictionary-heading { display: flex; align-items: end; justify-content: space-between; }
+.dictionary-heading h2 { margin: 4px 0 0; font-size: 25px; }
+.dictionary-heading > span { color: var(--muted); font-size: 12px; }
+.dictionary-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 10px; margin-top: 18px; }
+.dictionary-item { min-width: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr) 26px; gap: 12px; align-items: start; padding: 15px; border: 1px solid #e6e0d7; border-radius: 14px; background: #fbfaf7; }
+.dictionary-item .character { font: 400 40px/1 'Noto Sans JP', sans-serif; color: var(--green); }
+.dictionary-item > div { min-width: 0; }
+.dictionary-item strong { display: block; overflow-wrap: anywhere; font-size: 13px; line-height: 1.45; }
+.dictionary-item small { display: -webkit-box; margin-top: 4px; overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.dictionary-item button { width: 26px; height: 26px; display: grid; place-items: center; margin-top: -4px; border: 0; border-radius: 50%; background: transparent; color: #aaa39a; cursor: pointer; font-size: 17px; }
+.dictionary-item button:hover { color: #b94d43; background: #f8e5e1; }
+.dictionary-empty { grid-column: 1 / -1; width: 100%; margin: 0; padding: 28px 18px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; line-height: 1.6; text-align: center; }
+.review-section { margin-top: 18px; padding: 24px; }
+.review-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.review-heading h2 { margin: 4px 0 0; font-size: 25px; }
+.review-heading > button, .check-drawing { border: 0; border-radius: 12px; padding: 11px 16px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
+.review-heading > button:disabled { opacity: .45; cursor: default; }
+#dueCount { display: inline-grid; min-width: 22px; height: 22px; place-items: center; margin-left: 5px; border-radius: 999px; background: rgba(255,255,255,.2); }
+.srs-time-controls { display: flex; align-items: center; gap: 8px; margin-top: 18px; padding: 12px; border: 1px solid #e6e0d7; border-radius: 14px; background: #fbfaf7; }
+.srs-time-controls > div { min-width: 180px; margin-right: auto; }
+.srs-time-controls strong, .srs-time-controls small { display: block; }
+.srs-time-controls strong { font-size: 13px; }
+.srs-time-controls small { margin-top: 3px; color: var(--muted); font-size: 11px; }
+.srs-time-controls button { border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; background: var(--paper); cursor: pointer; font-size: 12px; }
+.srs-time-controls button:hover { border-color: var(--green); color: var(--green); }
+.srs-time-controls button:disabled { opacity: .45; cursor: default; }
+.review-empty { margin-top: 18px; padding: 22px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; text-align: center; }
+.review-card { max-width: 580px; margin: 22px auto 2px; text-align: center; }
+.review-card > p:first-child { color: var(--muted); font-size: 12px; }
+.review-translation { margin: 22px 0 12px; color: var(--green); font-size: 28px; font-weight: 700; }
+.review-prompt { color: var(--muted); font-size: 13px; }
+#reviewCanvasHost .draw-panel { padding: 14px 0; border: 0; background: transparent; }
+#reviewCanvasHost #can { width: min(100%, 320px); }
+.check-drawing { min-width: 200px; margin-top: 10px; }
+.review-feedback { margin-top: 14px; padding: 12px; border-radius: 12px; background: #f5f2eb; font-size: 13px; line-height: 1.5; }
+.review-feedback[data-result="good"] { color: var(--green); background: #edf5ef; }
+.review-feedback[data-result="hard"] { color: #8a651f; background: #fff6df; }
+.review-feedback[data-result="again"] { color: #a94534; background: #fff0ed; }
+.jhr-internals { display: none; }
+@media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
+@media (max-width: 680px) { .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .my-dictionary, .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .srs-time-controls { flex-wrap: wrap; } .srs-time-controls > div { width: 100%; } .srs-time-controls button { flex: 1; } .dictionary-list { grid-template-columns: 1fr; } }

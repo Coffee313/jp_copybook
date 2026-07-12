@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f4ee" />
+    <title>Кандзи — распознавание и словарь</title>
+    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="kanji.css?v=3" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">字</span><span>Кана</span></a>
+      <nav class="main-nav" aria-label="Разделы">
+        <a href="index.html">Прописи</a>
+        <a class="active" href="kanji.html">Кандзи и словарь</a>
+      </nav>
+    </header>
+
+    <main class="kanji-main">
+      <section class="kanji-heading">
+        <div><p class="eyebrow">Рукописный поиск</p><h1>Нарисуйте кандзи</h1></div>
+        <p>Пишите по одному знаку. После каждого штриха список вариантов будет уточняться.</p>
+      </section>
+
+      <div class="kanji-layout">
+        <section class="recognizer-card">
+          <div class="draw-panel">
+            <canvas id="can" width="360" height="360" aria-label="Поле для рисования кандзи"></canvas>
+            <div class="draw-actions">
+              <button id="jhr-undo" type="button">← Отменить штрих</button>
+              <button id="jhr-clear" type="button">Очистить</button>
+            </div>
+          </div>
+
+          <div class="candidate-panel">
+            <p class="panel-label">Что вы написали?</p>
+            <p class="candidate-help">Нажмите на подходящий вариант. Лучшие совпадения появляются первыми.</p>
+            <div class="candidate-group"><span>Точное совпадение</span><div class="candidate-list" id="jhr-guess"></div></div>
+            <div class="candidate-group"><span>Похожие</span><div class="candidate-list" id="jhr-fuzzy"></div></div>
+            <details>
+              <summary>Другие варианты</summary>
+              <div class="candidate-group"><span>Частичное</span><div class="candidate-list" id="jhr-slength"></div></div>
+              <div class="candidate-group"><span>По набору штрихов</span><div class="candidate-list" id="jhr-similarity"></div></div>
+              <div class="candidate-group"><span>Возможно, другой порядок</span><div class="candidate-list" id="jhr-wrongorder"></div></div>
+            </details>
+            <p class="empty-candidates" id="emptyCandidates">Начните писать — варианты появятся здесь.</p>
+          </div>
+        </section>
+
+        <aside class="dictionary-card">
+          <div id="selectionEmpty" class="selection-empty"><span>字</span><h2>Выберите кандзи</h2><p>После подтверждения предложим значения и добавим карточку в словарь.</p></div>
+          <form id="kanjiForm" hidden>
+            <div class="selected-kanji" id="selectedKanji">字</div>
+            <label>Перевод<input id="translationInput" required autocomplete="off" placeholder="Например: вода" /></label>
+            <div class="meaning-suggestions" id="meaningSuggestions"></div>
+            <label>Заметка<textarea id="noteInput" rows="3" placeholder="Чтение, ассоциация или пример"></textarea></label>
+            <div class="reading-info" id="readingInfo"></div>
+            <button class="save-kanji" type="submit">Добавить в словарь</button>
+          </form>
+        </aside>
+      </div>
+
+      <section class="my-dictionary">
+        <div class="dictionary-heading"><div><p class="eyebrow">Локально на устройстве</p><h2>Мой словарь</h2></div><span id="dictionaryCount">0 карточек</span></div>
+        <div class="dictionary-list" id="dictionaryList"></div>
+      </section>
+
+      <section class="review-section" id="reviewSection">
+        <div class="review-heading">
+          <div><p class="eyebrow">Интервальные повторения</p><h2>Тест на повторение</h2></div>
+          <button id="startReview" type="button">Начать тест <span id="dueCount">0</span></button>
+        </div>
+        <div class="srs-time-controls" aria-label="Симуляция даты для тестирования SRS">
+          <div><strong>Тестовая дата: <span id="simulatedDate"></span></strong><small id="dayOffsetLabel">Сегодня</small></div>
+          <button id="advanceOneDay" type="button">+1 день</button>
+          <button id="advanceTwoDays" type="button">+2 дня</button>
+          <button id="resetDayOffset" type="button">Сегодня</button>
+        </div>
+        <div class="review-empty" id="reviewEmpty">Добавьте карточки в словарь — новые кандзи сразу появятся здесь.</div>
+        <div class="review-card" id="reviewCard" hidden>
+          <p id="reviewProgress"></p>
+          <div class="review-translation" id="reviewTranslation"></div>
+          <p class="review-prompt">Нарисуйте кандзи для этого перевода. Соблюдайте порядок и направление штрихов.</p>
+          <div id="reviewCanvasHost"></div>
+          <button class="check-drawing" id="checkDrawing" type="button">Проверить написание</button>
+          <div class="review-feedback" id="reviewFeedback" hidden aria-live="polite"></div>
+        </div>
+      </section>
+
+      <div class="jhr-internals" aria-hidden="true">
+        <span id="jhr-angles"></span><span id="jhr-direction"></span><span id="jhr-overlap"></span><span id="jhr-saver"></span><span id="jhr-random-cjk"></span>
+      </div>
+    </main>
+
+    <footer><span>Распознавание работает локально.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
+    <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
+    <script src="srs.js?v=2"></script>
+    <script src="kanji-app.js?v=5"></script>
+  </body>
+</html>
