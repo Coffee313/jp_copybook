@@ -1,111 +1,111 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
-    <title>Кандзи — распознавание и словарь</title>
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <title>Kanji — recognition and dictionary</title>
+    <link rel="stylesheet" href="styles.css?v=4" />
     <link rel="stylesheet" href="kanji.css?v=4" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="index.html"><span class="brand-mark">字</span><span>Кана</span></a>
-      <nav class="main-nav" aria-label="Разделы">
-        <a href="index.html">Прописи</a>
-        <a class="active" href="kanji.html">Кандзи и словарь</a>
+      <a class="brand" href="index.html"><span class="brand-mark">字</span><span>Kana</span></a>
+      <nav class="main-nav" aria-label="Sections">
+        <a href="index.html">Practice</a>
+        <a class="active" href="kanji.html">Kanji & dictionary</a>
       </nav>
       <div class="account-area">
         <button id="openAccount" type="button">
-          <span id="signedOutAccount">Войти</span>
+          <span id="signedOutAccount">Sign in</span>
           <span id="signedInAccount" hidden><span id="accountEmail"></span></span>
         </button>
-        <small id="syncStatus">Прогресс хранится на этом устройстве</small>
+        <small id="syncStatus">Progress is stored on this device</small>
       </div>
     </header>
 
     <dialog class="account-dialog" id="accountDialog">
-      <button class="dialog-close" id="closeAccount" type="button" aria-label="Закрыть">×</button>
-      <p class="eyebrow">Облачный прогресс</p>
-      <h2>Ваш аккаунт</h2>
-      <p>Войдите или зарегистрируйтесь, чтобы сохранить словарь и расписание повторений.</p>
+      <button class="dialog-close" id="closeAccount" type="button" aria-label="Close">×</button>
+      <p class="eyebrow">Cloud progress</p>
+      <h2>Your account</h2>
+      <p>Sign in or create an account to save your dictionary and review schedule.</p>
       <form id="accountForm">
-        <label>Электронная почта<input id="accountEmailInput" type="email" required autocomplete="email" /></label>
-        <label>Пароль<input id="accountPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
+        <label>Email<input id="accountEmailInput" type="email" required autocomplete="email" /></label>
+        <label>Password<input id="accountPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
         <div class="account-actions">
-          <button type="submit" name="action" value="signin">Войти</button>
-          <button type="submit" name="action" value="signup">Регистрация</button>
+          <button type="submit" name="action" value="signin">Sign in</button>
+          <button type="submit" name="action" value="signup">Create account</button>
         </div>
         <p id="accountStatus" aria-live="polite"></p>
       </form>
-      <button class="sign-out" id="signOut" type="button">Выйти из аккаунта</button>
+      <button class="sign-out" id="signOut" type="button">Sign out</button>
     </dialog>
 
     <main class="kanji-main">
       <section class="kanji-heading">
-        <div><p class="eyebrow">Рукописный поиск</p><h1>Нарисуйте кандзи</h1></div>
-        <p>Пишите по одному знаку. После каждого штриха список вариантов будет уточняться.</p>
+        <div><p class="eyebrow">Handwriting search</p><h1>Draw a kanji</h1></div>
+        <p>Write one character at a time. The candidate list updates after every stroke.</p>
       </section>
 
       <div class="kanji-layout">
         <section class="recognizer-card">
           <div class="draw-panel">
             <div class="canvas-wrap">
-              <canvas id="can" width="360" height="360" aria-label="Поле для рисования кандзи"></canvas>
+              <canvas id="can" width="360" height="360" aria-label="Kanji drawing area"></canvas>
               <div class="canvas-stroke-guide" id="reviewStrokeGuide" hidden></div>
             </div>
             <div class="draw-actions">
-              <button id="jhr-undo" type="button">← Отменить штрих</button>
-              <button id="jhr-clear" type="button">Очистить</button>
+              <button id="jhr-undo" type="button">← Undo stroke</button>
+              <button id="jhr-clear" type="button">Clear</button>
             </div>
           </div>
 
           <div class="candidate-panel">
-            <p class="panel-label">Что вы написали?</p>
-            <p class="candidate-help">Нажмите на подходящий вариант. Лучшие совпадения появляются первыми.</p>
-            <div class="candidate-group"><span>Точное совпадение</span><div class="candidate-list" id="jhr-guess"></div></div>
-            <div class="candidate-group"><span>Похожие</span><div class="candidate-list" id="jhr-fuzzy"></div></div>
+            <p class="panel-label">What did you write?</p>
+            <p class="candidate-help">Choose the closest match. The best candidates appear first.</p>
+            <div class="candidate-group"><span>Exact match</span><div class="candidate-list" id="jhr-guess"></div></div>
+            <div class="candidate-group"><span>Similar</span><div class="candidate-list" id="jhr-fuzzy"></div></div>
             <details>
-              <summary>Другие варианты</summary>
-              <div class="candidate-group"><span>Частичное</span><div class="candidate-list" id="jhr-slength"></div></div>
-              <div class="candidate-group"><span>По набору штрихов</span><div class="candidate-list" id="jhr-similarity"></div></div>
-              <div class="candidate-group"><span>Возможно, другой порядок</span><div class="candidate-list" id="jhr-wrongorder"></div></div>
+              <summary>Other candidates</summary>
+              <div class="candidate-group"><span>Partial match</span><div class="candidate-list" id="jhr-slength"></div></div>
+              <div class="candidate-group"><span>Similar stroke set</span><div class="candidate-list" id="jhr-similarity"></div></div>
+              <div class="candidate-group"><span>Possibly a different order</span><div class="candidate-list" id="jhr-wrongorder"></div></div>
             </details>
-            <p class="empty-candidates" id="emptyCandidates">Начните писать — варианты появятся здесь.</p>
+            <p class="empty-candidates" id="emptyCandidates">Start writing and candidates will appear here.</p>
           </div>
         </section>
 
         <aside class="dictionary-card">
-          <div id="selectionEmpty" class="selection-empty"><span>字</span><h2>Выберите кандзи</h2><p>После подтверждения предложим значения и добавим карточку в словарь.</p></div>
+          <div id="selectionEmpty" class="selection-empty"><span>字</span><h2>Choose a kanji</h2><p>Confirm a candidate to see its meanings and add a card to your dictionary.</p></div>
           <form id="kanjiForm" hidden>
             <div class="selected-kanji" id="selectedKanji">字</div>
             <div class="add-stroke-example" id="addStrokeExample" hidden></div>
-            <label>Перевод<input id="translationInput" required autocomplete="off" placeholder="Например: вода" /></label>
+            <label>Meaning<input id="translationInput" required autocomplete="off" placeholder="For example: water" /></label>
             <div class="meaning-suggestions" id="meaningSuggestions"></div>
-            <label>Заметка<textarea id="noteInput" rows="3" placeholder="Чтение, ассоциация или пример"></textarea></label>
+            <label>Note<textarea id="noteInput" rows="3" placeholder="Reading, association, or example"></textarea></label>
             <div class="reading-info" id="readingInfo"></div>
-            <button class="save-kanji" type="submit">Добавить в словарь</button>
+            <button class="save-kanji" type="submit">Add to dictionary</button>
           </form>
         </aside>
       </div>
 
       <section class="my-dictionary">
-        <div class="dictionary-heading"><div><p class="eyebrow">Локально на устройстве</p><h2>Мой словарь</h2></div><span id="dictionaryCount">0 карточек</span></div>
+        <div class="dictionary-heading"><div><p class="eyebrow">Stored on this device</p><h2>My dictionary</h2></div><span id="dictionaryCount">0 cards</span></div>
         <div class="dictionary-list" id="dictionaryList"></div>
       </section>
 
       <section class="review-section" id="reviewSection">
         <div class="review-heading">
-          <div><p class="eyebrow">Интервальные повторения</p><h2>Тест на повторение</h2></div>
-          <button id="startReview" type="button">Начать тест <span id="dueCount">0</span></button>
+          <div><p class="eyebrow">Spaced repetition</p><h2>Review test</h2></div>
+          <button id="startReview" type="button">Start test <span id="dueCount">0</span></button>
         </div>
-        <div class="review-empty" id="reviewEmpty">Добавьте карточки в словарь — новые кандзи сразу появятся здесь.</div>
+        <div class="review-empty" id="reviewEmpty">Add cards to your dictionary and new kanji will appear here immediately.</div>
         <div class="review-card" id="reviewCard" hidden>
           <p id="reviewProgress"></p>
           <div class="review-translation" id="reviewTranslation"></div>
-          <p class="review-prompt">Нарисуйте кандзи для этого перевода. Соблюдайте порядок и направление штрихов.</p>
+          <p class="review-prompt">Draw the kanji for this meaning. Follow the correct stroke order and direction.</p>
           <div id="reviewCanvasHost"></div>
-          <button class="check-drawing" id="checkDrawing" type="button">Проверить написание</button>
+          <button class="check-drawing" id="checkDrawing" type="button">Check writing</button>
           <div class="review-feedback" id="reviewFeedback" hidden aria-live="polite"></div>
         </div>
       </section>
@@ -115,9 +115,9 @@
       </div>
     </main>
 
-    <footer><span>Распознавание работает локально.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
+    <footer><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="progress-sync.js?v=1"></script>
+    <script src="progress-sync.js?v=2"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
     <script src="kanjivg-directions.js?v=1"></script>
     <script src="kanjivg-strokes.js?v=1"></script>
@@ -125,6 +125,6 @@
     <script src="recognizer-geometry.js?v=1"></script>
     <script src="recognizer-fixes.js?v=1"></script>
     <script src="srs.js?v=3"></script>
-    <script src="kanji-app.js?v=7"></script>
+    <script src="kanji-app.js?v=8"></script>
   </body>
 </html>

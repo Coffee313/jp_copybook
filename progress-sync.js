@@ -5,6 +5,7 @@
   let getLocalProgress = () => ({});
   let applyRemoteProgress = () => {};
   let saveTimer = null;
+  let cloudProgress = {};
 
   const readSession = () => {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
@@ -24,7 +25,7 @@
       headers: { apikey: config.publishableKey, 'Content-Type': 'application/json', ...options.headers }
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.msg || data.message || data.error_description || 'Ошибка авторизации');
+    if (!response.ok) throw new Error(data.msg || data.message || data.error_description || 'Authentication failed.');
     return data;
   }
 
@@ -45,7 +46,7 @@
 
   async function progressRequest(path, options = {}) {
     const active = await ensureSession();
-    if (!active) throw new Error('Войдите в аккаунт, чтобы сохранить прогресс.');
+    if (!active) throw new Error('Sign in to save your progress.');
     const response = await fetch(`${config.url}/rest/v1/${path}`, {
       ...options,
       headers: {
@@ -57,7 +58,7 @@
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || 'Не удалось синхронизировать прогресс.');
+      throw new Error(data.message || 'Could not sync progress.');
     }
     return response.status === 204 ? null : response.json();
   }
@@ -66,6 +67,7 @@
     if (!session?.user?.id) return;
     const rows = await progressRequest(`user_progress?user_id=eq.${encodeURIComponent(session.user.id)}&select=progress`);
     const remote = rows?.[0]?.progress || {};
+    cloudProgress = remote;
     await applyRemoteProgress(remote);
     await saveNow();
   }
@@ -75,15 +77,15 @@
     await progressRequest('user_progress?on_conflict=user_id', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ user_id: session.user.id, progress: getLocalProgress(), updated_at: new Date().toISOString() })
+      body: JSON.stringify({ user_id: session.user.id, progress: (cloudProgress = { ...cloudProgress, ...getLocalProgress() }), updated_at: new Date().toISOString() })
     });
-    setSyncStatus('Прогресс сохранён');
+    setSyncStatus('Progress saved');
   }
 
   function queueSave() {
     if (!session) return;
     clearTimeout(saveTimer);
-    setSyncStatus('Сохранение…');
+    setSyncStatus('Saving…');
     saveTimer = setTimeout(() => saveNow().catch(error => setSyncStatus(error.message, true)), 500);
   }
 
@@ -102,7 +104,7 @@
     signedIn.hidden = !session;
     document.querySelector('#accountEmail').textContent = session?.user?.email || '';
     document.querySelector('#signOut').hidden = !session;
-    setSyncStatus(session ? 'Синхронизация включена' : 'Прогресс хранится на этом устройстве');
+    setSyncStatus(session ? 'Cloud sync is on' : 'Progress is stored on this device');
   }
 
   async function signIn(email, password) {
@@ -120,9 +122,9 @@
     if (data.access_token) {
       storeSession(data);
       await loadAndMergeProgress();
-      return 'Аккаунт создан.';
+      return 'Account created.';
     }
-    return 'Проверьте почту и подтвердите регистрацию.';
+    return 'Check your email to confirm your account.';
   }
 
   async function signOut() {
@@ -143,9 +145,9 @@
       const password = document.querySelector('#accountPassword').value;
       const status = document.querySelector('#accountStatus');
       status.removeAttribute('data-error');
-      status.textContent = action === 'signup' ? 'Создаём аккаунт…' : 'Входим…';
+      status.textContent = action === 'signup' ? 'Creating account…' : 'Signing in…';
       try {
-        const message = action === 'signup' ? await signUp(email, password) : (await signIn(email, password), 'Вход выполнен.');
+        const message = action === 'signup' ? await signUp(email, password) : (await signIn(email, password), 'Signed in.');
         status.textContent = message;
         if (session) setTimeout(() => dialog.close(), 500);
       } catch (error) {

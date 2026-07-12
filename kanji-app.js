@@ -1,7 +1,6 @@
 const STORAGE_KEY = 'kana-kanji-dictionary-v1';
-const MEANING_CACHE_KEY = 'kana-kanji-meanings-v1';
+const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 let selectedCharacter = '';
-const meaningRequests = new Map();
 let reviewQueue = [];
 let reviewIndex = 0;
 let reviewActive = false;
@@ -19,26 +18,25 @@ async function fetchJson(url, timeout = 5000) {
   }
 }
 
-// Частые кандзи доступны без сети. Для остальных значений используем
-// KanjiAPI и переводим их на русский, после чего сохраняем в локальный кэш.
-const RUSSIAN_MEANINGS = {
-  '一':['один'], '二':['два'], '三':['три'], '四':['четыре'], '五':['пять'],
-  '六':['шесть'], '七':['семь'], '八':['восемь'], '九':['девять'], '十':['десять'],
-  '日':['день','солнце'], '月':['месяц','луна'], '火':['огонь'], '水':['вода'],
-  '木':['дерево'], '金':['золото','деньги'], '土':['земля','почва'], '山':['гора'],
-  '川':['река'], '田':['рисовое поле'], '人':['человек'], '子':['ребёнок'],
-  '女':['женщина'], '男':['мужчина'], '父':['отец'], '母':['мать'], '友':['друг'],
-  '私':['я','частный'], '先':['впереди','предыдущий'], '生':['жизнь','рождение'],
-  '学':['учёба','изучать'], '校':['школа'], '本':['книга','основа'], '語':['язык','слово'],
-  '年':['год'], '時':['время','час'], '分':['минута','часть'], '今':['сейчас'],
-  '上':['верх','подниматься'], '下':['низ','опускаться'], '中':['середина','внутри'],
-  '大':['большой'], '小':['маленький'], '長':['длинный','начальник'], '高':['высокий','дорогой'],
-  '新':['новый'], '古':['старый'], '白':['белый'], '黒':['чёрный'], '赤':['красный'],
-  '青':['синий','голубой'], '行':['идти','движение'], '来':['приходить'], '見':['видеть'],
-  '聞':['слышать','спрашивать'], '話':['говорить','разговор'], '読':['читать'], '書':['писать'],
-  '食':['есть','еда'], '飲':['пить'], '買':['покупать'], '車':['машина'], '電':['электричество'],
-  '国':['страна'], '家':['дом','семья'], '店':['магазин'], '駅':['станция'], '道':['дорога','путь'],
-  '何':['что'], '名':['имя'], '気':['дух','настроение'], '雨':['дождь'], '空':['небо','пустота']
+// Common kanji remain available offline; KanjiAPI supplies the rest.
+const ENGLISH_MEANINGS = {
+  '一':['one'], '二':['two'], '三':['three'], '四':['four'], '五':['five'],
+  '六':['six'], '七':['seven'], '八':['eight'], '九':['nine'], '十':['ten'],
+  '日':['day','sun'], '月':['month','moon'], '火':['fire'], '水':['water'],
+  '木':['tree','wood'], '金':['gold','money'], '土':['earth','soil'], '山':['mountain'],
+  '川':['river'], '田':['rice field'], '人':['person'], '子':['child'],
+  '女':['woman'], '男':['man'], '父':['father'], '母':['mother'], '友':['friend'],
+  '私':['I','private'], '先':['ahead','previous'], '生':['life','birth'],
+  '学':['study','learning'], '校':['school'], '本':['book','origin'], '語':['language','word'],
+  '年':['year'], '時':['time','hour'], '分':['minute','part'], '今':['now'],
+  '上':['up','above'], '下':['down','below'], '中':['middle','inside'],
+  '大':['big'], '小':['small'], '長':['long','leader'], '高':['high','expensive'],
+  '新':['new'], '古':['old'], '白':['white'], '黒':['black'], '赤':['red'],
+  '青':['blue','green'], '行':['go','movement'], '来':['come'], '見':['see'],
+  '聞':['hear','ask'], '話':['speak','talk'], '読':['read'], '書':['write'],
+  '食':['eat','food'], '飲':['drink'], '買':['buy'], '車':['car'], '電':['electricity'],
+  '国':['country'], '家':['home','family'], '店':['shop'], '駅':['station'], '道':['road','way'],
+  '何':['what'], '名':['name'], '気':['spirit','mood'], '雨':['rain'], '空':['sky','empty']
 };
 
 const readJson = (key, fallback) => {
@@ -80,7 +78,7 @@ async function loadMeanings(character) {
   const suggestions = document.querySelector('#meaningSuggestions');
   const info = document.querySelector('#readingInfo');
   const cache = readJson(MEANING_CACHE_KEY, {});
-  suggestions.innerHTML = '<span>Ищем варианты перевода…</span>';
+  suggestions.innerHTML = '<span>Looking up meanings…</span>';
   info.textContent = '';
   let data = cache[character];
   if (!data) {
@@ -91,48 +89,24 @@ async function loadMeanings(character) {
     }
   }
   if (selectedCharacter !== character) return;
-  let russianMeanings = RUSSIAN_MEANINGS[character] || data.russianMeanings || [];
-  if (!russianMeanings.length && data.meanings?.length) {
-    const translations = data.meanings.slice(0, 6).map(meaning => {
-      const requestKey = meaning.toLowerCase();
-      let request = meaningRequests.get(requestKey);
-      if (!request) {
-        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(meaning)}&langpair=en|ru`;
-        request = fetchJson(url).then(result => result.responseData?.translatedText?.trim()).catch(() => null);
-        meaningRequests.set(requestKey, request);
-        request.finally(() => meaningRequests.delete(requestKey));
-      }
-      return request.then(translation => {
-        if (!translation || selectedCharacter !== character) return translation;
-        if (!suggestions.querySelector('button')) suggestions.innerHTML = '';
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.textContent = translation;
-        button.addEventListener('click', () => { document.querySelector('#translationInput').value = translation; });
-        suggestions.append(button);
-        return translation;
-      });
-    });
-    russianMeanings = (await Promise.all(translations)).filter(Boolean);
-  }
+  const meanings = ENGLISH_MEANINGS[character] || data.meanings || [];
   if (selectedCharacter !== character) return;
-  data.russianMeanings = russianMeanings;
   cache[character] = data;
   localStorage.setItem(MEANING_CACHE_KEY, JSON.stringify(cache));
   suggestions.innerHTML = '';
-  russianMeanings.slice(0, 8).forEach(meaning => {
+  meanings.slice(0, 8).forEach(meaning => {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = meaning;
     button.addEventListener('click', () => { document.querySelector('#translationInput').value = meaning; });
     suggestions.append(button);
   });
-  if (!russianMeanings.length) {
-    suggestions.innerHTML = '<span>Для этого кандзи пока нет русских подсказок. Введите перевод вручную.</span>';
+  if (!meanings.length) {
+    suggestions.innerHTML = '<span>No suggested meanings are available for this kanji. Enter one manually.</span>';
   }
-  const on = data.on_readings?.length ? `Он: ${data.on_readings.join('、')}` : '';
-  const kun = data.kun_readings?.length ? `Кун: ${data.kun_readings.join('、')}` : '';
-  info.textContent = [on, kun, data.stroke_count ? `Штрихов: ${data.stroke_count}` : ''].filter(Boolean).join(' · ');
+  const on = data.on_readings?.length ? `On: ${data.on_readings.join('、')}` : '';
+  const kun = data.kun_readings?.length ? `Kun: ${data.kun_readings.join('、')}` : '';
+  info.textContent = [on, kun, data.stroke_count ? `Strokes: ${data.stroke_count}` : ''].filter(Boolean).join(' · ');
 }
 
 document.addEventListener('click', event => {
@@ -177,16 +151,16 @@ function renderDictionary() {
   const list = document.querySelector('#dictionaryList');
   const items = getDictionary();
   updateReviewSummary(items);
-  document.querySelector('#dictionaryCount').textContent = `${items.length} ${items.length === 1 ? 'карточка' : 'карточек'}`;
+  document.querySelector('#dictionaryCount').textContent = `${items.length} ${items.length === 1 ? 'card' : 'cards'}`;
   list.innerHTML = '';
   if (!items.length) {
-    list.innerHTML = '<p class="dictionary-empty">Словарь пока пуст. Нарисуйте первый кандзи и добавьте перевод.</p>';
+    list.innerHTML = '<p class="dictionary-empty">Your dictionary is empty. Draw your first kanji and add a meaning.</p>';
     return;
   }
   items.forEach(item => {
     const card = document.createElement('article');
     card.className = 'dictionary-item';
-    card.innerHTML = `<span class="character">${item.character}</span><div><strong>${item.translation}</strong><small>${item.note || 'Готов к первому повторению'}</small></div><button type="button" aria-label="Удалить ${item.character}">×</button>`;
+    card.innerHTML = `<span class="character">${item.character}</span><div><strong>${item.translation}</strong><small>${item.note || 'Ready for the first review'}</small></div><button type="button" aria-label="Delete ${item.character}">×</button>`;
     card.querySelector('button').addEventListener('click', () => {
       saveDictionary(getDictionary().filter(entry => entry.character !== item.character));
       renderDictionary();
@@ -201,8 +175,8 @@ function updateReviewSummary(items = getDictionary()) {
   document.querySelector('#dueCount').textContent = due.length;
   startButton.disabled = due.length === 0;
   document.querySelector('#reviewEmpty').textContent = items.length
-    ? (due.length ? `${due.length} карточек готовы к повторению.` : 'На сегодня всё повторено. Возвращайтесь позже.')
-    : 'Добавьте карточки в словарь — новые кандзи сразу появятся здесь.';
+    ? (due.length ? `${due.length} ${due.length === 1 ? 'card is' : 'cards are'} ready for review.` : 'All reviews are complete for today. Come back later.')
+    : 'Add cards to your dictionary and new kanji will appear here immediately.';
 }
 
 function showReviewCard() {
@@ -218,7 +192,7 @@ function showReviewCard() {
     candidatePanel.hidden = false;
     reviewCard.hidden = true;
     empty.hidden = false;
-    empty.textContent = 'Тест завершён. Расписание следующих повторений сохранено.';
+    empty.textContent = 'Review complete. Your next review schedule has been saved.';
     updateReviewSummary();
     return;
   }
@@ -227,17 +201,17 @@ function showReviewCard() {
   reviewActive = true;
   empty.hidden = true;
   reviewCard.hidden = false;
-  document.querySelector('#reviewProgress').textContent = `Карточка ${reviewIndex + 1} из ${reviewQueue.length}`;
+  document.querySelector('#reviewProgress').textContent = `Card ${reviewIndex + 1} of ${reviewQueue.length}`;
   document.querySelector('#reviewTranslation').textContent = card.translation;
   const prompt = document.querySelector('.review-prompt');
   const guide = document.querySelector('#reviewStrokeGuide');
   renderStrokeGuide(guide, card.character);
   guide.hidden = reviewMode !== 'guided' || !KANJIVG_STROKES[card.character];
   prompt.textContent = reviewMode === 'guided'
-    ? 'Повторите кандзи по образцу. После правильного написания нужно будет написать его ещё раз без подсказки.'
+    ? 'Trace the kanji using the guide. After a correct attempt, you will write it once more without help.'
     : reviewMode === 'confirm'
-      ? 'Теперь напишите тот же кандзи ещё раз без образца.'
-      : 'Нарисуйте кандзи для этого перевода. Соблюдайте порядок и направление штрихов.';
+      ? 'Now write the same kanji once more without the guide.'
+      : 'Draw the kanji for this meaning. Follow the correct stroke order and direction.';
   const feedback = document.querySelector('#reviewFeedback');
   feedback.hidden = true;
   feedback.removeAttribute('data-result');
@@ -262,7 +236,7 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
   const checkButton = document.querySelector('#checkDrawing');
   const feedback = document.querySelector('#reviewFeedback');
   if (!testk) {
-    feedback.textContent = 'Сначала нарисуйте кандзи.';
+    feedback.textContent = 'Draw a kanji first.';
     feedback.hidden = false;
     return;
   }
@@ -273,12 +247,12 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
   const attemptMode = reviewMode;
   const nextMode = SRS.nextReviewMode(attemptMode, rating);
   const messages = {
-    good: `Верно: ${reviewed.character}. Порядок и направление штрихов правильные.`,
-    hard: `Это ${reviewed.character}, но порядок или направление штрихов нужно повторить.`,
-    again: `Неверно. Правильный кандзи: ${reviewed.character}.`
+    good: `Correct: ${reviewed.character}. The stroke order and direction are right.`,
+    hard: `This is ${reviewed.character}, but the stroke order or direction needs more practice.`,
+    again: `Incorrect. The correct kanji is ${reviewed.character}.`
   };
   feedback.textContent = rating === 'good' && attemptMode === 'guided'
-    ? `Верно: ${reviewed.character}. Теперь повторите без образца.`
+    ? `Correct: ${reviewed.character}. Now repeat it without the guide.`
     : messages[rating];
   feedback.dataset.result = rating;
   feedback.hidden = false;

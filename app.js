@@ -31,15 +31,33 @@ const sheet = document.querySelector('#sheet');
 const picker = document.querySelector('#kanaPicker');
 const ghostToggle = document.querySelector('#ghostToggle');
 const penOnlyToggle = document.querySelector('#penOnlyToggle');
+const MASTERY_KEY = 'kana-mastery-v1';
+const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
+let mastery = readMastery();
+let testActive = false;
+let testQueue = [];
+let testIndex = 0;
+
+function readMastery() {
+  try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveMastery(value) {
+  mastery = value;
+  localStorage.setItem(MASTERY_KEY, JSON.stringify(mastery));
+  renderProgress();
+  window.ProgressSync?.queueSave();
+}
 
 const strokeCounts = {
-  // Хирагана
+  // Hiragana
   'あ':3,'い':2,'う':2,'え':2,'お':3,'か':3,'き':4,'く':1,'け':3,'こ':2,
   'さ':3,'し':1,'す':2,'せ':3,'そ':1,'た':4,'ち':2,'つ':1,'て':1,'と':2,
   'な':4,'に':3,'ぬ':2,'ね':2,'の':1,'は':3,'ひ':1,'ふ':4,'へ':1,'ほ':4,
   'ま':3,'み':2,'む':3,'め':2,'も':3,'や':3,'ゆ':2,'よ':2,'ら':2,'り':2,
   'る':1,'れ':2,'ろ':1,'わ':2,'を':3,'ん':1,
-  // Катакана
+  // Katakana
   'ア':2,'イ':2,'ウ':3,'エ':3,'オ':3,'カ':2,'キ':3,'ク':2,'ケ':3,'コ':2,
   'サ':3,'シ':3,'ス':2,'セ':2,'ソ':2,'タ':3,'チ':3,'ツ':3,'テ':3,'ト':2,
   'ナ':2,'ニ':2,'ヌ':2,'ネ':4,'ノ':1,'ハ':2,'ヒ':2,'フ':1,'ヘ':1,'ホ':4,
@@ -50,34 +68,41 @@ const strokeCounts = {
 function makeStrokeDiagram() {
   const diagram = document.createElement('div');
   diagram.className = 'stroke-diagram';
-  diagram.setAttribute('aria-label', `${selected[0]}, порядок штрихов: ${strokeCounts[selected[0]]}`);
-  const image = document.createElement('img');
-  const codepoint = selected[0].codePointAt(0).toString(16).padStart(5, '0');
-  image.src = `assets/kana/${codepoint}.svg`;
-  image.alt = '';
-  diagram.append(image);
+  diagram.setAttribute('aria-label', `${selected[0]}, stroke count: ${strokeCounts[selected[0]]}`);
+  diagram.append(makeVectorKana(selected[0], true));
   return diagram;
 }
 
-function makeVectorKana(character) {
+function makeVectorKana(character, numbered = false) {
   const namespace = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(namespace, 'svg');
   svg.setAttribute('viewBox', '0 0 109 109');
   svg.setAttribute('aria-hidden', 'true');
-  (window.kanaGuidePaths?.[character] || []).forEach(data => {
+  (window.kanaGuidePaths?.[character] || []).forEach((data, index) => {
     const path = document.createElementNS(namespace, 'path');
     path.setAttribute('d', data);
     svg.append(path);
+    if (numbered) {
+      const start = data.match(/^\s*[Mm]\s*([-+\d.]+)[,\s]+([-+\d.]+)/);
+      if (start) {
+        const label = document.createElementNS(namespace, 'text');
+        label.setAttribute('x', Number(start[1]) - 3);
+        label.setAttribute('y', Number(start[2]) - 3);
+        label.textContent = String(index + 1);
+        svg.append(label);
+      }
+    }
   });
   return svg;
 }
 
 function makeSheet() {
   sheet.innerHTML = '';
-  for (let i = 0; i < 15; i++) {
+  const cellCount = testActive ? 1 : 15;
+  for (let i = 0; i < cellCount; i++) {
     const cell = document.createElement('div');
-    cell.className = `cell${i === 0 ? ' stroke-cell' : ''}`;
-    if (i === 0) {
+    cell.className = `cell${!testActive && i === 0 ? ' stroke-cell' : ''}${testActive ? ' test-cell' : ''}`;
+    if (!testActive && i === 0) {
       cell.append(makeStrokeDiagram());
       sheet.append(cell);
       continue;
@@ -310,7 +335,7 @@ function gradeCanvas(canvas) {
   };
   const user = toMask(userCanvas.getContext('2d'));
   const target = toMask(refCanvas.getContext('2d'));
-  // Небольшой допуск компенсирует толщину пера, но не маскирует неточную форму.
+  // A small tolerance compensates for pen width without hiding an inaccurate shape.
   const userWide = dilate(user, size, 3);
   const targetWide = dilate(target, size, 4);
   let userPixels = 0, targetPixels = 0, userHits = 0, targetHits = 0;
@@ -337,13 +362,69 @@ function showGrade(cell, result, score) {
   const badge = document.createElement('span');
   badge.className = 'grade-badge';
   badge.textContent = result === 'good'
-    ? `Хорошо · ${score}%`
+    ? `Good · ${score}%`
     : result === 'order'
-      ? `Хорошо, но порядок нарушен · ${score}%`
+      ? `Good shape, wrong order · ${score}%`
       : result === 'direction'
-        ? `Неверное направление штриха · ${score}%`
-      : `Ещё раз · ${score}%`;
+        ? `Wrong stroke direction · ${score}%`
+      : `Try again · ${score}%`;
   cell.append(badge);
+  if (testActive) handleTestResult(result);
+}
+
+function renderProgress() {
+  const completed = KanaProgress.progressCount(mastery, allKanaCharacters);
+  document.querySelector('#kanaProgressText').textContent = `${completed} of ${allKanaCharacters.length}`;
+  document.querySelector('#kanaProgressBar').style.width = `${completed / allKanaCharacters.length * 100}%`;
+  document.querySelector('.kana-progress-track').setAttribute('aria-valuenow', completed);
+  document.querySelectorAll('.kana-button').forEach(button => button.classList.toggle('mastered', Boolean(mastery[button.textContent]?.passed)));
+}
+
+function handleTestResult(result) {
+  if (result !== 'good') {
+    setTimeout(() => {
+      const canvas = document.querySelector('.test-cell canvas');
+      if (!canvas) return;
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      canvas.__strokes = [];
+      const cell = canvas.parentElement;
+      cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
+      cell.querySelector('.grade-badge')?.remove();
+    }, 1100);
+    return;
+  }
+  saveMastery(KanaProgress.markMastered(mastery, selected[0]));
+  const canvas = document.querySelector('.test-cell canvas');
+  if (canvas) canvas.style.pointerEvents = 'none';
+  setTimeout(() => {
+    testIndex += 1;
+    if (testIndex >= testQueue.length) {
+      stopKanaTest('Test complete');
+      return;
+    }
+    selected = testQueue[testIndex];
+    updateLesson();
+  }, 900);
+}
+
+function startKanaTest() {
+  testActive = true;
+  testIndex = 0;
+  testQueue = KanaProgress.shuffled(kana[script]);
+  selected = testQueue[0];
+  document.querySelector('#startKanaTest').textContent = 'End test';
+  document.querySelector('.practice-card').classList.add('test-active');
+  updateLesson();
+}
+
+function stopKanaTest(message = 'Start test') {
+  testActive = false;
+  testQueue = [];
+  selected = kana[script][0];
+  document.querySelector('#startKanaTest').textContent = message;
+  document.querySelector('.practice-card').classList.remove('test-active');
+  updateLesson();
+  if (message !== 'Start test') setTimeout(() => { document.querySelector('#startKanaTest').textContent = 'Start test'; }, 1400);
 }
 
 function renderPicker() {
@@ -352,6 +433,7 @@ function renderPicker() {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `kana-button${item[0] === selected[0] ? ' active' : ''}`;
+    if (mastery[item[0]]?.passed) button.classList.add('mastered');
     button.textContent = item[0];
     button.title = item[1];
     button.setAttribute('aria-label', `${item[0]} — ${item[1]}`);
@@ -364,14 +446,18 @@ function renderPicker() {
 }
 
 function updateLesson() {
-  document.querySelector('#referenceKana').textContent = selected[0];
+  document.querySelector('#referenceKana').textContent = testActive ? '?' : selected[0];
   document.querySelector('#referenceRomanji').textContent = selected[1];
+  document.querySelector('.reference-hint').textContent = testActive
+    ? `Test ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without a guide`
+    : 'Repeat the character in each cell';
   renderPicker();
   makeSheet();
 }
 
 document.querySelectorAll('.script-button').forEach(button => {
   button.addEventListener('click', () => {
+    if (testActive) stopKanaTest();
     script = button.dataset.script;
     selected = kana[script][0];
     document.querySelectorAll('.script-button').forEach(item => item.classList.toggle('active', item === button));
@@ -379,14 +465,16 @@ document.querySelectorAll('.script-button').forEach(button => {
   });
 });
 
+document.querySelector('#startKanaTest').addEventListener('click', () => testActive ? stopKanaTest() : startKanaTest());
+
 ghostToggle.addEventListener('change', () => {
   document.querySelectorAll('.ghost').forEach(ghost => { ghost.hidden = !ghostToggle.checked; });
 });
 
 penOnlyToggle.addEventListener('change', () => {
   document.querySelector('.tablet-tip').firstChild.textContent = penOnlyToggle.checked
-    ? ' Стилус активен, касания ладонью игнорируются. '
-    : ' Рисование пальцем включено. ';
+    ? ' Stylus mode is active; palm touches are ignored. '
+    : ' Finger drawing is enabled. ';
 });
 
 document.querySelector('#clearButton').addEventListener('click', () => {
@@ -407,3 +495,8 @@ window.addEventListener('resize', () => {
 });
 
 updateLesson();
+renderProgress();
+ProgressSync.initialize({
+  getLocalProgress: () => ({ kanaMastery: mastery }),
+  applyRemoteProgress: remote => saveMastery(KanaProgress.mergeMastery(mastery, remote.kanaMastery || {}))
+});

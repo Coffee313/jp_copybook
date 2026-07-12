@@ -14,7 +14,7 @@
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', '0 0 109 109');
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', `Порядок штрихов для ${character}`);
+    svg.setAttribute('aria-label', `Stroke order for ${character}`);
     strokes.forEach((pathData, index) => {
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('d', pathData);
