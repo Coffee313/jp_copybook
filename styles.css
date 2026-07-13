@@ -97,6 +97,7 @@ button { color: inherit; }
 }
 
 .clear-button:hover { border-color: var(--accent); color: var(--accent); }
+.practice-clear { margin-left: auto; }
 
 main { width: min(1180px, calc(100% - 40px)); margin: 16px auto 0; }
 
@@ -228,6 +229,7 @@ footer a { color: inherit; }
   .lead { font-size: 15px; }
   .practice-card { border-radius: 20px; }
   .controls { align-items: flex-start; flex-direction: column; padding: 18px; }
+  .practice-clear { margin-left: 0; }
   .lesson { grid-template-columns: 1fr; }
   .reference { min-height: 170px; padding: 20px; border-right: 0; border-bottom: 1px solid #e9e4dc; flex-direction: row; align-items: flex-end; }
   .reference-kana { font-size: 112px; }

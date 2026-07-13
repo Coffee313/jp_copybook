@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kana — handwriting practice</title>
-    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=10" />
   </head>
   <body>
     <header class="topbar">
@@ -17,11 +17,8 @@
         <a class="active" href="index.html">Practice</a>
         <a href="kanji.html">Kanji & dictionary</a>
       </nav>
-      <button class="clear-button" id="clearButton" type="button">
-        <span aria-hidden="true">↻</span> Clear
-      </button>
       <div class="account-area">
-        <button id="openAccount" type="button" aria-label="Open profile"><span id="signedOutAccount">Profile</span><span id="signedInAccount" hidden><span id="accountEmail"></span></span></button>
+        <button id="openAccount" type="button" aria-label="Open profile"><span id="signedOutAccount">Sign In</span><span id="signedInAccount" hidden><span id="accountEmail"></span></span></button>
       </div>
     </header>
 
@@ -76,6 +73,7 @@
             <span class="toggle" aria-hidden="true"></span>
             <span>Stylus only</span>
           </label>
+          <button class="clear-button practice-clear" id="clearButton" type="button"><span aria-hidden="true">↻</span> Clear drawings</button>
         </div>
 
         <div class="lesson">
@@ -113,6 +111,6 @@
     <script src="progress-sync.js?v=5"></script>
     <script src="kana-progress.js?v=3"></script>
     <script src="kana-guides.js?v=4"></script>
-    <script src="app.js?v=7"></script>
+    <script src="app.js?v=8"></script>
   </body>
 </html>

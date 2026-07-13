@@ -552,7 +552,11 @@ document.querySelector('#clearButton').addEventListener('click', () => {
   });
 });
 
+let layoutViewportWidth = document.documentElement.clientWidth;
 window.addEventListener('resize', () => {
+  const nextWidth = document.documentElement.clientWidth;
+  if (Math.abs(nextWidth - layoutViewportWidth) < 2) return;
+  layoutViewportWidth = nextWidth;
   clearTimeout(window.__resizeTimer);
   window.__resizeTimer = setTimeout(makeSheet, 150);
 });
