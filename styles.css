@@ -37,6 +37,7 @@ button { color: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .brand {
@@ -236,11 +237,15 @@ footer a { color: inherit; }
 .footer-sync-status { margin-right: auto; font-size: inherit; text-align: left; }
 
 @media (max-width: 760px) {
-  .topbar, main, footer { width: min(100% - 24px, 1180px); }
-  .topbar { flex-wrap: wrap; gap: 5px; padding-block: 5px; }
-  .main-nav { order: 3; width: 100%; margin: 0; }
-  .main-nav a { flex: 1; text-align: center; }
-  .account-area { order: 2; margin-left: auto; }
+  .topbar, main, footer { width: min(100% - 16px, 1180px); }
+  .topbar { min-height: 42px; gap: 4px; padding-block: 3px; }
+  .brand > span:last-child, .top-input-control > span:last-child { display: none; }
+  .brand-mark { width: 30px; height: 30px; font-size: 16px; }
+  .main-nav { min-width: 0; width: auto; margin: 0 0 0 auto; }
+  .main-nav a { flex: 0 1 auto; padding: 5px 6px; white-space: nowrap; text-align: center; font-size: 10px; }
+  .account-area { order: initial; margin: 0; flex: none; }
+  .account-area > button { padding: 5px 7px; font-size: 10px; }
+  .top-input-control { margin: 0 5px; flex: none; }
   .kana-progress-panel { grid-template-columns: 1fr auto auto; }
   .kana-progress-track { grid-column: 1 / -1; grid-row: 2; }
   main { margin-top: 12px; }
@@ -252,7 +257,6 @@ footer a { color: inherit; }
   .controls { align-items: flex-start; flex-direction: column; padding: 18px; }
   .learning-path { grid-template-columns: 1fr; padding: 18px; }
   .learned-queue { max-width: none; }
-  .top-input-control { margin: 0 10px 0 auto; }
   .input-mode-actions { grid-template-columns: 1fr; }
   .practice-clear { margin-left: 0; }
   .lesson { grid-template-columns: 1fr; }
