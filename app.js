@@ -189,8 +189,8 @@ function currentLearningRow(scriptName = script) {
 }
 
 function canFastTrackKana() {
-  return ['intermediate', 'master'].includes(placement?.selectedLevel)
-    || ['Intermediate', 'Strong intermediate', 'Master of Kana'].includes(placement?.assignedLevel);
+  if (!placement) return false;
+  return placement.selectedLevel !== 'beginner' && placement.assignedLevel !== 'Beginner';
 }
 
 function pendingTestKana(scriptName = script) {
@@ -1031,6 +1031,7 @@ function initializePlacement() {
       skipped: true,
       completedAt: new Date().toISOString()
     });
+    renderLearningPath();
     return;
   }
   const dialog = document.querySelector('#placementDialog');
