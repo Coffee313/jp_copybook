@@ -115,6 +115,33 @@ const TEST_LAYERS = [
 ];
 
 let vectorMarkerId = 0;
+let activeDrawingCanvas = null;
+
+function lockDrawingViewport(canvas) {
+  activeDrawingCanvas = canvas;
+  if (!document.documentElement.classList.contains('apple-fullscreen-ui') || !document.body.classList.contains('concentration-mode')) return;
+  document.documentElement.classList.add('drawing-active');
+  document.body.classList.add('drawing-active');
+}
+
+function unlockDrawingViewport(canvas) {
+  if (activeDrawingCanvas === canvas) activeDrawingCanvas = null;
+  document.documentElement.classList.remove('drawing-active');
+  document.body.classList.remove('drawing-active');
+  if (window.__drawingResizePending) {
+    window.__drawingResizePending = false;
+    clearTimeout(window.__resizeTimer);
+    window.__resizeTimer = setTimeout(() => makeSheet(true), 0);
+  }
+}
+
+const preventDrawingGesture = event => {
+  if (activeDrawingCanvas && event.cancelable) event.preventDefault();
+};
+document.addEventListener('touchmove', preventDrawingGesture, { capture: true, passive: false });
+document.addEventListener('gesturestart', preventDrawingGesture, { capture: true, passive: false });
+document.addEventListener('gesturechange', preventDrawingGesture, { capture: true, passive: false });
+document.addEventListener('gestureend', preventDrawingGesture, { capture: true, passive: false });
 
 function readMastery() {
   try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
@@ -369,6 +396,7 @@ function setupCanvas(canvas, savedState = null) {
 
   let drawing = false;
   let currentStroke = null;
+  let drawingRect = null;
   let gradeTimer;
   const cell = canvas.parentElement;
 
@@ -378,18 +406,29 @@ function setupCanvas(canvas, savedState = null) {
     cell.querySelector('.grade-badge')?.remove();
   };
   const point = event => {
-    const rect = canvas.getBoundingClientRect();
+    const rect = drawingRect || canvas.getBoundingClientRect();
     return [event.clientX - rect.left, event.clientY - rect.top];
   };
+  const preventCanvasGesture = event => {
+    if (event.cancelable) event.preventDefault();
+  };
+  canvas.addEventListener('touchstart', preventCanvasGesture, { capture: true, passive: false });
+  canvas.addEventListener('touchmove', preventCanvasGesture, { capture: true, passive: false });
+  canvas.addEventListener('touchend', preventCanvasGesture, { capture: true, passive: false });
+  canvas.addEventListener('gesturestart', preventCanvasGesture, { capture: true, passive: false });
+  canvas.addEventListener('gesturechange', preventCanvasGesture, { capture: true, passive: false });
   canvas.addEventListener('pointerdown', event => {
     if (penOnlyToggle.checked && event.pointerType === 'touch') return;
     event.preventDefault();
     clearGrade();
     drawing = true;
-    canvas.setPointerCapture(event.pointerId);
+    drawingRect = canvas.getBoundingClientRect();
+    lockDrawingViewport(canvas);
+    try { canvas.setPointerCapture(event.pointerId); }
+    catch { /* Older Safari versions can reject capture for Apple Pencil events. */ }
     const ctx = canvas.getContext('2d');
     const [x, y] = point(event);
-    const rect = canvas.getBoundingClientRect();
+    const rect = drawingRect;
     currentStroke = [[x / rect.width, y / rect.height]];
     ctx.beginPath();
     ctx.lineWidth = event.pointerType === 'pen' ? baseWidth * (.7 + event.pressure * .55) : baseWidth;
@@ -401,22 +440,31 @@ function setupCanvas(canvas, savedState = null) {
     if (!drawing) return;
     event.preventDefault();
     const [x, y] = point(event);
-    const rect = canvas.getBoundingClientRect();
+    const rect = drawingRect;
     currentStroke?.push([x / rect.width, y / rect.height]);
     const ctx = canvas.getContext('2d');
     if (event.pointerType === 'pen') ctx.lineWidth = baseWidth * (.7 + event.pressure * .55);
     ctx.lineTo(x, y);
     ctx.stroke();
   });
-  canvas.addEventListener('pointerup', () => {
+  canvas.addEventListener('pointerup', event => {
     if (!drawing) return;
     drawing = false;
     if (currentStroke?.length === 1) currentStroke.push(currentStroke[0]);
     if (currentStroke) canvas.__strokes.push(currentStroke);
     currentStroke = null;
+    drawingRect = null;
+    try { canvas.releasePointerCapture(event.pointerId); }
+    catch { /* Capture may already have been released by Safari. */ }
+    unlockDrawingViewport(canvas);
     gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
   });
-  canvas.addEventListener('pointercancel', () => { drawing = false; currentStroke = null; });
+  canvas.addEventListener('pointercancel', () => {
+    drawing = false;
+    currentStroke = null;
+    drawingRect = null;
+    unlockDrawingViewport(canvas);
+  });
   if (canvas.__strokes.length && !savedState?.grade) gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
 }
 
@@ -1276,6 +1324,10 @@ window.addEventListener('resize', () => {
   const nextWidth = document.documentElement.clientWidth;
   if (Math.abs(nextWidth - layoutViewportWidth) < 2) return;
   layoutViewportWidth = nextWidth;
+  if (activeDrawingCanvas) {
+    window.__drawingResizePending = true;
+    return;
+  }
   clearTimeout(window.__resizeTimer);
   window.__resizeTimer = setTimeout(() => makeSheet(true), 150);
 });
