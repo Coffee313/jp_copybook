@@ -88,6 +88,7 @@ let testActive = false;
 let testQueue = [];
 let testIndex = 0;
 let testLayerIndex = 0;
+let currentTestHadError = false;
 let selfTestActive = false;
 let knownKanaTestActive = false;
 let copybookMode = false;
@@ -825,22 +826,8 @@ function handleTestResult(result) {
     handlePlacementResult(result);
     return;
   }
-  if (knownKanaTestActive) {
-    const canvas = document.querySelector('.test-cell canvas');
-    if (canvas) canvas.style.pointerEvents = 'none';
-    if (result === 'good') saveMastery(KanaProgress.markMastered(mastery, selected[0]));
-    setTimeout(() => {
-      testIndex += 1;
-      if (testIndex >= testQueue.length) {
-        stopKanaTest('Knowledge check complete');
-        return;
-      }
-      selected = testQueue[testIndex];
-      updateLesson();
-    }, 900);
-    return;
-  }
   if (result !== 'good') {
+    currentTestHadError = true;
     const canvas = document.querySelector('.test-cell canvas');
     if (canvas) canvas.style.pointerEvents = 'none';
     setTimeout(() => {
@@ -857,11 +844,14 @@ function handleTestResult(result) {
       updateLesson();
       return;
     }
-    if (!selfTestActive) saveMastery(KanaProgress.markMastered(mastery, selected[0]));
+    const repeatRequired = currentTestHadError;
+    if (repeatRequired) testQueue.push(selected);
+    else if (!selfTestActive) saveMastery(KanaProgress.markMastered(mastery, selected[0]));
     testIndex += 1;
     testLayerIndex = TEST_LAYERS.length - 1;
+    currentTestHadError = false;
     if (testIndex >= testQueue.length) {
-      stopKanaTest(selfTestActive ? 'Self-test complete' : 'Test complete');
+      stopKanaTest(knownKanaTestActive ? 'Knowledge check complete' : selfTestActive ? 'Self-test complete' : 'Test complete');
       return;
     }
     selected = testQueue[testIndex];
@@ -877,6 +867,7 @@ function startKanaTest() {
   selfTestActive = false;
   testIndex = 0;
   testLayerIndex = TEST_LAYERS.length - 1;
+  currentTestHadError = false;
   testQueue = KanaProgress.shuffled(pending);
   selected = testQueue[0];
   if (guideControl) guideControl.hidden = true;
@@ -894,6 +885,7 @@ function startSelfTest() {
   selfTestActive = true;
   testIndex = 0;
   testLayerIndex = TEST_LAYERS.length - 1;
+  currentTestHadError = false;
   testQueue = KanaProgress.shuffled(mastered);
   selected = testQueue[0];
   guideControl.hidden = true;
@@ -913,6 +905,7 @@ function startKnownKanaTest() {
   selfTestActive = false;
   testIndex = 0;
   testLayerIndex = TEST_LAYERS.length - 1;
+  currentTestHadError = false;
   testQueue = KanaProgress.shuffled(candidates);
   selected = testQueue[0];
   guideControl.hidden = true;
@@ -931,6 +924,7 @@ function stopKanaTest(message = 'Start test') {
   knownKanaTestActive = false;
   testQueue = [];
   testLayerIndex = 0;
+  currentTestHadError = false;
   selected = nextLearningItem();
   if (guideControl) guideControl.hidden = false;
   document.querySelector('.practice-card').classList.remove('test-active');
@@ -1035,6 +1029,7 @@ document.querySelector('#forgotKana').addEventListener('click', () => {
     handleTestResult('retry');
     return;
   }
+  currentTestHadError = true;
   testLayerIndex = KanaProgress.previousTestLayer(testLayerIndex);
   updateLesson();
 });
