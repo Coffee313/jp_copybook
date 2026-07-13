@@ -933,6 +933,32 @@ document.querySelectorAll('[data-placement-level]').forEach(button => {
 });
 document.querySelector('#placementContinue').addEventListener('click', () => document.querySelector('#placementDialog').close());
 
+function setConcentrationMode(active) {
+  document.body.classList.toggle('concentration-mode', active);
+  document.querySelector('#concentrationEnter').setAttribute('aria-pressed', active ? 'true' : 'false');
+  requestAnimationFrame(() => makeSheet(true));
+}
+
+document.querySelector('#concentrationEnter').addEventListener('click', async () => {
+  setConcentrationMode(true);
+  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+    try { await document.documentElement.requestFullscreen(); }
+    catch { /* CSS concentration mode still works when fullscreen is unavailable. */ }
+  }
+});
+
+document.querySelector('#concentrationExit').addEventListener('click', async () => {
+  setConcentrationMode(false);
+  if (document.fullscreenElement && document.exitFullscreen) {
+    try { await document.exitFullscreen(); }
+    catch { /* The distraction-free layout has already been closed. */ }
+  }
+});
+
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && document.body.classList.contains('concentration-mode')) setConcentrationMode(false);
+});
+
 document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('canvas').forEach(canvas => {
     const ctx = canvas.getContext('2d');

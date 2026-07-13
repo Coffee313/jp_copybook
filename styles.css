@@ -98,6 +98,8 @@ button { color: inherit; }
 .placement-continue { width: 100%; margin-top: 18px; border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .placement-active .kana-progress-panel, .placement-active .learning-path, .placement-active .controls, .placement-active .kana-picker, .placement-active .mastered-kana, .placement-active .score-legend { display: none; }
 .placement-active .reference-kana { color: var(--muted); }
+.test-active .reference-romanji { overflow-wrap: anywhere; font-size: 22px; line-height: 1.15; }
+.test-active .reference-hint { font-size: 11px; line-height: 1.35; }
 #accountStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 #accountStatus[data-error="true"], #recoveryStatus[data-error="true"] { color: #a94534; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
@@ -190,6 +192,23 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .reference-kana { font-family: 'Noto Sans JP', sans-serif; font-size: 146px; line-height: 1; color: var(--green); }
 .reference-romanji { font-size: 32px; font-weight: 600; letter-spacing: -.04em; }
 .reference-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+.concentration-exit { display: none; }
+body.concentration-mode { overflow: hidden; background: var(--paper); }
+body.concentration-mode .topbar,
+body.concentration-mode footer,
+body.concentration-mode .practice-card > :not(.lesson),
+body.concentration-mode .reference { display: none; }
+body.concentration-mode main { width: 100%; height: 100dvh; margin: 0; }
+body.concentration-mode .practice-card { height: 100%; border: 0; border-radius: 0; box-shadow: none; }
+body.concentration-mode .lesson { display: block; height: 100%; min-height: 0; }
+body.concentration-mode .sheet-wrap { display: grid; width: 100%; height: 100%; place-items: center; overflow: hidden; padding: 32px; }
+body.concentration-mode .sheet { width: 100%; max-width: calc((100dvh - 64px) * 1.6667); min-width: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(5px, 1.2vmin, 12px); }
+body.concentration-mode .test-active .sheet { width: min(72vmin, 480px); grid-template-columns: 1fr; }
+body.concentration-mode .ghost,
+body.concentration-mode .test-guide,
+body.concentration-mode .stroke-cell { display: none; }
+body.concentration-mode .concentration-exit { position: fixed; z-index: 50; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid rgba(32,32,30,.14); border-radius: 50%; color: var(--ink); background: rgba(255,254,250,.9); box-shadow: 0 4px 18px rgba(30,25,18,.12); cursor: pointer; font-size: 25px; line-height: 1; }
 
 .sheet-wrap { overflow: auto; padding: 32px; background: #fbf9f5; }
 .sheet { display: grid; grid-template-columns: repeat(5, minmax(112px, 1fr)); gap: 10px; min-width: 600px; }
@@ -298,6 +317,8 @@ footer a { color: inherit; }
   .lesson { grid-template-columns: 150px minmax(0, 1fr); min-height: 0; }
   .reference-kana { font-size: 88px; }
   .reference { padding: 16px; }
+  .test-active .reference-romanji { font-size: 16px; }
+  .test-active .reference-hint { font-size: 9px; }
   .sheet-wrap { overflow: visible; padding: 16px; }
   .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; min-width: 0; }
 }
@@ -305,6 +326,11 @@ footer a { color: inherit; }
 @media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
   .lesson { grid-template-columns: 140px minmax(0, 1fr); }
   .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  body.concentration-mode .sheet-wrap { padding: 18px; }
+  body.concentration-mode .sheet { max-width: calc((100dvh - 36px) * 1.6667); }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

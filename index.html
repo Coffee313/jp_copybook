@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kana — handwriting practice</title>
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <link rel="stylesheet" href="styles.css?v=21" />
   </head>
   <body>
+    <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
     <header class="topbar">
       <a class="brand" href="#" aria-label="Kana — home">
         <span class="brand-mark">あ</span>
@@ -110,6 +111,7 @@
             <span class="toggle" aria-hidden="true"></span>
             <span>Show guides in cells</span>
           </label>
+          <button class="clear-button" id="concentrationEnter" type="button"><span aria-hidden="true">□</span> Focus</button>
           <button class="clear-button practice-clear" id="clearButton" type="button"><span aria-hidden="true">↻</span> Clear drawings</button>
         </div>
 
@@ -151,6 +153,6 @@
     <script src="progress-sync.js?v=10"></script>
     <script src="kana-progress.js?v=8"></script>
     <script src="kana-guides.js?v=4"></script>
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=19"></script>
   </body>
 </html>
