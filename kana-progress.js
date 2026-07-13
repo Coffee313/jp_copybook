@@ -21,6 +21,15 @@
     return characters.filter(character => mastery[character]?.passed).length;
   }
 
+  function resetMastery(mastery, characters) {
+    const resetCharacters = new Set(characters);
+    return Object.fromEntries(Object.entries(mastery).filter(([character]) => !resetCharacters.has(character)));
+  }
+
+  function previousTestLayer(layerIndex) {
+    return Math.max(0, layerIndex - 1);
+  }
+
   function shuffled(values, random = Math.random) {
     const result = [...values];
     for (let index = result.length - 1; index > 0; index--) {
@@ -30,5 +39,5 @@
     return result;
   }
 
-  return { markMastered, mergeMastery, progressCount, shuffled };
+  return { markMastered, mergeMastery, progressCount, resetMastery, previousTestLayer, shuffled };
 });

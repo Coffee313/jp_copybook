@@ -285,5 +285,13 @@ ProgressSync.initialize({
   applyRemoteProgress: remote => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary)));
     renderDictionary();
+  },
+  getAccountStats: progress => {
+    const items = progress.dictionary || getDictionary();
+    return [
+      { label: 'Dictionary cards', value: String(items.length) },
+      { label: 'Due for review', value: String(items.filter(item => SRS.isDue(item)).length) },
+      { label: 'Reviewed cards', value: String(items.filter(item => item.repetitions > 0).length) }
+    ];
   }
 });

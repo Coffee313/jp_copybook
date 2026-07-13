@@ -4,6 +4,7 @@
   let session = null;
   let getLocalProgress = () => ({});
   let applyRemoteProgress = () => {};
+  let getAccountStats = () => [];
   let saveTimer = null;
   let cloudProgress = {};
 
@@ -76,6 +77,7 @@
     const remote = rows?.[0]?.progress || {};
     cloudProgress = remote;
     await applyRemoteProgress(remote);
+    renderAccount();
     await saveNow();
   }
 
@@ -86,10 +88,12 @@
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({ user_id: session.user.id, progress: (cloudProgress = { ...cloudProgress, ...getLocalProgress() }), updated_at: new Date().toISOString() })
     });
+    renderAccount();
     setSyncStatus('Progress saved');
   }
 
   function queueSave() {
+    renderAccount();
     if (!session) return;
     clearTimeout(saveTimer);
     setSyncStatus('Saving…');
@@ -110,8 +114,30 @@
     signedOut.hidden = Boolean(session);
     signedIn.hidden = !session;
     document.querySelector('#accountEmail').textContent = session?.user?.email || '';
-    document.querySelector('#signOut').hidden = !session;
+    document.querySelector('#accountForm').hidden = Boolean(session);
+    document.querySelector('#accountSummary').hidden = !session;
+    document.querySelector('#accountIntro').textContent = session
+      ? `Signed in as ${session.user?.email || 'your account'}. Your progress is synced across devices.`
+      : 'Sign in or create an account to save your learning progress.';
+    renderAccountStats();
     setSyncStatus(session ? 'Cloud sync is on' : 'Progress is stored on this device');
+  }
+
+  function renderAccountStats() {
+    const container = document.querySelector('#accountStats');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!session) return;
+    const progress = { ...cloudProgress, ...getLocalProgress() };
+    getAccountStats(progress).forEach(stat => {
+      const item = document.createElement('div');
+      const value = document.createElement('strong');
+      const label = document.createElement('span');
+      value.textContent = stat.value;
+      label.textContent = stat.label;
+      item.append(value, label);
+      container.append(item);
+    });
   }
 
   async function signIn(email, password) {
@@ -173,6 +199,7 @@
   async function initialize(options) {
     getLocalProgress = options.getLocalProgress;
     applyRemoteProgress = options.applyRemoteProgress;
+    getAccountStats = options.getAccountStats || (() => []);
     bindUi();
     storeSession(readSession());
     if (await ensureSession()) loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));

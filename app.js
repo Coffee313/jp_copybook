@@ -413,14 +413,11 @@ function renderProgress() {
 
 function handleTestResult(result) {
   if (result !== 'good') {
+    const canvas = document.querySelector('.test-cell canvas');
+    if (canvas) canvas.style.pointerEvents = 'none';
     setTimeout(() => {
-      const canvas = document.querySelector('.test-cell canvas');
-      if (!canvas) return;
-      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-      canvas.__strokes = [];
-      const cell = canvas.parentElement;
-      cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
-      cell.querySelector('.grade-badge')?.remove();
+      testLayerIndex = KanaProgress.previousTestLayer(testLayerIndex);
+      updateLesson();
     }, 1100);
     return;
   }
@@ -508,6 +505,18 @@ document.querySelectorAll('.script-button').forEach(button => {
 
 document.querySelector('#startKanaTest').addEventListener('click', () => testActive ? stopKanaTest() : startKanaTest());
 
+document.querySelectorAll('[data-reset-script]').forEach(button => {
+  button.addEventListener('click', () => {
+    const targetScript = button.dataset.resetScript;
+    const label = targetScript === 'hiragana' ? 'Hiragana' : 'Katakana';
+    if (!window.confirm(`Reset all ${label} learning progress? This cannot be undone.`)) return;
+    if (testActive) stopKanaTest();
+    const characters = kana[targetScript].map(item => item[0]);
+    saveMastery(KanaProgress.resetMastery(mastery, characters));
+    button.closest('details')?.removeAttribute('open');
+  });
+});
+
 ghostToggle.addEventListener('change', () => {
   document.querySelectorAll('.ghost').forEach(ghost => { ghost.hidden = !ghostToggle.checked; });
 });
@@ -539,5 +548,17 @@ updateLesson();
 renderProgress();
 ProgressSync.initialize({
   getLocalProgress: () => ({ kanaMastery: mastery }),
-  applyRemoteProgress: remote => saveMastery(KanaProgress.mergeMastery(mastery, remote.kanaMastery || {}))
+  applyRemoteProgress: remote => saveMastery(KanaProgress.mergeMastery(mastery, remote.kanaMastery || {})),
+  getAccountStats: progress => {
+    const progressMastery = progress.kanaMastery || mastery;
+    const hiraganaCharacters = kana.hiragana.map(item => item[0]);
+    const katakanaCharacters = kana.katakana.map(item => item[0]);
+    const hiraganaCount = KanaProgress.progressCount(progressMastery, hiraganaCharacters);
+    const katakanaCount = KanaProgress.progressCount(progressMastery, katakanaCharacters);
+    return [
+      { label: 'Hiragana mastered', value: `${hiraganaCount} / ${hiraganaCharacters.length}` },
+      { label: 'Katakana mastered', value: `${katakanaCount} / ${katakanaCharacters.length}` },
+      { label: 'Total progress', value: `${hiraganaCount + katakanaCount} / ${allKanaCharacters.length}` }
+    ];
+  }
 });
