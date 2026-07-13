@@ -12,6 +12,29 @@
     catch { return null; }
   };
 
+  function sessionFromHash() {
+    if (!window.location.hash.includes('access_token=')) return null;
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = params.get('access_token');
+    if (!accessToken) return null;
+    try {
+      const encodedPayload = accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const paddedPayload = encodedPayload.padEnd(Math.ceil(encodedPayload.length / 4) * 4, '=');
+      const bytes = Uint8Array.from(atob(paddedPayload), character => character.charCodeAt(0));
+      const payload = JSON.parse(new TextDecoder().decode(bytes));
+      return {
+        access_token: accessToken,
+        refresh_token: params.get('refresh_token') || '',
+        expires_at: Number(params.get('expires_at')) || payload.exp,
+        expires_in: Number(params.get('expires_in')) || 3600,
+        token_type: params.get('token_type') || 'bearer',
+        user: { id: payload.sub, email: payload.email }
+      };
+    } catch {
+      return null;
+    }
+  }
+
   function storeSession(value) {
     session = value?.access_token ? value : null;
     if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -191,13 +214,9 @@
 
   async function signUp(email, password) {
     const redirectTo = config.appUrl || new URL('./', window.location.href).href;
-    const data = await authRequest('signup', {
+    const data = await authRequest(`signup?redirect_to=${encodeURIComponent(redirectTo)}`, {
       method: 'POST',
-      body: JSON.stringify({
-        email,
-        password,
-        options: { emailRedirectTo: redirectTo }
-      })
+      body: JSON.stringify({ email, password })
     });
     if (data.access_token) {
       storeSession(data);
@@ -241,7 +260,10 @@
     getLocalProgress = options.getLocalProgress;
     applyRemoteProgress = options.applyRemoteProgress;
     bindUi();
-    storeSession(readSession());
+    const hasAuthHash = window.location.hash.includes('access_token=');
+    const callbackSession = sessionFromHash();
+    storeSession(callbackSession || readSession());
+    if (hasAuthHash) history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     if (await ensureSession()) loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
   }
 

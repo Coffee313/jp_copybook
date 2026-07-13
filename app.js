@@ -274,7 +274,7 @@ function makeSheet(preserve = false) {
 }
 
 function setupCanvas(canvas, savedState = null) {
-  let baseWidth = 6;
+  let baseWidth = 3;
   canvas.__strokes = savedState?.strokes || [];
   const resize = () => {
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -286,7 +286,7 @@ function setupCanvas(canvas, savedState = null) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#292927';
-    baseWidth = Math.max(5, rect.width * .055);
+    baseWidth = Math.max(3, rect.width * .036);
     ctx.lineWidth = baseWidth;
     canvas.__strokes.forEach(stroke => {
       ctx.beginPath();
@@ -321,7 +321,7 @@ function setupCanvas(canvas, savedState = null) {
     const rect = canvas.getBoundingClientRect();
     currentStroke = [[x / rect.width, y / rect.height]];
     ctx.beginPath();
-    ctx.lineWidth = event.pointerType === 'pen' ? baseWidth * (.45 + event.pressure * .95) : baseWidth;
+    ctx.lineWidth = event.pointerType === 'pen' ? baseWidth * (.7 + event.pressure * .55) : baseWidth;
     ctx.moveTo(x, y);
     ctx.lineTo(x + .01, y + .01);
     ctx.stroke();
@@ -333,7 +333,7 @@ function setupCanvas(canvas, savedState = null) {
     const rect = canvas.getBoundingClientRect();
     currentStroke?.push([x / rect.width, y / rect.height]);
     const ctx = canvas.getContext('2d');
-    if (event.pointerType === 'pen') ctx.lineWidth = baseWidth * (.45 + event.pressure * .95);
+    if (event.pointerType === 'pen') ctx.lineWidth = baseWidth * (.7 + event.pressure * .55);
     ctx.lineTo(x, y);
     ctx.stroke();
   });

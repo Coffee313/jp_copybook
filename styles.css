@@ -159,7 +159,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .script-button.active { background: var(--paper); color: var(--ink); box-shadow: 0 2px 8px rgba(30,25,18,.08); font-weight: 600; }
 
 .ghost-control { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; cursor: pointer; }
-.top-input-control { margin-left: 4px; white-space: nowrap; font-size: 11px; }
+.top-input-control { margin: 0 14px 0 4px; white-space: nowrap; font-size: 11px; }
 .top-input-control .toggle { width: 34px; height: 20px; }
 .top-input-control .toggle::after { width: 14px; height: 14px; }
 .top-input-control input:checked + .toggle::after { transform: translateX(14px); }
@@ -252,7 +252,7 @@ footer a { color: inherit; }
   .controls { align-items: flex-start; flex-direction: column; padding: 18px; }
   .learning-path { grid-template-columns: 1fr; padding: 18px; }
   .learned-queue { max-width: none; }
-  .top-input-control { margin-left: auto; }
+  .top-input-control { margin: 0 10px 0 auto; }
   .input-mode-actions { grid-template-columns: 1fr; }
   .practice-clear { margin-left: 0; }
   .lesson { grid-template-columns: 1fr; }
@@ -276,12 +276,12 @@ footer a { color: inherit; }
   .reference-kana { font-size: 88px; }
   .reference { padding: 16px; }
   .sheet-wrap { overflow: visible; padding: 16px; }
-  .sheet { grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); gap: 7px; min-width: 0; }
+  .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; min-width: 0; }
 }
 
 @media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
   .lesson { grid-template-columns: 140px minmax(0, 1fr); }
-  .sheet { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); }
+  .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
