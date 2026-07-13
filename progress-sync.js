@@ -1,9 +1,18 @@
 (function () {
   const config = window.SUPABASE_CONFIG;
   const SESSION_KEY = 'kana-supabase-session-v1';
+  const PROGRESS_OWNER_KEY = 'kana-progress-owner-v1';
+  const STORED_PROGRESS_KEYS = {
+    kanaMastery: ['kana-mastery-v1', {}],
+    kanaLearned: ['kana-learned-v1', {}],
+    kanaMasteryResets: ['kana-mastery-resets-v1', {}],
+    kanaPlacement: ['kana-placement-v1', null],
+    dictionary: ['kana-kanji-dictionary-v1', []]
+  };
   let session = null;
   let getLocalProgress = () => ({});
   let applyRemoteProgress = () => {};
+  let replaceLocalProgress = () => {};
   let saveTimer = null;
   let cloudProgress = {};
   let recoveryMode = false;
@@ -12,6 +21,18 @@
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
     catch { return null; }
   };
+
+  const readProgressOwner = () => localStorage.getItem(PROGRESS_OWNER_KEY);
+
+  function storeProgressOwner(userId = 'anonymous') {
+    localStorage.setItem(PROGRESS_OWNER_KEY, userId);
+  }
+
+  function replaceStoredProgress(progress = {}) {
+    Object.entries(STORED_PROGRESS_KEYS).forEach(([field, [key, fallback]]) => {
+      localStorage.setItem(key, JSON.stringify(progress[field] ?? fallback));
+    });
+  }
 
   function sessionFromHash() {
     if (!window.location.hash.includes('access_token=')) return null;
@@ -94,12 +115,20 @@
     return response.status === 204 ? null : readJson(response);
   }
 
-  async function loadAndMergeProgress() {
+  async function loadAndMergeProgress({ replaceLocal = false } = {}) {
     if (!session?.user?.id) return;
-    const rows = await progressRequest(`user_progress?user_id=eq.${encodeURIComponent(session.user.id)}&select=progress`);
+    const userId = session.user.id;
+    const rows = await progressRequest(`user_progress?user_id=eq.${encodeURIComponent(userId)}&select=progress`);
+    if (session?.user?.id !== userId) return;
     const remote = rows?.[0]?.progress || {};
     cloudProgress = remote;
-    await applyRemoteProgress(remote);
+    if (replaceLocal) {
+      replaceStoredProgress(remote);
+      await replaceLocalProgress(remote);
+    } else {
+      await applyRemoteProgress(remote);
+    }
+    storeProgressOwner(userId);
     renderAccount();
     await saveNow();
   }
@@ -214,11 +243,13 @@
   }
 
   async function signIn(email, password) {
+    const previousOwner = readProgressOwner();
     const data = await authRequest('token?grant_type=password', {
       method: 'POST', body: JSON.stringify({ email, password })
     });
+    clearTimeout(saveTimer);
     storeSession(data);
-    await loadAndMergeProgress();
+    await loadAndMergeProgress({ replaceLocal: previousOwner !== data.user?.id });
   }
 
   async function signUp(email, password) {
@@ -228,6 +259,7 @@
       body: JSON.stringify({ email, password })
     });
     if (data.access_token) {
+      clearTimeout(saveTimer);
       storeSession(data);
       await loadAndMergeProgress();
       return 'Account created.';
@@ -256,7 +288,13 @@
   async function signOut() {
     const active = await ensureSession();
     if (active) await authRequest('logout', { method: 'POST', headers: { Authorization: `Bearer ${active.access_token}` } }).catch(() => {});
+    clearTimeout(saveTimer);
     storeSession(null);
+    cloudProgress = {};
+    replaceStoredProgress({});
+    await replaceLocalProgress({});
+    storeProgressOwner();
+    renderAccount();
   }
 
   function showProfilePanel(panelId = 'profileStatistics') {
@@ -349,20 +387,27 @@
   async function initialize(options) {
     getLocalProgress = options.getLocalProgress;
     applyRemoteProgress = options.applyRemoteProgress;
+    replaceLocalProgress = options.replaceLocalProgress || applyRemoteProgress;
     bindUi();
     const requestedProfileReset = window.location.hash === '#profile-reset';
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const hasAuthHash = hashParams.has('access_token');
     recoveryMode = hasAuthHash && hashParams.get('type') === 'recovery';
     const callbackSession = sessionFromHash();
-    storeSession(callbackSession || readSession());
+    const storedSession = readSession();
+    storeSession(callbackSession || storedSession);
     if (hasAuthHash) history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     if (recoveryMode && callbackSession) {
       renderAccount();
       document.querySelector('#accountDialog').showModal();
       document.querySelector('#recoveryPassword').focus();
     }
-    if (await ensureSession()) await loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
+    if (await ensureSession()) {
+      const owner = readProgressOwner() || (!callbackSession ? storedSession?.user?.id : null);
+      const adoptAnonymousSignup = callbackSession && hashParams.get('type') === 'signup' && (!owner || owner === 'anonymous');
+      await loadAndMergeProgress({ replaceLocal: owner !== session.user.id && !adoptAnonymousSignup })
+        .catch(error => setSyncStatus(error.message, true));
+    }
     if (requestedProfileReset && session) {
       showProfilePanel('profileResetProgress');
       document.querySelector('#accountDialog').showModal();

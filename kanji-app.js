@@ -483,6 +483,10 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
 renderDictionary();
 ProgressSync.initialize({
   getLocalProgress: () => ({ dictionary: getDictionary() }),
+  replaceLocalProgress: remote => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(remote.dictionary || []));
+    renderDictionary();
+  },
   applyRemoteProgress: remote => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary)));
     renderDictionary();

@@ -1252,6 +1252,19 @@ updateLesson();
 renderProgress();
 progressReady = ProgressSync.initialize({
   getLocalProgress: () => ({ kanaMastery: mastery, kanaLearned: learned, kanaMasteryResets: masteryResets, kanaPlacement: placement }),
+  replaceLocalProgress: remote => {
+    masteryResets = remote.kanaMasteryResets || {};
+    mastery = KanaProgress.applyMasteryResets(remote.kanaMastery || {}, masteryResets, kanaScripts());
+    learned = KanaProgress.applyLearnedResets(remote.kanaLearned || {}, masteryResets, kanaScripts());
+    placement = remote.kanaPlacement || null;
+    localStorage.setItem(MASTERY_RESETS_KEY, JSON.stringify(masteryResets));
+    localStorage.setItem(MASTERY_KEY, JSON.stringify(mastery));
+    localStorage.setItem(LEARNED_KEY, JSON.stringify(learned));
+    localStorage.setItem(PLACEMENT_KEY, JSON.stringify(placement));
+    selected = nextLearningItem();
+    updateLesson();
+    renderProgress();
+  },
   applyRemoteProgress: remote => {
     saveMasteryResets(KanaProgress.mergeResetTimes(masteryResets, remote.kanaMasteryResets || {}));
     const merged = KanaProgress.mergeMastery(mastery, remote.kanaMastery || {});
