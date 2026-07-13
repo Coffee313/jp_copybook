@@ -3,8 +3,6 @@
   const STORAGE_KEY = 'japanese-copybook-language-v2';
   const supported = new Set(['en', 'ru']);
   const russian = {
-    'My Japanese Copybook': 'Моя японская пропись',
-    'Write · Erase · Repeat': 'Пишите · Стирайте · Повторяйте',
     'Kana': 'Кана',
     'Kanji': 'Кандзи',
     'Concentration mode': 'Режим концентрации',
@@ -55,11 +53,10 @@
     'Test myself': 'Проверить себя',
     'Current learning row': 'Текущий изучаемый ряд',
     'Vowels': 'Гласные',
-    'Learned kana ready for testing': 'Изученная кана готова к проверке',
     'Hiragana': 'Хирагана',
     'Katakana': 'Катакана',
     'Show guides in cells': 'Показывать образцы в клетках',
-    'Clear drawings': 'Очистить рисунки',
+    'Clear drawings': 'Очистить поля',
     'Repeat the character in each cell': 'Повторите знак в каждой клетке',
     'Mastered kana': 'Освоенная кана',
     'Pass learned-kana tests to build this list.': 'Проходите тесты изученной каны, чтобы заполнить этот список.',
@@ -193,6 +190,11 @@
     return text.replace(trimmed, translated);
   }
 
+  function staysInEnglish(node) {
+    const element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+    return Boolean(element?.closest?.('[data-language-static="en"]'));
+  }
+
   function apply(root = document) {
     if (language !== 'ru' || applying) return;
     applying = true;
@@ -200,12 +202,13 @@
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
     nodes.forEach(node => {
-      if (node.parentElement?.matches('script, style, textarea')) return;
+      if (node.parentElement?.matches('script, style, textarea') || staysInEnglish(node)) return;
       const value = translatedText(node.nodeValue);
       if (value !== node.nodeValue) node.nodeValue = value;
     });
     const elements = root.querySelectorAll ? [root, ...root.querySelectorAll('[placeholder], [title], [aria-label]')] : [];
     elements.forEach(element => {
+      if (staysInEnglish(element)) return;
       ['placeholder', 'title', 'aria-label'].forEach(attribute => {
         if (!element?.hasAttribute?.(attribute)) return;
         const value = translatedText(element.getAttribute(attribute));
@@ -284,11 +287,13 @@
     if (language !== 'ru' || applying) return;
     records.forEach(record => {
       if (record.type === 'characterData') {
+        if (staysInEnglish(record.target)) return;
         const value = translatedText(record.target.nodeValue);
         if (value !== record.target.nodeValue) record.target.nodeValue = value;
       }
       record.addedNodes.forEach(node => {
       if (node.nodeType === Node.TEXT_NODE) {
+        if (staysInEnglish(node)) return;
         const value = translatedText(node.nodeValue);
         if (value !== node.nodeValue) node.nodeValue = value;
       } else if (node.nodeType === Node.ELEMENT_NODE) apply(node);

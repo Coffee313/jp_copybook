@@ -667,7 +667,6 @@ function renderLearningPath() {
     rowTitle.textContent = 'All rows learned';
     rowProgress.textContent = 'Complete the remaining tests to master every kana.';
   }
-  document.querySelector('#learnedQueueCount').textContent = String(pendingTestKana().length);
   const masteredList = document.querySelector('#masteredKanaList');
   masteredList.innerHTML = '';
   const masteredItems = kana[script].filter(item => mastery[item[0]]?.passed);
