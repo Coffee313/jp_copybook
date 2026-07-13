@@ -172,8 +172,8 @@
     const dictionary = Array.isArray(progress.dictionary) ? progress.dictionary : [];
     const repetitions = dictionary.map(item => Number(item.repetitions) || 0);
     return [
-      { group: 'Kana progress', label: 'Hiragana', value: `${hiragana} / 46` },
-      { group: 'Kana progress', label: 'Katakana', value: `${katakana} / 46` },
+      { group: 'Kana progress', label: 'Hiragana', value: `${hiragana} / 71` },
+      { group: 'Kana progress', label: 'Katakana', value: `${katakana} / 71` },
       { group: 'Kanji vocabulary', label: 'In vocabulary', value: String(dictionary.length) },
       { group: 'Kanji vocabulary', label: 'Not learned', value: String(repetitions.filter(value => value === 0).length) },
       { group: 'Kanji vocabulary', label: 'Learned a little', value: String(repetitions.filter(value => value > 0 && value < 3).length) },

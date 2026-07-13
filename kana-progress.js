@@ -7,10 +7,24 @@
     return { ...mastery, [character]: { passed: true, passedAt: now.toISOString() } };
   }
 
+  function markLearned(learned, character, now = new Date()) {
+    return { ...learned, [character]: { learned: true, learnedAt: now.toISOString() } };
+  }
+
   function mergeMastery(local = {}, remote = {}) {
     const merged = { ...remote };
     Object.entries(local).forEach(([character, value]) => {
       if (!merged[character] || Date.parse(value.passedAt || 0) >= Date.parse(merged[character].passedAt || 0)) {
+        merged[character] = value;
+      }
+    });
+    return merged;
+  }
+
+  function mergeLearned(local = {}, remote = {}) {
+    const merged = { ...remote };
+    Object.entries(local).forEach(([character, value]) => {
+      if (!merged[character] || Date.parse(value.learnedAt || 0) >= Date.parse(merged[character].learnedAt || 0)) {
         merged[character] = value;
       }
     });
@@ -49,6 +63,21 @@
     }));
   }
 
+  function applyLearnedResets(learned, resetTimes, scripts) {
+    const scriptByCharacter = new Map();
+    Object.entries(scripts).forEach(([script, characters]) => {
+      characters.forEach(character => scriptByCharacter.set(character, script));
+    });
+    return Object.fromEntries(Object.entries(learned).filter(([character, value]) => {
+      const resetAt = resetTimes[scriptByCharacter.get(character)];
+      return !resetAt || Date.parse(value.learnedAt || 0) > Date.parse(resetAt);
+    }));
+  }
+
+  function pendingTestItems(values, learned, mastery) {
+    return values.filter(item => learned[item[0]]?.learned && !mastery[item[0]]?.passed);
+  }
+
   function previousTestLayer(layerIndex) {
     return Math.max(0, layerIndex - 1);
   }
@@ -74,5 +103,5 @@
     return result;
   }
 
-  return { markMastered, mergeMastery, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, previousTestLayer, testPickerItems, cookieValue, shuffled };
+  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, previousTestLayer, testPickerItems, cookieValue, shuffled };
 });

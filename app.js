@@ -25,6 +25,48 @@ const kana = {
   ]
 };
 
+const advancedKana = {
+  hiragana: [
+    ['が','ga'],['ぎ','gi'],['ぐ','gu'],['げ','ge'],['ご','go'],
+    ['ざ','za'],['じ','ji'],['ず','zu'],['ぜ','ze'],['ぞ','zo'],
+    ['だ','da'],['ぢ','ji'],['づ','zu'],['で','de'],['ど','do'],
+    ['ば','ba'],['び','bi'],['ぶ','bu'],['べ','be'],['ぼ','bo'],
+    ['ぱ','pa'],['ぴ','pi'],['ぷ','pu'],['ぺ','pe'],['ぽ','po']
+  ],
+  katakana: [
+    ['ガ','ga'],['ギ','gi'],['グ','gu'],['ゲ','ge'],['ゴ','go'],
+    ['ザ','za'],['ジ','ji'],['ズ','zu'],['ゼ','ze'],['ゾ','zo'],
+    ['ダ','da'],['ヂ','ji'],['ヅ','zu'],['デ','de'],['ド','do'],
+    ['バ','ba'],['ビ','bi'],['ブ','bu'],['ベ','be'],['ボ','bo'],
+    ['パ','pa'],['ピ','pi'],['プ','pu'],['ペ','pe'],['ポ','po']
+  ]
+};
+Object.entries(advancedKana).forEach(([name, items]) => kana[name].push(...items));
+
+const voicedBases = {
+  'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ','ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ','だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と','ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ','ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
+  'ガ':'カ','ギ':'キ','グ':'ク','ゲ':'ケ','ゴ':'コ','ザ':'サ','ジ':'シ','ズ':'ス','ゼ':'セ','ゾ':'ソ','ダ':'タ','ヂ':'チ','ヅ':'ツ','デ':'テ','ド':'ト','バ':'ハ','ビ':'ヒ','ブ':'フ','ベ':'ヘ','ボ':'ホ','パ':'ハ','ピ':'ヒ','プ':'フ','ペ':'ヘ','ポ':'ホ'
+};
+const handakutenKana = new Set(['ぱ','ぴ','ぷ','ぺ','ぽ','パ','ピ','プ','ペ','ポ']);
+const dakutenPaths = ['M 78 12 Q 83 17 87 24', 'M 89 9 Q 94 14 98 21'];
+const handakutenPaths = ['M 82 12 C 94 8 102 19 97 29 C 92 39 77 35 77 24 C 77 18 79 14 82 12'];
+Object.entries(voicedBases).forEach(([character, base]) => {
+  const paths = window.kanaGuidePaths?.[base];
+  if (paths) window.kanaGuidePaths[character] = [...paths, ...(handakutenKana.has(character) ? handakutenPaths : dakutenPaths)];
+});
+
+const curriculumDefinitions = {
+  hiragana: [
+    ['vowels','Vowels','あいうえお'],['k','K row','かきくけこ'],['s','S row','さしすせそ'],['t','T row','たちつてと'],['n','N row','なにぬねの'],['h','H row','はひふへほ'],['m','M row','まみむめも'],['y','Y row','やゆよ'],['r','R row','らりるれろ'],['w','W row','わをん'],
+    ['g','G row · dakuten','がぎぐげご',true],['z','Z row · dakuten','ざじずぜぞ',true],['d','D row · dakuten','だぢづでど',true],['b','B row · dakuten','ばびぶべぼ',true],['p','P row · handakuten','ぱぴぷぺぽ',true]
+  ],
+  katakana: [
+    ['vowels','Vowels','アイウエオ'],['k','K row','カキクケコ'],['s','S row','サシスセソ'],['t','T row','タチツテト'],['n','N row','ナニヌネノ'],['h','H row','ハヒフヘホ'],['m','M row','マミムメモ'],['y','Y row','ヤユヨ'],['r','R row','ラリルレロ'],['w','W row','ワヲン'],
+    ['g','G row · dakuten','ガギグゲゴ',true],['z','Z row · dakuten','ザジズゼゾ',true],['d','D row · dakuten','ダヂヅデド',true],['b','B row · dakuten','バビブベボ',true],['p','P row · handakuten','パピプペポ',true]
+  ]
+};
+const ADVANCED_UNLOCK_COUNT = 33;
+
 let script = 'hiragana';
 let selected = kana.hiragana[0];
 const sheet = document.querySelector('#sheet');
@@ -33,10 +75,12 @@ const ghostToggle = document.querySelector('#ghostToggle');
 const guideControl = document.querySelector('#guideControl');
 const penOnlyToggle = document.querySelector('#penOnlyToggle');
 const MASTERY_KEY = 'kana-mastery-v1';
+const LEARNED_KEY = 'kana-learned-v1';
 const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
 let mastery = readMastery();
+let learned = readLearned();
 let masteryResets = readMasteryResets();
 let testActive = false;
 let testQueue = [];
@@ -51,6 +95,11 @@ const TEST_LAYERS = [
 
 function readMastery() {
   try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function readLearned() {
+  try { return JSON.parse(localStorage.getItem(LEARNED_KEY)) || {}; }
   catch { return {}; }
 }
 
@@ -75,6 +124,42 @@ function saveMastery(value) {
   window.ProgressSync?.queueSave();
 }
 
+function saveLearned(value) {
+  learned = value;
+  localStorage.setItem(LEARNED_KEY, JSON.stringify(learned));
+  renderProgress();
+  window.ProgressSync?.queueSave();
+}
+
+function rowItems(row, scriptName = script) {
+  const byCharacter = new Map(kana[scriptName].map(item => [item[0], item]));
+  return Array.from(row[2]).map(character => byCharacter.get(character)).filter(Boolean);
+}
+
+function basicCharacters(scriptName = script) {
+  return curriculumDefinitions[scriptName].filter(row => !row[3]).flatMap(row => Array.from(row[2]));
+}
+
+function advancedRowsUnlocked(scriptName = script) {
+  return KanaProgress.progressCount(mastery, basicCharacters(scriptName)) >= ADVANCED_UNLOCK_COUNT;
+}
+
+function availableRows(scriptName = script) {
+  return curriculumDefinitions[scriptName].filter(row => !row[3] || advancedRowsUnlocked(scriptName));
+}
+
+function characterIsLearned(character) {
+  return Boolean(learned[character]?.learned || mastery[character]?.passed);
+}
+
+function currentLearningRow(scriptName = script) {
+  return availableRows(scriptName).find(row => rowItems(row, scriptName).some(item => !characterIsLearned(item[0]))) || null;
+}
+
+function pendingTestKana(scriptName = script) {
+  return KanaProgress.pendingTestItems(kana[scriptName], learned, mastery);
+}
+
 const strokeCounts = {
   // Hiragana
   'あ':3,'い':2,'う':2,'え':2,'お':3,'か':3,'き':4,'く':1,'け':3,'こ':2,
@@ -93,7 +178,7 @@ const strokeCounts = {
 function makeStrokeDiagram() {
   const diagram = document.createElement('div');
   diagram.className = 'stroke-diagram';
-  diagram.setAttribute('aria-label', `${selected[0]}, stroke count: ${strokeCounts[selected[0]]}`);
+  diagram.setAttribute('aria-label', `${selected[0]}, stroke count: ${strokeCounts[selected[0]] || window.kanaGuidePaths?.[selected[0]]?.length || 0}`);
   diagram.append(makeVectorKana(selected[0], true));
   return diagram;
 }
@@ -418,14 +503,73 @@ function showGrade(cell, result, score) {
       : `Try again · ${score}%`;
   cell.append(badge);
   if (testActive) handleTestResult(result);
+  else if (result === 'good') recordLearningSuccess();
+}
+
+function recordLearningSuccess() {
+  const character = selected[0];
+  if (characterIsLearned(character)) return;
+  const activeRow = currentLearningRow();
+  if (!activeRow || !rowItems(activeRow).some(item => item[0] === character)) return;
+  saveLearned(KanaProgress.markLearned(learned, character));
+  const rowComplete = rowItems(activeRow).every(item => characterIsLearned(item[0]));
+  if (!rowComplete) {
+    renderPicker();
+    return;
+  }
+  const nextRow = currentLearningRow();
+  if (nextRow) {
+    setTimeout(() => {
+      if (testActive || currentLearningRow()?.[0] !== nextRow[0]) return;
+      selected = rowItems(nextRow)[0];
+      updateLesson();
+    }, 1000);
+  }
 }
 
 function renderProgress() {
   const completed = KanaProgress.progressCount(mastery, allKanaCharacters);
   document.querySelector('#kanaProgressText').textContent = `${completed} of ${allKanaCharacters.length}`;
   document.querySelector('#kanaProgressBar').style.width = `${completed / allKanaCharacters.length * 100}%`;
+  document.querySelector('.kana-progress-track').setAttribute('aria-valuemax', allKanaCharacters.length);
   document.querySelector('.kana-progress-track').setAttribute('aria-valuenow', completed);
   document.querySelectorAll('.kana-button').forEach(button => button.classList.toggle('mastered', Boolean(mastery[button.textContent]?.passed)));
+  const pending = pendingTestKana();
+  const testButton = document.querySelector('#startKanaTest');
+  if (!testActive) {
+    testButton.disabled = pending.length === 0;
+    testButton.textContent = pending.length ? `Test learned kana · ${pending.length}` : 'Learn a row first';
+  }
+  renderLearningPath();
+}
+
+function renderLearningPath() {
+  const row = currentLearningRow();
+  const rowTitle = document.querySelector('#learningRowTitle');
+  const rowProgress = document.querySelector('#learningRowProgress');
+  if (row) {
+    const items = rowItems(row);
+    const learnedCount = items.filter(item => characterIsLearned(item[0])).length;
+    rowTitle.textContent = row[1];
+    rowProgress.textContent = `${learnedCount} of ${items.length} learned · draw each kana correctly once`;
+  } else if (!advancedRowsUnlocked()) {
+    rowTitle.textContent = 'Dakuten rows are locked';
+    rowProgress.textContent = `Master ${ADVANCED_UNLOCK_COUNT} basic kana to unlock voiced sounds.`;
+  } else {
+    rowTitle.textContent = 'All rows learned';
+    rowProgress.textContent = 'Complete the remaining tests to master every kana.';
+  }
+  document.querySelector('#learnedQueueCount').textContent = String(pendingTestKana().length);
+  const masteredList = document.querySelector('#masteredKanaList');
+  masteredList.innerHTML = '';
+  const masteredItems = kana[script].filter(item => mastery[item[0]]?.passed);
+  masteredItems.forEach(item => {
+    const badge = document.createElement('span');
+    badge.textContent = item[0];
+    badge.title = item[1];
+    masteredList.append(badge);
+  });
+  if (!masteredItems.length) masteredList.textContent = 'Pass learned-kana tests to build this list.';
 }
 
 function handleTestResult(result) {
@@ -459,10 +603,12 @@ function handleTestResult(result) {
 }
 
 function startKanaTest() {
+  const pending = pendingTestKana();
+  if (!pending.length) return;
   testActive = true;
   testIndex = 0;
   testLayerIndex = 0;
-  testQueue = KanaProgress.shuffled(kana[script]);
+  testQueue = KanaProgress.shuffled(pending);
   selected = testQueue[0];
   if (guideControl) guideControl.hidden = true;
   document.querySelector('#startKanaTest').textContent = 'End test';
@@ -474,24 +620,28 @@ function stopKanaTest(message = 'Start test') {
   testActive = false;
   testQueue = [];
   testLayerIndex = 0;
-  selected = kana[script][0];
+  selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
   if (guideControl) guideControl.hidden = false;
-  document.querySelector('#startKanaTest').textContent = message;
   document.querySelector('.practice-card').classList.remove('test-active');
   updateLesson();
-  if (message !== 'Start test') setTimeout(() => { document.querySelector('#startKanaTest').textContent = 'Start test'; }, 1400);
+  renderProgress();
+  if (message !== 'Start test') {
+    document.querySelector('#startKanaTest').textContent = message;
+    setTimeout(renderProgress, 1400);
+  }
 }
 
 function renderPicker() {
   picker.innerHTML = '';
   const items = testActive
     ? KanaProgress.testPickerItems(kana[script], mastery, selected[0])
-    : kana[script];
+    : rowItems(currentLearningRow() || curriculumDefinitions[script][0]);
   items.forEach(item => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `kana-button${item[0] === selected[0] ? ' active' : ''}`;
     if (mastery[item[0]]?.passed) button.classList.add('mastered');
+    else if (learned[item[0]]?.learned) button.classList.add('learned');
     button.textContent = item[0];
     button.title = item[1];
     button.setAttribute('aria-label', `${item[0]} — ${item[1]}`);
@@ -501,10 +651,10 @@ function renderPicker() {
     });
     picker.append(button);
   });
-  if (testActive && !items.length) {
+  if (!items.length) {
     const empty = document.createElement('span');
     empty.className = 'picker-empty';
-    empty.textContent = 'Passed kana will appear here.';
+    empty.textContent = testActive ? 'Mastered kana will appear here.' : 'Complete learned-kana tests to unlock the next stage.';
     picker.append(empty);
   }
 }
@@ -523,7 +673,7 @@ document.querySelectorAll('.script-button').forEach(button => {
   button.addEventListener('click', () => {
     if (testActive) stopKanaTest();
     script = button.dataset.script;
-    selected = kana[script][0];
+    selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
     document.querySelectorAll('.script-button').forEach(item => item.classList.toggle('active', item === button));
     updateLesson();
   });
@@ -540,6 +690,11 @@ document.querySelectorAll('[data-reset-script]').forEach(button => {
     const characters = kana[targetScript].map(item => item[0]);
     saveMasteryResets(KanaProgress.markScriptReset(masteryResets, targetScript));
     saveMastery(KanaProgress.resetMastery(mastery, characters));
+    saveLearned(KanaProgress.resetMastery(learned, characters));
+    if (targetScript === script) {
+      selected = rowItems(curriculumDefinitions[script][0])[0];
+      updateLesson();
+    }
     window.ProgressSync?.flushSave();
     button.closest('details')?.removeAttribute('open');
   });
@@ -607,10 +762,15 @@ initializeInputMode();
 updateLesson();
 renderProgress();
 ProgressSync.initialize({
-  getLocalProgress: () => ({ kanaMastery: mastery, kanaMasteryResets: masteryResets }),
+  getLocalProgress: () => ({ kanaMastery: mastery, kanaLearned: learned, kanaMasteryResets: masteryResets }),
   applyRemoteProgress: remote => {
     saveMasteryResets(KanaProgress.mergeResetTimes(masteryResets, remote.kanaMasteryResets || {}));
     const merged = KanaProgress.mergeMastery(mastery, remote.kanaMastery || {});
     saveMastery(KanaProgress.applyMasteryResets(merged, masteryResets, kanaScripts()));
+    const mergedLearned = KanaProgress.mergeLearned(learned, remote.kanaLearned || {});
+    saveLearned(KanaProgress.applyLearnedResets(mergedLearned, masteryResets, kanaScripts()));
+    const row = currentLearningRow();
+    if (!testActive && row && !rowItems(row).some(item => item[0] === selected[0])) selected = rowItems(row)[0];
+    updateLesson();
   }
 });

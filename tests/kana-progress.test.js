@@ -7,6 +7,18 @@ test('markMastered records a successful kana test', () => {
   assert.deepEqual(result['あ'], { passed: true, passedAt: '2026-07-12T10:00:00.000Z' });
 });
 
+test('markLearned records a successful learning attempt', () => {
+  const result = progress.markLearned({}, 'a', new Date('2026-07-12T09:00:00Z'));
+  assert.deepEqual(result.a, { learned: true, learnedAt: '2026-07-12T09:00:00.000Z' });
+});
+
+test('pendingTestItems includes learned but not mastered kana', () => {
+  const values = [['a', 'a'], ['i', 'i'], ['u', 'u']];
+  const learned = { a: { learned: true }, i: { learned: true } };
+  const mastery = { i: { passed: true } };
+  assert.deepEqual(progress.pendingTestItems(values, learned, mastery), [['a', 'a']]);
+});
+
 test('mergeMastery keeps the newest result for each kana', () => {
   const local = { あ: { passed: true, passedAt: '2026-07-12T10:00:00Z' } };
   const remote = { あ: { passed: true, passedAt: '2026-07-11T10:00:00Z' }, ア: { passed: true, passedAt: '2026-07-10T10:00:00Z' } };
@@ -33,6 +45,21 @@ test('reset timestamps prevent older cloud mastery from returning', () => {
   assert.deepEqual(progress.applyMasteryResets(mastery, resets, {
     hiragana: ['oldHiragana', 'newHiragana'], katakana: ['katakana']
   }), { newHiragana: mastery.newHiragana, katakana: mastery.katakana });
+});
+
+test('reset timestamps also prevent older learned state from returning', () => {
+  const resets = { hiragana: '2026-07-13T12:00:00Z' };
+  const learned = {
+    old: { learned: true, learnedAt: '2026-07-13T11:00:00Z' },
+    fresh: { learned: true, learnedAt: '2026-07-13T13:00:00Z' }
+  };
+  assert.deepEqual(progress.applyLearnedResets(learned, resets, { hiragana: ['old', 'fresh'] }), { fresh: learned.fresh });
+});
+
+test('mergeLearned keeps the newest learning attempt', () => {
+  const local = { a: { learned: true, learnedAt: '2026-07-13T12:00:00Z' } };
+  const remote = { a: { learned: true, learnedAt: '2026-07-12T12:00:00Z' }, i: { learned: true, learnedAt: '2026-07-11T12:00:00Z' } };
+  assert.deepEqual(progress.mergeLearned(local, remote), { ...remote, a: local.a });
 });
 
 test('mergeResetTimes keeps the newest reset for each script', () => {
