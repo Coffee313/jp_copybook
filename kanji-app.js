@@ -52,6 +52,7 @@ function initializeDrawingControls() {
   });
 
   const concentrationSessionKey = 'japanese-copybook-concentration';
+  const isConcentrationFrame = new URLSearchParams(window.location.search).has('concentration-frame');
   let concentrationNavigation = false;
   const rememberConcentrationMode = active => {
     try {
@@ -64,9 +65,61 @@ function initializeDrawingControls() {
     document.querySelector('#concentrationEnter').setAttribute('aria-pressed', active ? 'true' : 'false');
     if (remember) rememberConcentrationMode(active);
   };
+  const cleanConcentrationUrl = value => {
+    const url = new URL(value, window.location.href);
+    url.searchParams.delete('concentration-frame');
+    return url;
+  };
+  const openConcentrationFrame = value => {
+    const target = cleanConcentrationUrl(value);
+    let frame = document.querySelector('.concentration-page-frame');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.className = 'concentration-page-frame';
+      frame.title = 'Concentration mode';
+      document.body.append(frame);
+    }
+    frame.dataset.target = target.href;
+    target.searchParams.set('concentration-frame', '1');
+    frame.src = target.href;
+  };
+  const concentrationDestinationChanged = targetValue => {
+    if (!targetValue) return false;
+    const target = cleanConcentrationUrl(targetValue);
+    const current = cleanConcentrationUrl(window.location.href);
+    return target.pathname !== current.pathname || target.search !== current.search;
+  };
+  const closeConcentrationFrame = async (navigate = true) => {
+    const frame = document.querySelector('.concentration-page-frame');
+    const target = frame?.dataset.target;
+    frame?.remove();
+    setConcentrationMode(false);
+    if (document.fullscreenElement && document.exitFullscreen) {
+      try { await document.exitFullscreen(); }
+      catch { /* The fullscreen document has already closed. */ }
+    }
+    if (navigate && concentrationDestinationChanged(target)) window.location.assign(target);
+  };
+  window.addEventListener('message', event => {
+    const frame = document.querySelector('.concentration-page-frame');
+    if (!frame || event.source !== frame.contentWindow || event.origin !== window.location.origin) return;
+    if (event.data?.type === 'copybook-concentration-switch') openConcentrationFrame(event.data.href);
+    if (event.data?.type === 'copybook-concentration-exit') closeConcentrationFrame();
+  });
   document.querySelectorAll('.concentration-nav a').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', event => {
       if (!document.body.classList.contains('concentration-mode')) return;
+      if (isConcentrationFrame && window.parent !== window) {
+        event.preventDefault();
+        window.parent.postMessage({ type: 'copybook-concentration-switch', href: link.href }, window.location.origin);
+        return;
+      }
+      if (document.fullscreenElement) {
+        event.preventDefault();
+        const target = cleanConcentrationUrl(link.href);
+        if (target.pathname !== window.location.pathname) openConcentrationFrame(target.href);
+        return;
+      }
       concentrationNavigation = true;
       rememberConcentrationMode(true);
     });
@@ -79,6 +132,14 @@ function initializeDrawingControls() {
     }
   });
   document.querySelector('#concentrationExit').addEventListener('click', async () => {
+    if (isConcentrationFrame && window.parent !== window) {
+      window.parent.postMessage({ type: 'copybook-concentration-exit' }, window.location.origin);
+      return;
+    }
+    if (document.querySelector('.concentration-page-frame')) {
+      await closeConcentrationFrame();
+      return;
+    }
     setConcentrationMode(false);
     if (document.fullscreenElement && document.exitFullscreen) {
       try { await document.exitFullscreen(); }
@@ -86,10 +147,17 @@ function initializeDrawingControls() {
     }
   });
   document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && document.body.classList.contains('concentration-mode') && !concentrationNavigation) setConcentrationMode(false);
+    if (document.fullscreenElement || !document.body.classList.contains('concentration-mode') || concentrationNavigation) return;
+    const frame = document.querySelector('.concentration-page-frame');
+    const target = frame?.dataset.target;
+    frame?.remove();
+    setConcentrationMode(false);
+    if (concentrationDestinationChanged(target)) window.location.assign(target);
   });
   try {
-    if (sessionStorage.getItem(concentrationSessionKey) === 'active') {
+    if (isConcentrationFrame) {
+      setConcentrationMode(true, false);
+    } else if (sessionStorage.getItem(concentrationSessionKey) === 'active') {
       setConcentrationMode(true, false);
       requestAnimationFrame(async () => {
         if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
