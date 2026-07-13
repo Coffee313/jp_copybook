@@ -402,6 +402,7 @@ function showReviewCard() {
   const guide = document.querySelector('#reviewStrokeGuide');
   renderStrokeGuide(guide, card.character);
   guide.hidden = reviewMode !== 'guided' || !KANJIVG_STROKES[card.character];
+  document.querySelector('#forgotKanji').hidden = reviewMode === 'guided';
   prompt.textContent = reviewMode === 'guided'
     ? 'Trace the kanji using the guide. After a correct attempt, you will write it once more without help.'
     : reviewMode === 'confirm'
@@ -434,6 +435,24 @@ document.querySelector('#startReview').addEventListener('click', () => {
 
 document.querySelector('#testKanjiMyself').addEventListener('click', () => {
   startReviewTest([...getDictionary()].sort(() => Math.random() - .5), true);
+});
+
+document.querySelector('#forgotKanji').addEventListener('click', () => {
+  if (!reviewActive || reviewMode === 'guided') return;
+  const reviewed = reviewQueue[reviewIndex];
+  if (!reviewSelfTest) {
+    const items = getDictionary();
+    const storedIndex = items.findIndex(item => item.character === reviewed.character);
+    if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], 'again');
+    saveDictionary(items);
+    renderDictionary();
+  }
+  reviewMode = 'guided';
+  showReviewCard();
+  const feedback = document.querySelector('#reviewFeedback');
+  feedback.textContent = `The correct kanji is ${reviewed.character}. Trace it using the guide.`;
+  feedback.dataset.result = 'again';
+  feedback.hidden = false;
 });
 
 document.querySelector('#checkDrawing').addEventListener('click', () => {

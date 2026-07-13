@@ -68,6 +68,7 @@ button { color: inherit; }
 .main-nav a.active { color: var(--ink); background: var(--paper); box-shadow: 0 2px 8px rgba(30,25,18,.07); }
 .header-mode-button { display: flex; align-items: center; gap: 5px; flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; color: var(--muted); background: var(--paper); cursor: pointer; white-space: nowrap; font-size: 10px; }
 .header-mode-button:hover { border-color: var(--green); color: var(--green); }
+.header-mode-button[aria-pressed="true"] { border-color: var(--green); color: #fff; background: var(--green); }
 .account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .account-area > button { max-width: 180px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .account-area > button[data-signed-in="true"] { width: 32px; height: 32px; padding: 0; border-color: var(--green); color: #fff; background: var(--green); font-weight: 700; }
@@ -174,6 +175,11 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 #startKanaTest, #testMyself { border: 0; border-radius: 11px; padding: 9px 14px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 #testMyself { border: 1px solid var(--green); color: var(--green); background: transparent; }
 #startKanaTest:disabled, #testMyself:disabled { cursor: not-allowed; opacity: .5; }
+.forgot-answer { border: 1px solid var(--accent); border-radius: 10px; padding: 8px 11px; color: var(--accent); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
+.reference .forgot-answer { margin-top: 12px; }
+.copybook-mode .kana-progress-panel, .copybook-mode .learning-path > div:first-child, .copybook-mode .mastered-kana { display: none; }
+.copybook-mode .learning-path { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0; }
+.copybook-mode .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-start; padding: 10px 14px; }
 .progress-reset { position: relative; }
 .progress-reset summary { border: 1px solid var(--line); border-radius: 11px; padding: 8px 11px; color: var(--muted); background: var(--paper); cursor: pointer; font-size: 12px; list-style: none; }
 .progress-reset summary::-webkit-details-marker { display: none; }

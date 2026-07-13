@@ -92,6 +92,9 @@
 #reviewCanvasHost .draw-panel { padding: 14px 0; border: 0; background: transparent; }
 #reviewCanvasHost #can { width: min(100%, 320px); }
 .check-drawing { min-width: 200px; margin-top: 10px; }
+.review-submit-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 10px; }
+.review-submit-actions .check-drawing { margin-top: 0; }
+.review-submit-actions .forgot-answer { min-width: 140px; }
 .review-feedback { margin-top: 14px; padding: 12px; border-radius: 12px; background: #f5f2eb; font-size: 13px; line-height: 1.5; }
 .review-feedback[data-result="good"] { color: var(--green); background: #edf5ef; }
 .review-feedback[data-result="hard"] { color: #8a651f; background: #fff6df; }

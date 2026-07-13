@@ -90,6 +90,7 @@ let testIndex = 0;
 let testLayerIndex = 0;
 let selfTestActive = false;
 let knownKanaTestActive = false;
+let copybookMode = false;
 let placementActive = false;
 let placementSelectedLevel = '';
 let placementCorrect = new Set();
@@ -615,7 +616,7 @@ function showGrade(cell, result, score) {
     }
   }
   if (testActive) handleTestResult(result);
-  else if (result === 'good') recordLearningSuccess();
+  else if (result === 'good' && !copybookMode) recordLearningSuccess();
 }
 
 function revealTestComparison(cell) {
@@ -952,6 +953,8 @@ function renderPicker() {
     ? []
     : testActive
     ? KanaProgress.testPickerItems(kana[script], mastery, selected[0])
+    : copybookMode
+    ? kana[script]
     : rowItems(currentLearningRow() || curriculumDefinitions[script][0]);
   items.forEach(item => {
     const button = document.createElement('button');
@@ -986,16 +989,32 @@ function updateLesson() {
     ? `Knowledge check ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without hints`
     : testActive
     ? `Test ${testIndex + 1} of ${testQueue.length}, layer ${testLayerIndex + 1} of ${TEST_LAYERS.length}: write “${selected[1]}” with the ${TEST_LAYERS[testLayerIndex].label}`
+    : copybookMode
+    ? 'Choose any kana and practise freely'
     : 'Repeat the character in each cell';
+  document.querySelector('#forgotKana').hidden = !testActive || TEST_LAYERS[testLayerIndex]?.key !== 'blank';
   renderPicker();
   makeSheet();
+}
+
+function setCopybookMode(active) {
+  if (active && testActive) stopKanaTest();
+  copybookMode = active;
+  document.body.classList.toggle('copybook-mode', active);
+  const button = document.querySelector('#copybookModeToggle');
+  button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  button.querySelector('span:last-child').textContent = active ? 'Exit copybook mode' : 'Copybook mode';
+  selected = active
+    ? (kana[script].find(item => item[0] === selected[0]) || kana[script][0])
+    : nextLearningItem();
+  updateLesson();
 }
 
 document.querySelectorAll('.script-button').forEach(button => {
   button.addEventListener('click', () => {
     if (testActive) stopKanaTest();
     script = button.dataset.script;
-    selected = nextLearningItem();
+    selected = copybookMode ? kana[script][0] : nextLearningItem();
     document.querySelectorAll('.script-button').forEach(item => item.classList.toggle('active', item === button));
     updateLesson();
   });
@@ -1004,6 +1023,21 @@ document.querySelectorAll('.script-button').forEach(button => {
 document.querySelector('#startKanaTest').addEventListener('click', () => testActive ? stopKanaTest() : startKanaTest());
 document.querySelector('#testMyself').addEventListener('click', () => testActive ? stopKanaTest() : startSelfTest());
 document.querySelector('#knowCurrentRow').addEventListener('click', () => knownKanaTestActive ? stopKanaTest() : startKnownKanaTest());
+document.querySelector('#copybookModeToggle').addEventListener('click', () => setCopybookMode(!copybookMode));
+document.querySelector('#forgotKana').addEventListener('click', () => {
+  if (!testActive || TEST_LAYERS[testLayerIndex]?.key !== 'blank') return;
+  const cell = document.querySelector('.test-cell');
+  if (placementActive || knownKanaTestActive) {
+    const canvas = cell?.querySelector('canvas');
+    if (cell) revealTestComparison(cell);
+    if (canvas) canvas.style.pointerEvents = 'none';
+    document.querySelector('#forgotKana').hidden = true;
+    handleTestResult('retry');
+    return;
+  }
+  testLayerIndex = KanaProgress.previousTestLayer(testLayerIndex);
+  updateLesson();
+});
 
 document.querySelectorAll('[data-reset-script]').forEach(button => {
   button.addEventListener('click', () => {
