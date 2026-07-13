@@ -177,8 +177,8 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 #startKanaTest:disabled, #testMyself:disabled { cursor: not-allowed; opacity: .5; }
 .forgot-answer { border: 1px solid var(--accent); border-radius: 10px; padding: 8px 11px; color: var(--accent); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
 .reference .forgot-answer { z-index: 5; align-self: flex-start; margin: 0; background: rgba(255,254,250,.92); }
-.copybook-mode .kana-progress-panel, .copybook-mode .learning-row-copy, .copybook-mode .mastered-kana { display: none; }
-.copybook-mode .learning-path { grid-template-columns: auto auto minmax(0, 1fr); gap: 10px; padding: 6px 10px; }
+.copybook-mode .kana-progress-panel, .copybook-mode .learning-path-summary, .copybook-mode .know-row-button, .copybook-mode .mastered-kana { display: none; }
+.copybook-mode .learning-path { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 6px 10px; }
 .copybook-mode .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-start; padding: 10px 14px; }
 .progress-reset { position: relative; }
 .progress-reset summary { border: 1px solid var(--line); border-radius: 11px; padding: 8px 11px; color: var(--muted); background: var(--paper); cursor: pointer; font-size: 12px; list-style: none; }
@@ -191,17 +191,14 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .test-active .kana-picker { display: none; }
 .test-active .mastered-kana { display: none; }
 .test-active .practice-clear { display: none; }
-.learning-path { display: grid; grid-template-columns: minmax(150px, .65fr) minmax(210px, auto) minmax(280px, 1.35fr); align-items: center; gap: 14px; padding: 20px 28px; border-bottom: 1px solid #e9e4dc; background: #fffdf9; }
+.test-active .learning-path { display: none; }
+.learning-path { display: grid; grid-template-columns: minmax(150px, .65fr) auto minmax(280px, 1.35fr); align-items: center; gap: 14px; padding: 20px 28px; border-bottom: 1px solid #e9e4dc; background: #fffdf9; }
 .learning-path h2 { margin: 5px 0 4px; font-size: 22px; }
 #learningRowProgress { margin: 0; color: var(--muted); font-size: 12px; }
 .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-end; border: 0; padding: 0; }
 body:not(.copybook-mode) .learning-path .kana-picker { gap: 6px; overflow-x: visible; }
 body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-width: 48px; flex: 1 1 0; }
-.learning-path-tools { display: grid; grid-template-columns: auto auto; align-items: center; justify-content: center; gap: 6px; }
-.learning-path-tools .guide-control { gap: 6px; white-space: nowrap; font-size: 10px; }
-.learning-path-tools .practice-clear { margin-left: 0; padding: 7px 9px; white-space: nowrap; font-size: 9px; }
-.learning-path-summary .script-switch { width: max-content; margin-bottom: 7px; }
-.copybook-mode .learning-path-summary .script-switch { margin-bottom: 0; }
+.learning-path > .know-row-button { margin: 0; white-space: nowrap; }
 .know-row-button { margin-top: 10px; border: 1px solid var(--green); border-radius: 10px; padding: 7px 10px; color: var(--green); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
 .know-row-button:hover { color: #fff; background: var(--green); }
 .know-row-button:disabled { cursor: not-allowed; opacity: .45; }
@@ -233,6 +230,11 @@ body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-widt
 
 .lesson { display: grid; grid-template-columns: 235px minmax(0, 1fr); min-height: 470px; }
 .reference { position: relative; padding: 32px 28px; border-right: 1px solid #e9e4dc; display: flex; flex-direction: column; justify-content: space-between; }
+.reference-actions { display: grid; gap: 7px; }
+.reference-actions .script-switch { width: max-content; }
+.reference-actions .script-button { padding: 6px 8px; font-size: 9px; }
+.reference-actions .guide-control { gap: 6px; font-size: 10px; }
+.reference-actions .practice-clear { width: max-content; margin-left: 0; padding: 7px 9px; font-size: 9px; }
 .reference-kana { font-family: 'Noto Sans JP', sans-serif; font-size: 146px; line-height: 1; color: var(--green); }
 .reference-romanji { font-size: 32px; font-weight: 600; letter-spacing: -.04em; }
 .reference-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
@@ -414,7 +416,7 @@ footer a { color: inherit; }
   body:not(.concentration-mode) .script-button { padding: 6px 12px; font-size: 11px; }
   body:not(.concentration-mode) .guide-control { gap: 7px; font-size: 11px; }
   body:not(.concentration-mode) .clear-button { padding: 7px 11px; font-size: 10px; }
-  body:not(.concentration-mode) .lesson { grid-template-columns: 130px minmax(0, 1fr); min-height: 0; }
+  body:not(.concentration-mode) .lesson { grid-template-columns: 170px minmax(0, 1fr); min-height: 0; }
   body:not(.concentration-mode) .reference { padding: 10px 12px; }
   body:not(.concentration-mode) .reference-kana { font-size: clamp(68px, 11vh, 94px); }
   body:not(.concentration-mode) .reference-romanji { font-size: 21px; }
@@ -422,14 +424,14 @@ footer a { color: inherit; }
   body:not(.concentration-mode) .reference .forgot-answer { margin-top: 5px; padding: 5px 7px; font-size: 9px; }
   body:not(.concentration-mode) .sheet-wrap { display: grid; place-items: center; overflow: hidden; padding: 8px; }
   body:not(.concentration-mode) .sheet {
-    --landscape-cell: min(calc((min(1600px, calc(100vw - 40px)) - 194px) / 5), calc((100dvh - 271px) / 3));
+    --landscape-cell: min(calc((min(1600px, calc(100vw - 40px)) - 234px) / 5), calc((100dvh - 230px) / 3));
     grid-template-columns: repeat(5, var(--landscape-cell));
     gap: 6px;
     width: max-content;
     min-width: 0;
   }
   body:not(.concentration-mode).copybook-mode .sheet {
-    --landscape-cell: min(calc((min(1600px, calc(100vw - 40px)) - 194px) / 5), calc((100dvh - 171px) / 3));
+    --landscape-cell: min(calc((min(1600px, calc(100vw - 40px)) - 234px) / 5), calc((100dvh - 155px) / 3));
   }
   body:not(.concentration-mode) .test-active .sheet { width: min(100%, calc(100dvh - 300px)); grid-template-columns: minmax(220px, 1fr); }
   body:not(.concentration-mode) .kana-button { flex-basis: 38px; height: 38px; border-radius: 9px; font-size: 18px; }
@@ -461,7 +463,7 @@ footer a { color: inherit; }
   body.concentration-mode .script-button { padding: 6px 12px; font-size: 11px; }
   body.concentration-mode .guide-control { gap: 7px; font-size: 11px; }
   body.concentration-mode .clear-button { padding: 7px 11px; font-size: 10px; }
-  body.concentration-mode .lesson { grid-template-columns: 130px minmax(0, 1fr); min-height: 0; }
+  body.concentration-mode .lesson { grid-template-columns: 170px minmax(0, 1fr); min-height: 0; }
   body.concentration-mode .reference { padding: 10px 12px; }
   body.concentration-mode .reference-kana { font-size: clamp(68px, 11vh, 94px); }
   body.concentration-mode .reference-romanji { font-size: 21px; }
@@ -469,14 +471,14 @@ footer a { color: inherit; }
   body.concentration-mode .reference .forgot-answer { margin-top: 5px; padding: 5px 7px; font-size: 9px; }
   body.concentration-mode .sheet-wrap { display: grid; place-items: center; overflow: hidden; padding: 8px; }
   body.concentration-mode .sheet {
-    --landscape-cell: min(calc((min(1600px, calc(100vw - 16px)) - 194px) / 5), calc((100dvh - 310px) / 3));
+    --landscape-cell: min(calc((min(1600px, calc(100vw - 16px)) - 234px) / 5), calc((100dvh - 270px) / 3));
     grid-template-columns: repeat(5, var(--landscape-cell));
     gap: 6px;
     width: max-content;
     min-width: 0;
   }
   body.concentration-mode.copybook-mode .sheet {
-    --landscape-cell: min(calc((min(1600px, calc(100vw - 16px)) - 194px) / 5), calc((100dvh - 170px) / 3));
+    --landscape-cell: min(calc((min(1600px, calc(100vw - 16px)) - 234px) / 5), calc((100dvh - 155px) / 3));
   }
   body.concentration-mode .test-active .sheet { width: min(100%, calc(100dvh - 250px)); grid-template-columns: minmax(220px, 1fr); }
   body.concentration-mode .kana-button { flex-basis: 38px; height: 38px; border-radius: 9px; font-size: 18px; }
