@@ -30,6 +30,10 @@
     return Math.max(0, layerIndex - 1);
   }
 
+  function testPickerItems(values, mastery, currentCharacter) {
+    return values.filter(item => item[0] !== currentCharacter && mastery[item[0]]?.passed);
+  }
+
   function shuffled(values, random = Math.random) {
     const result = [...values];
     for (let index = result.length - 1; index > 0; index--) {
@@ -39,5 +43,5 @@
     return result;
   }
 
-  return { markMastered, mergeMastery, progressCount, resetMastery, previousTestLayer, shuffled };
+  return { markMastered, mergeMastery, progressCount, resetMastery, previousTestLayer, testPickerItems, shuffled };
 });

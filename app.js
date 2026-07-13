@@ -443,6 +443,8 @@ function handleTestResult(result) {
 
 function startKanaTest() {
   testActive = true;
+  penOnlyToggle.checked = false;
+  updateInputModeTip();
   testIndex = 0;
   testLayerIndex = 0;
   testQueue = KanaProgress.shuffled(kana[script]);
@@ -467,7 +469,10 @@ function stopKanaTest(message = 'Start test') {
 
 function renderPicker() {
   picker.innerHTML = '';
-  kana[script].forEach(item => {
+  const items = testActive
+    ? KanaProgress.testPickerItems(kana[script], mastery, selected[0])
+    : kana[script];
+  items.forEach(item => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `kana-button${item[0] === selected[0] ? ' active' : ''}`;
@@ -481,6 +486,12 @@ function renderPicker() {
     });
     picker.append(button);
   });
+  if (testActive && !items.length) {
+    const empty = document.createElement('span');
+    empty.className = 'picker-empty';
+    empty.textContent = 'Passed kana will appear here.';
+    picker.append(empty);
+  }
 }
 
 function updateLesson() {
@@ -521,11 +532,13 @@ ghostToggle.addEventListener('change', () => {
   document.querySelectorAll('.ghost').forEach(ghost => { ghost.hidden = !ghostToggle.checked; });
 });
 
-penOnlyToggle.addEventListener('change', () => {
-  document.querySelector('.tablet-tip').firstChild.textContent = penOnlyToggle.checked
+function updateInputModeTip() {
+  document.querySelector('#inputModeTip').textContent = penOnlyToggle.checked
     ? ' Stylus mode is active; palm touches are ignored. '
     : ' Finger drawing is enabled. ';
-});
+}
+
+penOnlyToggle.addEventListener('change', updateInputModeTip);
 
 document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('canvas').forEach(canvas => {

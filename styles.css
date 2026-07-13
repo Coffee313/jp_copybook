@@ -127,7 +127,10 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .progress-reset button:hover { background: #fff0ed; }
 .test-active .sheet { grid-template-columns: minmax(220px, 340px); min-width: 0; justify-content: center; }
 .test-active .test-cell { width: min(100%, 340px); }
-.test-active .kana-picker { opacity: .5; pointer-events: none; }
+.test-active .kana-picker { pointer-events: none; }
+.test-finger-hint { display: none; margin: 0; padding: 15px 28px 0; color: var(--green); font-size: 13px; font-weight: 600; }
+.test-finger-hint span { margin-right: 6px; color: var(--accent); }
+.test-active .test-finger-hint { display: block; }
 
 .controls {
   display: flex;
@@ -191,6 +194,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .stroke-cell::after { z-index: 1; }
 
 .kana-picker { display: flex; gap: 8px; overflow-x: auto; padding: 20px 28px 24px; border-top: 1px solid #e9e4dc; scrollbar-width: thin; }
+.picker-empty { align-self: center; color: var(--muted); font-size: 12px; }
 .kana-button { flex: 0 0 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--paper); border-radius: 12px; font: 500 21px/1 'Noto Sans JP', sans-serif; cursor: pointer; }
 .kana-button.mastered::after { content: '✓'; position: absolute; margin: -34px -34px 0 0; color: var(--green); font: 700 10px/1 sans-serif; }
 .kana-button { position: relative; }
@@ -204,7 +208,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .legend-dot.direction { background: #c17a32; }
 .legend-dot.retry { background: #d85c58; }
 .tablet-tip { margin: 0; padding: 0 28px 22px; color: var(--muted); font-size: 12px; }
-.tablet-tip span { color: var(--accent); margin-right: 5px; }
+.tablet-tip > span:first-child { color: var(--accent); margin-right: 5px; }
 
 footer { width: min(1180px, calc(100% - 40px)); margin: 24px auto 50px; color: var(--muted); font-size: 12px; display: flex; justify-content: flex-end; gap: 18px; text-align: right; }
 footer a { color: inherit; }

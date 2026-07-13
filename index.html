@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kana — handwriting practice</title>
-    <link rel="stylesheet" href="styles.css?v=6" />
+    <link rel="stylesheet" href="styles.css?v=7" />
   </head>
   <body>
     <header class="topbar">
@@ -93,6 +93,7 @@
           </div>
         </div>
 
+        <p class="test-finger-hint"><span aria-hidden="true">☝</span> Put the stylus aside and try drawing with your finger.</p>
         <div class="kana-picker" id="kanaPicker" aria-label="Choose a character"></div>
         <div class="score-legend" aria-label="Writing assessment">
           <span><i class="legend-dot good"></i>Matches the reference</span>
@@ -100,7 +101,7 @@
           <span><i class="legend-dot direction"></i>Wrong stroke direction</span>
           <span><i class="legend-dot retry"></i>Try again</span>
         </div>
-        <p class="tablet-tip"><span aria-hidden="true">✦</span> Rotate your tablet to landscape for larger cells. Stylus pressure changes the line width.</p>
+        <p class="tablet-tip"><span aria-hidden="true">✦</span><span id="inputModeTip"> Stylus mode is active; palm touches are ignored. </span>Rotate your tablet to landscape for larger cells.</p>
       </section>
     </main>
 
@@ -110,8 +111,8 @@
     </footer>
     <script src="supabase-config.js?v=1"></script>
     <script src="progress-sync.js?v=5"></script>
-    <script src="kana-progress.js?v=2"></script>
+    <script src="kana-progress.js?v=3"></script>
     <script src="kana-guides.js?v=4"></script>
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
   </body>
 </html>

@@ -29,6 +29,12 @@ test('previousTestLayer moves back one layer without going below zero', () => {
   assert.equal(progress.previousTestLayer(0), 0);
 });
 
+test('testPickerItems shows only passed kana and hides the current answer', () => {
+  const values = [['a', 'a'], ['i', 'i'], ['u', 'u']];
+  const mastery = { a: { passed: true }, i: { passed: true } };
+  assert.deepEqual(progress.testPickerItems(values, mastery, 'a'), [['i', 'i']]);
+});
+
 test('shuffled preserves every test item', () => {
   assert.deepEqual(progress.shuffled(['あ', 'い', 'う'], () => 0).sort(), ['あ', 'い', 'う']);
 });
