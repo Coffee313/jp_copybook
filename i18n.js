@@ -8,12 +8,12 @@
     'Concentration mode': 'Режим концентрации',
     'Stylus only': 'Только стилус',
     'Sign In': 'Войти',
-    'Cloud progress': 'Облачный прогресс',
+    'Cloud progress': 'Синхронизация прогресса',
     'Your account': 'Ваш аккаунт',
     'Profile settings': 'Настройки профиля',
     'Sign in or create an account to save your test results.': 'Войдите или создайте аккаунт, чтобы сохранять результаты.',
     'Sign in or create an account to save your dictionary and review schedule.': 'Войдите или создайте аккаунт, чтобы сохранять словарь и расписание повторений.',
-    'Email': 'Эл. почта',
+    'Email': 'Электронная почта',
     'Password': 'Пароль',
     'Sign in': 'Войти',
     'Create account': 'Создать аккаунт',
@@ -24,9 +24,9 @@
     'Reset progress': 'Сбросить прогресс',
     'Language': 'Язык',
     'Logout': 'Выйти',
-    'Choose which kana learning path to restart. This cannot be undone.': 'Выберите, какой путь изучения каны начать заново. Это действие нельзя отменить.',
-    'Reset Hiragana': 'Сбросить хирагану',
-    'Reset Katakana': 'Сбросить катакану',
+    'Choose which kana learning path to restart. This cannot be undone.': 'Выберите, для какой азбуки сбросить прогресс. Это действие нельзя отменить.',
+    'Reset Hiragana': 'Сбросить прогресс хираганы',
+    'Reset Katakana': 'Сбросить прогресс катаканы',
     'English': 'English',
     'Russian': 'Русский',
     'Choose language': 'Выберите язык',
@@ -35,35 +35,35 @@
     'How will you practise?': 'Как вы будете практиковаться?',
     'Choose your drawing input. You can change this later using the control at the top of the page.': 'Выберите способ ввода. Его можно изменить позже с помощью переключателя вверху страницы.',
     'Stylus': 'Стилус',
-    'Ignore finger and palm touches': 'Игнорировать касания пальца и ладони',
-    'Finger / mouse': 'Палец / мышь',
-    'Draw using touch or a mouse': 'Рисовать касанием или мышью',
-    'What is your kana level?': 'Каков ваш уровень каны?',
+    'Ignore finger and palm touches': 'Игнорировать касания пальцами и ладонью',
+    'Finger / mouse': 'Палец или мышь',
+    'Draw using touch or a mouse': 'Рисовать пальцем или мышью',
+    'What is your kana level?': 'Насколько хорошо вы знаете кану?',
     'We will use a short check to place you at the right point in the learning path.': 'Короткая проверка поможет выбрать подходящее место в программе обучения.',
     'Beginner': 'Начинающий',
     'Start learning from the vowel row': 'Начать с ряда гласных',
     'Intermediate': 'Средний уровень',
-    'Draw 8 basic kana without hints': 'Нарисовать 8 базовых знаков без подсказок',
+    'Draw 8 basic kana without hints': 'Написать 8 базовых знаков без подсказок',
     'Master of Kana': 'Мастер каны',
-    'Draw 16 basic and voiced kana without hints': 'Нарисовать 16 базовых и озвончённых знаков без подсказок',
+    'Draw 16 basic and voiced kana without hints': 'Написать 16 базовых и озвончённых знаков без подсказок',
     'Placement complete': 'Определение уровня завершено',
     'Start learning': 'Начать обучение',
     'Kana mastery': 'Освоение каны',
-    'Test new kanas': 'Проверить новые каны',
+    'Test new kanas': 'Проверить новые знаки',
     'Test myself': 'Проверить себя',
-    'Current learning row': 'Текущий изучаемый ряд',
+    'Current learning row': 'Текущий ряд',
     'Vowels': 'Гласные',
     'Hiragana': 'Хирагана',
     'Katakana': 'Катакана',
     'Show guides in cells': 'Показывать образцы в клетках',
     'Clear drawings': 'Очистить поля',
-    'Repeat the character in each cell': 'Повторите знак в каждой клетке',
-    'Mastered kana': 'Освоенная кана',
-    'Pass learned-kana tests to build this list.': 'Проходите тесты изученной каны, чтобы заполнить этот список.',
-    'Rotate your tablet to landscape for larger cells.': 'Поверните планшет горизонтально, чтобы увеличить клетки.',
+    'Repeat the character in each cell': 'Напишите знак в каждой клетке',
+    'Mastered kana': 'Освоенные знаки каны',
+    'Pass learned-kana tests to build this list.': 'Пройдите тесты по изученным знакам, чтобы они появились здесь.',
+    'Rotate your tablet to landscape for larger cells.': 'Поверните планшет горизонтально, чтобы увеличить размер клеток.',
     'Practice matters more than a perfect line.': 'Практика важнее идеальной линии.',
     'Progress is stored on this device': 'Прогресс хранится на этом устройстве',
-    'Draw a kanji': 'Нарисуйте кандзи',
+    'Draw a kanji': 'Напишите кандзи',
     'Undo stroke': 'Отменить черту',
     'Clear': 'Очистить',
     'Candidates': 'Варианты',
@@ -87,22 +87,22 @@
     'Spaced repetition': 'Интервальное повторение',
     'Start test': 'Начать тест',
     'Check writing': 'Проверить написание',
-    'Draw the kanji for this meaning. Follow the correct stroke order and direction.': 'Нарисуйте кандзи для этого значения, соблюдая порядок и направление черт.',
+    'Draw the kanji for this meaning. Follow the correct stroke order and direction.': 'Напишите кандзи с этим значением, соблюдая порядок и направление черт.',
     'Recognition runs locally.': 'Распознавание работает на устройстве.',
     'In vocabulary': 'В словаре',
     'Not learned': 'Не изучено',
     'Learned a little': 'Немного изучено',
     'Learned well': 'Хорошо изучено',
-    'Kana progress': 'Прогресс каны',
+    'Kana progress': 'Прогресс в изучении каны',
     'Kanji vocabulary': 'Словарь кандзи',
-    'Placement': 'Начальный уровень',
+    'Placement': 'Определение уровня',
     'Cloud sync is on': 'Облачная синхронизация включена',
     'Progress saved': 'Прогресс сохранён',
     'Saving…': 'Сохранение…',
     'Password updated.': 'Пароль обновлён.',
     'Self-test complete': 'Самопроверка завершена',
     'Test complete': 'Тест завершён',
-    'stroke order and directions': 'порядок и направления черт',
+    'stroke order and directions': 'порядок и направление черт',
     'background example': 'силуэт знака',
     'blank background': 'без фона',
     'Sign in or create an account to save your learning progress.': 'Войдите или создайте аккаунт, чтобы сохранять учебный прогресс.',
@@ -115,6 +115,7 @@
     'Signed in.': 'Вход выполнен.',
     'Account created.': 'Аккаунт создан.',
     'Check your email to confirm your account.': 'Проверьте почту, чтобы подтвердить аккаунт.',
+    'This password reset link has expired. Request a new one.': 'Срок действия ссылки для сброса пароля истёк. Запросите новую ссылку.',
     'Finger drawing is enabled.': 'Рисование пальцем включено.',
     'Stylus mode is active; palm touches are ignored.': 'Режим стилуса включён; касания ладонью игнорируются.',
     'All rows learned': 'Все ряды изучены',
@@ -124,9 +125,24 @@
     'Review complete. Your next review schedule has been saved.': 'Повторение завершено. Новое расписание сохранено.',
     'All reviews are complete for today. Come back later.': 'Все повторения на сегодня завершены. Возвращайтесь позже.',
     'Add cards to your dictionary and new kanji will appear here immediately.': 'Добавьте карточки в словарь, и новые кандзи сразу появятся здесь.',
-    'Your dictionary is empty. Draw your first kanji and add a meaning.': 'Ваш словарь пуст. Нарисуйте первый кандзи и добавьте значение.',
+    'Your dictionary is empty. Draw your first kanji and add a meaning.': 'Ваш словарь пуст. Напишите первый кандзи и добавьте значение.',
     'Trace the kanji using the guide. After a correct attempt, you will write it once more without help.': 'Обведите кандзи по образцу. После правильной попытки напишите его ещё раз без помощи.',
     'Now write the same kanji once more without the guide.': 'Теперь напишите тот же кандзи ещё раз без образца.',
+    'We will begin with the vowel row and build your kana step by step.': 'Начнём с ряда гласных и будем осваивать знаки каны шаг за шагом.',
+    'Returning learner': 'Продолжающий обучение',
+    'End test': 'Завершить тест',
+    'End self-test': 'Завершить самопроверку',
+    'Mastered kana will appear here.': 'Здесь появятся освоенные знаки каны.',
+    'Complete learned-kana tests to unlock the next stage.': 'Пройдите тесты по изученным знакам, чтобы открыть следующий этап.',
+    'Looking up meanings…': 'Загрузка значений…',
+    'No suggested meanings are available for this kanji. Enter one manually.': 'Для этого кандзи нет предложенных значений. Введите значение вручную.',
+    'Ready for the first review': 'Готово к первому повторению',
+    'Draw a kanji first.': 'Сначала напишите кандзи.',
+    'Open profile': 'Открыть профиль',
+    'Sections': 'Разделы',
+    'Enter concentration mode': 'Включить режим концентрации',
+    'Exit concentration mode': 'Выйти из режима концентрации',
+    'Redraw this practice cell': 'Переписать знак в этой клетке',
     'K row': 'Ряд K',
     'S row': 'Ряд S',
     'T row': 'Ряд T',
@@ -142,7 +158,7 @@
     'B row · dakuten': 'Ряд B · дакутэн',
     'P row · handakuten': 'Ряд P · хандакутэн',
     'Continue in English': 'Продолжить на английском',
-    'For example: water': 'Например: вода',
+    'For example: water': 'Например, вода',
     'Reading, association, or example': 'Чтение, ассоциация или пример'
   };
 
@@ -167,21 +183,48 @@
     if (!trimmed) return text;
     let translated = russian[trimmed];
     if (!translated) {
+      const russianForm = (number, one, few, many) => {
+        const value = Math.abs(Number(number));
+        const lastTwo = value % 100;
+        const last = value % 10;
+        if (lastTwo >= 11 && lastTwo <= 14) return many;
+        if (last === 1) return one;
+        if (last >= 2 && last <= 4) return few;
+        return many;
+      };
       const patterns = [
-        [/^Test new kanas · (\d+)$/, 'Проверить новые каны · $1'],
+        [/^Test new kanas · (\d+)$/, 'Проверить новые знаки · $1'],
         [/^Test myself · (\d+)$/, 'Проверить себя · $1'],
         [/^(\d+) of (\d+) learned · fill every copybook cell in green$/, '$1 из $2 изучено · заполните все клетки правильно'],
         [/^Placement (\d+) of (\d+): write “(.+)” without hints$/, 'Определение уровня $1 из $2: напишите «$3» без подсказок'],
-        [/^Test (\d+) of (\d+), layer (\d+) of (\d+): write “(.+)” with the (.+)$/, 'Тест $1 из $2, этап $3 из $4: напишите «$5» — $6'],
+        [/^Test (\d+) of (\d+), layer (\d+) of (\d+): write “(.+)” with the (.+)$/, (_, current, total, layer, layerTotal, reading, guide) => {
+          const instructions = {
+            'stroke order and directions': 'с подсказками порядка и направления черт',
+            'background example': 'с силуэтом знака',
+            'blank background': 'без подсказок'
+          };
+          return `Тест ${current} из ${total}, этап ${layer} из ${layerTotal}: напишите «${reading}» ${instructions[guide] || guide}`;
+        }],
         [/^Hiragana · (.+)$/, 'Хирагана · $1'],
         [/^Katakana · (.+)$/, 'Катакана · $1'],
         [/^Card (\d+) of (\d+)$/, 'Карточка $1 из $2'],
-        [/^(\d+) cards$/, '$1 карточек'],
+        [/^(\d+) cards$/, (_, count) => `${count} ${russianForm(count, 'карточка', 'карточки', 'карточек')}`],
         [/^(\d+) card$/, '$1 карточка'],
-        [/^(\d+) (card is|cards are) ready for review\.$/, '$1 готово к повторению.'],
+        [/^(\d+) (card is|cards are) ready for review\.$/, (_, count) => `К повторению ${Number(count) === 1 ? 'готова' : 'готовы'} ${count} ${russianForm(count, 'карточка', 'карточки', 'карточек')}.`],
         [/^Signed in as (.+)\. Your progress is synced across devices\.$/, 'Выполнен вход: $1. Прогресс синхронизируется между устройствами.'],
-        [/^You drew (\d+) of (\d+) kana correctly\. Correct answers were added to Mastered kana\.$/, 'Правильно написано $1 из $2 знаков. Верные ответы добавлены в освоенную кану.'],
-        [/^Master (\d+) basic kana to unlock voiced sounds\.$/, 'Освойте $1 базовых знаков, чтобы открыть озвончённые звуки.']
+        [/^Open profile for (.+)$/, 'Открыть профиль: $1'],
+        [/^(.+), stroke count: (\d+)$/, '$1, количество черт: $2'],
+        [/^Strokes: (\d+)$/, (_, count) => `Черт: ${count}`],
+        [/^On: (.+)$/, 'Он: $1'],
+        [/^Kun: (.+)$/, 'Кун: $1'],
+        [/^Delete (.+)$/, 'Удалить $1'],
+        [/^Reset all (Hiragana|Katakana) learning progress\? This cannot be undone\.$/, (_, alphabet) => `Сбросить весь прогресс ${alphabet === 'Hiragana' ? 'хираганы' : 'катаканы'}? Это действие нельзя отменить.`],
+        [/^Correct: (.+)\. The stroke order and direction are right\.$/, 'Верно: $1. Порядок и направление черт правильные.'],
+        [/^This is (.+), but the stroke order or direction needs more practice\.$/, 'Это $1, но порядок или направление черт нужно отработать.'],
+        [/^Incorrect\. The correct kanji is (.+)\.$/, 'Неверно. Правильный кандзи: $1.'],
+        [/^Correct: (.+)\. Now repeat it without the guide\.$/, 'Верно: $1. Теперь напишите его ещё раз без образца.'],
+        [/^You drew (\d+) of (\d+) kana correctly\. Correct answers were added to Mastered kana\.$/, 'Вы правильно написали $1 из $2 знаков. Правильно написанные знаки добавлены в список освоенных.'],
+        [/^Master (\d+) basic kana to unlock voiced sounds\.$/, (_, count) => `Освойте ${count} ${russianForm(count, 'базовый знак', 'базовых знака', 'базовых знаков')}, чтобы открыть озвончённые звуки.`]
       ];
       const match = patterns.find(([pattern]) => pattern.test(trimmed));
       if (match) translated = trimmed.replace(match[0], match[1]);
@@ -302,6 +345,6 @@
   }).observe(document.documentElement, { childList: true, characterData: true, subtree: true });
 
   if (language) apply(document);
-  window.I18n = { initialize, setLanguage, apply, get language() { return language || 'en'; } };
+  window.I18n = { initialize, setLanguage, apply, translate: translatedText, get language() { return language || 'en'; } };
   window.I18n.ready = initialize();
 })();

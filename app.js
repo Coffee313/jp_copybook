@@ -921,7 +921,8 @@ document.querySelectorAll('[data-reset-script]').forEach(button => {
   button.addEventListener('click', () => {
     const targetScript = button.dataset.resetScript;
     const label = targetScript === 'hiragana' ? 'Hiragana' : 'Katakana';
-    if (!window.confirm(`Reset all ${label} learning progress? This cannot be undone.`)) return;
+    const resetPrompt = `Reset all ${label} learning progress? This cannot be undone.`;
+    if (!window.confirm(window.I18n?.translate?.(resetPrompt) || resetPrompt)) return;
     if (testActive) stopKanaTest();
     const characters = kana[targetScript].map(item => item[0]);
     saveMasteryResets(KanaProgress.markScriptReset(masteryResets, targetScript));

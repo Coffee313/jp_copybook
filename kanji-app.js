@@ -1,11 +1,80 @@
 const STORAGE_KEY = 'kana-kanji-dictionary-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
+const INPUT_MODE_COOKIE = 'kana-input-mode';
 let selectedCharacter = '';
 let reviewQueue = [];
 let reviewIndex = 0;
 let reviewActive = false;
 let reviewMode = 'test';
 let reviewSelfTest = false;
+
+function cookieValue(name) {
+  const prefix = `${encodeURIComponent(name)}=`;
+  const item = document.cookie.split(';').map(value => value.trim()).find(value => value.startsWith(prefix));
+  return item ? decodeURIComponent(item.slice(prefix.length)) : null;
+}
+
+function initializeDrawingControls() {
+  const penOnlyToggle = document.querySelector('#penOnlyToggle');
+  const canvas = document.querySelector('#can');
+  let lastPenEventAt = 0;
+  const stylusOnly = () => penOnlyToggle.checked;
+  penOnlyToggle.checked = cookieValue(INPUT_MODE_COOKIE) === 'stylus';
+  penOnlyToggle.addEventListener('change', () => {
+    const mode = penOnlyToggle.checked ? 'stylus' : 'finger';
+    document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  });
+
+  ['pointerdown', 'pointermove', 'pointerup'].forEach(type => {
+    canvas.addEventListener(type, event => {
+      if (event.pointerType === 'pen') {
+        lastPenEventAt = Date.now();
+        return;
+      }
+      if (!stylusOnly()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, { capture: true, passive: false });
+  });
+  ['touchstart', 'touchmove', 'touchend'].forEach(type => {
+    canvas.addEventListener(type, event => {
+      if (!stylusOnly()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, { capture: true, passive: false });
+  });
+  ['mousedown', 'mousemove', 'mouseup'].forEach(type => {
+    canvas.addEventListener(type, event => {
+      if (!stylusOnly() || Date.now() - lastPenEventAt < 1000) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, { capture: true });
+  });
+
+  const setConcentrationMode = active => {
+    document.body.classList.toggle('concentration-mode', active);
+    document.querySelector('#concentrationEnter').setAttribute('aria-pressed', active ? 'true' : 'false');
+  };
+  document.querySelector('#concentrationEnter').addEventListener('click', async () => {
+    setConcentrationMode(true);
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      try { await document.documentElement.requestFullscreen(); }
+      catch { /* The CSS concentration layout remains available. */ }
+    }
+  });
+  document.querySelector('#concentrationExit').addEventListener('click', async () => {
+    setConcentrationMode(false);
+    if (document.fullscreenElement && document.exitFullscreen) {
+      try { await document.exitFullscreen(); }
+      catch { /* The concentration layout has already closed. */ }
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && document.body.classList.contains('concentration-mode')) setConcentrationMode(false);
+  });
+}
+
+initializeDrawingControls();
 
 async function fetchJson(url, timeout = 5000) {
   const controller = new AbortController();
