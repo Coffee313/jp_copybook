@@ -92,6 +92,7 @@ let selfTestActive = false;
 let placementActive = false;
 let placementSelectedLevel = '';
 let placementCorrect = new Set();
+let progressReady = Promise.resolve();
 
 const PLACEMENT_SAMPLE_INDICES = {
   intermediate: {
@@ -989,7 +990,7 @@ document.querySelectorAll('[data-input-mode]').forEach(button => {
   button.addEventListener('click', () => {
     setInputMode(button.dataset.inputMode);
     document.querySelector('#inputModeDialog').close();
-    initializePlacement();
+    progressReady.finally(initializePlacement);
   });
 });
 document.querySelector('#placementDialog').addEventListener('cancel', event => event.preventDefault());
@@ -1052,7 +1053,7 @@ window.addEventListener('resize', () => {
 
 updateLesson();
 renderProgress();
-ProgressSync.initialize({
+progressReady = ProgressSync.initialize({
   getLocalProgress: () => ({ kanaMastery: mastery, kanaLearned: learned, kanaMasteryResets: masteryResets, kanaPlacement: placement }),
   applyRemoteProgress: remote => {
     saveMasteryResets(KanaProgress.mergeResetTimes(masteryResets, remote.kanaMasteryResets || {}));
@@ -1066,7 +1067,7 @@ ProgressSync.initialize({
     if (!testActive && row && !rowItems(row).some(item => item[0] === selected[0])) selected = rowItems(row)[0];
     updateLesson();
   }
-}).finally(async () => {
-  await window.I18n.initialize();
-  if (initializeInputMode()) initializePlacement();
+});
+window.I18n.ready.then(() => {
+  if (initializeInputMode()) progressReady.finally(initializePlacement);
 });

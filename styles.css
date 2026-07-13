@@ -179,6 +179,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .test-active .sheet { grid-template-columns: minmax(220px, 340px); min-width: 0; justify-content: center; }
 .test-active .test-cell { width: min(100%, 340px); }
 .test-active .kana-picker { display: none; }
+.test-active .mastered-kana { display: none; }
 .learning-path { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 20px; padding: 20px 28px; border-bottom: 1px solid #e9e4dc; background: #fffdf9; }
 .learning-path h2 { margin: 5px 0 4px; font-size: 22px; }
 .learning-path > div > p:last-child { margin: 0; color: var(--muted); font-size: 12px; }

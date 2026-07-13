@@ -302,4 +302,4 @@ ProgressSync.initialize({
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary)));
     renderDictionary();
   }
-}).finally(() => window.I18n.initialize());
+}).finally(() => window.I18n.ready);
