@@ -48,9 +48,14 @@
     'Draw 16 basic and voiced kana without hints': 'Написать 16 базовых и озвончённых знаков без подсказок',
     'Placement complete': 'Определение уровня завершено',
     'Start learning': 'Начать обучение',
+    'Save your level and learning progress across devices.': 'Сохраните свой уровень и прогресс обучения, чтобы продолжать занятия на разных устройствах.',
+    'Create account or sign in': 'Создать аккаунт или войти',
     'Kana mastery': 'Освоение каны',
     'Test new kanas': 'Проверить новые знаки',
     'Test myself': 'Проверить себя',
+    'I know these kanas': 'Я знаю эти знаки',
+    'End knowledge check': 'Завершить проверку знаний',
+    'Knowledge check complete': 'Проверка знаний завершена',
     'Current learning row': 'Текущий ряд',
     'Vowels': 'Гласные',
     'Hiragana': 'Хирагана',
@@ -195,6 +200,8 @@
       const patterns = [
         [/^Test new kanas · (\d+)$/, 'Проверить новые знаки · $1'],
         [/^Test myself · (\d+)$/, 'Проверить себя · $1'],
+        [/^I know these kanas · (\d+)$/, 'Я знаю эти знаки · $1'],
+        [/^Knowledge check (\d+) of (\d+): write “(.+)” without hints$/, 'Проверка знаний $1 из $2: напишите «$3» без подсказок'],
         [/^(\d+) of (\d+) learned · fill every copybook cell in green$/, '$1 из $2 изучено · заполните все клетки правильно'],
         [/^Placement (\d+) of (\d+): write “(.+)” without hints$/, 'Определение уровня $1 из $2: напишите «$3» без подсказок'],
         [/^Test (\d+) of (\d+), layer (\d+) of (\d+): write “(.+)” with the (.+)$/, (_, current, total, layer, layerTotal, reading, guide) => {

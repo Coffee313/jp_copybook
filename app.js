@@ -89,6 +89,7 @@ let testQueue = [];
 let testIndex = 0;
 let testLayerIndex = 0;
 let selfTestActive = false;
+let knownKanaTestActive = false;
 let placementActive = false;
 let placementSelectedLevel = '';
 let placementCorrect = new Set();
@@ -185,6 +186,11 @@ function characterIsLearned(character) {
 
 function currentLearningRow(scriptName = script) {
   return availableRows(scriptName).find(row => rowItems(row, scriptName).some(item => !characterIsLearned(item[0]))) || null;
+}
+
+function canFastTrackKana() {
+  return ['intermediate', 'master'].includes(placement?.selectedLevel)
+    || ['Intermediate', 'Strong intermediate', 'Master of Kana'].includes(placement?.assignedLevel);
 }
 
 function pendingTestKana(scriptName = script) {
@@ -655,17 +661,27 @@ function renderLearningPath() {
   const row = currentLearningRow();
   const rowTitle = document.querySelector('#learningRowTitle');
   const rowProgress = document.querySelector('#learningRowProgress');
+  const knowButton = document.querySelector('#knowCurrentRow');
+  const fastTrackEligible = canFastTrackKana();
   if (row) {
     const items = rowItems(row);
     const learnedCount = items.filter(item => characterIsLearned(item[0])).length;
     rowTitle.textContent = row[1];
     rowProgress.textContent = `${learnedCount} of ${items.length} learned · fill every copybook cell in green`;
+    const remaining = items.filter(item => !mastery[item[0]]?.passed).length;
+    knowButton.hidden = !fastTrackEligible || (testActive && !knownKanaTestActive);
+    if (!testActive) {
+      knowButton.disabled = remaining === 0;
+      knowButton.textContent = remaining ? `I know these kanas · ${remaining}` : 'I know these kanas';
+    }
   } else if (!advancedRowsUnlocked()) {
     rowTitle.textContent = 'Dakuten rows are locked';
     rowProgress.textContent = `Master ${ADVANCED_UNLOCK_COUNT} basic kana to unlock voiced sounds.`;
+    knowButton.hidden = true;
   } else {
     rowTitle.textContent = 'All rows learned';
     rowProgress.textContent = 'Complete the remaining tests to master every kana.';
+    knowButton.hidden = true;
   }
   const masteredList = document.querySelector('#masteredKanaList');
   masteredList.innerHTML = '';
@@ -702,6 +718,7 @@ function showPlacementResult(result) {
   document.querySelector('#placementResultSummary').textContent = result.total
     ? `You drew ${result.correct} of ${result.total} kana correctly. Correct answers were added to Mastered kana.`
     : 'We will begin with the vowel row and build your kana step by step.';
+  document.querySelector('#placementRegistration').hidden = document.querySelector('#openAccount').dataset.signedIn === 'true';
   if (!dialog.open) dialog.showModal();
 }
 
@@ -784,6 +801,21 @@ function handleTestResult(result) {
     handlePlacementResult(result);
     return;
   }
+  if (knownKanaTestActive) {
+    const canvas = document.querySelector('.test-cell canvas');
+    if (canvas) canvas.style.pointerEvents = 'none';
+    if (result === 'good') saveMastery(KanaProgress.markMastered(mastery, selected[0]));
+    setTimeout(() => {
+      testIndex += 1;
+      if (testIndex >= testQueue.length) {
+        stopKanaTest('Knowledge check complete');
+        return;
+      }
+      selected = testQueue[testIndex];
+      updateLesson();
+    }, 900);
+    return;
+  }
   if (result !== 'good') {
     const canvas = document.querySelector('.test-cell canvas');
     if (canvas) canvas.style.pointerEvents = 'none';
@@ -817,6 +849,7 @@ function startKanaTest() {
   const pending = pendingTestKana();
   if (!pending.length) return;
   testActive = true;
+  knownKanaTestActive = false;
   selfTestActive = false;
   testIndex = 0;
   testLayerIndex = TEST_LAYERS.length - 1;
@@ -833,6 +866,7 @@ function startSelfTest() {
   const mastered = kana[script].filter(item => mastery[item[0]]?.passed);
   if (!mastered.length) return;
   testActive = true;
+  knownKanaTestActive = false;
   selfTestActive = true;
   testIndex = 0;
   testLayerIndex = TEST_LAYERS.length - 1;
@@ -845,18 +879,46 @@ function startSelfTest() {
   updateLesson();
 }
 
+function startKnownKanaTest() {
+  const row = currentLearningRow();
+  if (!row || !canFastTrackKana()) return;
+  const candidates = rowItems(row).filter(item => !mastery[item[0]]?.passed);
+  if (!candidates.length) return;
+  testActive = true;
+  knownKanaTestActive = true;
+  selfTestActive = false;
+  testIndex = 0;
+  testLayerIndex = TEST_LAYERS.length - 1;
+  testQueue = KanaProgress.shuffled(candidates);
+  selected = testQueue[0];
+  guideControl.hidden = true;
+  document.querySelector('#startKanaTest').disabled = true;
+  document.querySelector('#testMyself').disabled = true;
+  const knowButton = document.querySelector('#knowCurrentRow');
+  knowButton.dataset.active = 'true';
+  knowButton.textContent = 'End knowledge check';
+  document.querySelector('.practice-card').classList.add('test-active');
+  updateLesson();
+}
+
 function stopKanaTest(message = 'Start test') {
   testActive = false;
   selfTestActive = false;
+  knownKanaTestActive = false;
   testQueue = [];
   testLayerIndex = 0;
   selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
   if (guideControl) guideControl.hidden = false;
   document.querySelector('.practice-card').classList.remove('test-active');
+  document.querySelector('#knowCurrentRow').removeAttribute('data-active');
   updateLesson();
   renderProgress();
   if (message !== 'Start test') {
-    document.querySelector('#startKanaTest').textContent = message;
+    const statusButton = message === 'Knowledge check complete'
+      ? document.querySelector('#knowCurrentRow')
+      : document.querySelector('#startKanaTest');
+    statusButton.hidden = false;
+    statusButton.textContent = message;
     setTimeout(renderProgress, 1400);
   }
 }
@@ -897,6 +959,8 @@ function updateLesson() {
   document.querySelector('#referenceRomanji').textContent = placementActive ? `${placementScript} · ${selected[1]}` : selected[1];
   document.querySelector('.reference-hint').textContent = placementActive
     ? `Placement ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without hints`
+    : knownKanaTestActive
+    ? `Knowledge check ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without hints`
     : testActive
     ? `Test ${testIndex + 1} of ${testQueue.length}, layer ${testLayerIndex + 1} of ${TEST_LAYERS.length}: write “${selected[1]}” with the ${TEST_LAYERS[testLayerIndex].label}`
     : 'Repeat the character in each cell';
@@ -916,6 +980,7 @@ document.querySelectorAll('.script-button').forEach(button => {
 
 document.querySelector('#startKanaTest').addEventListener('click', () => testActive ? stopKanaTest() : startKanaTest());
 document.querySelector('#testMyself').addEventListener('click', () => testActive ? stopKanaTest() : startSelfTest());
+document.querySelector('#knowCurrentRow').addEventListener('click', () => knownKanaTestActive ? stopKanaTest() : startKnownKanaTest());
 
 document.querySelectorAll('[data-reset-script]').forEach(button => {
   button.addEventListener('click', () => {
@@ -1002,6 +1067,10 @@ document.querySelectorAll('[data-placement-level]').forEach(button => {
   });
 });
 document.querySelector('#placementContinue').addEventListener('click', () => document.querySelector('#placementDialog').close());
+document.querySelector('#placementRegister').addEventListener('click', () => {
+  document.querySelector('#placementDialog').close();
+  document.querySelector('#openAccount').click();
+});
 
 const CONCENTRATION_SESSION_KEY = 'japanese-copybook-concentration';
 const IS_CONCENTRATION_FRAME = new URLSearchParams(window.location.search).has('concentration-frame');
