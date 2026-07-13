@@ -236,6 +236,8 @@ body.concentration-mode footer { display: none; }
 body.concentration-mode .topbar { position: fixed; z-index: 49; top: max(10px, env(safe-area-inset-top)); right: max(58px, calc(env(safe-area-inset-right) + 58px)); width: auto; min-height: 38px; margin: 0; border-radius: 999px; padding: 3px 7px; color: #fff; background: rgba(47,45,41,.82); opacity: .78; box-shadow: 0 3px 14px rgba(30,25,18,.16); transition: opacity .18s ease; }
 body.concentration-mode .topbar:hover, body.concentration-mode .topbar:focus-within { opacity: 1; }
 body.concentration-mode .topbar > :not(.top-input-control) { display: none; }
+body.concentration-mode .topbar > #copybookModeToggle { display: flex; border-color: rgba(255,255,255,.2); color: #fff; background: rgba(255,255,255,.1); }
+body.concentration-mode .topbar > #copybookModeToggle[aria-pressed="true"] { border-color: rgba(255,255,255,.3); background: var(--green); }
 body.concentration-mode .top-input-control { margin: 0; color: #fff; }
 body.concentration-mode .concentration-nav { position: fixed; z-index: 50; top: max(10px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); display: flex; gap: 3px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; padding: 3px; background: rgba(47,45,41,.82); box-shadow: 0 3px 14px rgba(30,25,18,.16); opacity: .78; transition: opacity .18s ease; }
 body.concentration-mode .concentration-nav:hover, body.concentration-mode .concentration-nav:focus-within { opacity: 1; }
