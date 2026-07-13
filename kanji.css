@@ -1,5 +1,5 @@
 .kanji-main { margin-top: 20px; }
-.account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.account-area { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .account-area > button { max-width: 190px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; }
 .account-area small { max-width: 210px; overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 #syncStatus[data-error="true"], #accountStatus[data-error="true"] { color: #a94534; }
@@ -16,7 +16,9 @@
 #accountStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
 .account-summary { margin-top: 18px; }
-.account-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.account-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.account-stats h3 { grid-column: 1 / -1; margin: 8px 0 0; font-size: 13px; }
+.account-stats h3:first-child { margin-top: 0; }
 .account-stats > div { min-width: 0; border: 1px solid #e9e4dc; border-radius: 13px; padding: 13px 10px; background: #faf8f3; text-align: center; }
 .account-stats strong, .account-stats span { display: block; }
 .account-stats strong { color: var(--green); font-size: 18px; }

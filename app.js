@@ -548,17 +548,5 @@ updateLesson();
 renderProgress();
 ProgressSync.initialize({
   getLocalProgress: () => ({ kanaMastery: mastery }),
-  applyRemoteProgress: remote => saveMastery(KanaProgress.mergeMastery(mastery, remote.kanaMastery || {})),
-  getAccountStats: progress => {
-    const progressMastery = progress.kanaMastery || mastery;
-    const hiraganaCharacters = kana.hiragana.map(item => item[0]);
-    const katakanaCharacters = kana.katakana.map(item => item[0]);
-    const hiraganaCount = KanaProgress.progressCount(progressMastery, hiraganaCharacters);
-    const katakanaCount = KanaProgress.progressCount(progressMastery, katakanaCharacters);
-    return [
-      { label: 'Hiragana mastered', value: `${hiraganaCount} / ${hiraganaCharacters.length}` },
-      { label: 'Katakana mastered', value: `${katakanaCount} / ${katakanaCharacters.length}` },
-      { label: 'Total progress', value: `${hiraganaCount + katakanaCount} / ${allKanaCharacters.length}` }
-    ];
-  }
+  applyRemoteProgress: remote => saveMastery(KanaProgress.mergeMastery(mastery, remote.kanaMastery || {}))
 });

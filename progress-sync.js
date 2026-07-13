@@ -4,7 +4,6 @@
   let session = null;
   let getLocalProgress = () => ({});
   let applyRemoteProgress = () => {};
-  let getAccountStats = () => [];
   let saveTimer = null;
   let cloudProgress = {};
 
@@ -113,7 +112,11 @@
     if (!signedOut || !signedIn) return;
     signedOut.hidden = Boolean(session);
     signedIn.hidden = !session;
-    document.querySelector('#accountEmail').textContent = session?.user?.email || '';
+    const email = session?.user?.email || '';
+    const accountButton = document.querySelector('#openAccount');
+    document.querySelector('#accountEmail').textContent = Array.from(email)[0]?.toUpperCase() || '?';
+    accountButton.dataset.signedIn = session ? 'true' : 'false';
+    accountButton.setAttribute('aria-label', session ? `Open profile for ${email}` : 'Open profile');
     document.querySelector('#accountForm').hidden = Boolean(session);
     document.querySelector('#accountSummary').hidden = !session;
     document.querySelector('#accountIntro').textContent = session
@@ -129,7 +132,14 @@
     container.innerHTML = '';
     if (!session) return;
     const progress = { ...cloudProgress, ...getLocalProgress() };
-    getAccountStats(progress).forEach(stat => {
+    let currentGroup = '';
+    buildAccountStats(progress).forEach(stat => {
+      if (stat.group !== currentGroup) {
+        currentGroup = stat.group;
+        const heading = document.createElement('h3');
+        heading.textContent = currentGroup;
+        container.append(heading);
+      }
       const item = document.createElement('div');
       const value = document.createElement('strong');
       const label = document.createElement('span');
@@ -138,6 +148,28 @@
       item.append(value, label);
       container.append(item);
     });
+  }
+
+  function buildAccountStats(progress) {
+    const mastery = progress.kanaMastery || {};
+    let hiragana = 0;
+    let katakana = 0;
+    Object.entries(mastery).forEach(([character, result]) => {
+      if (!result?.passed) return;
+      const codePoint = character.codePointAt(0);
+      if (codePoint >= 0x3040 && codePoint <= 0x309f) hiragana += 1;
+      if (codePoint >= 0x30a0 && codePoint <= 0x30ff) katakana += 1;
+    });
+    const dictionary = Array.isArray(progress.dictionary) ? progress.dictionary : [];
+    const repetitions = dictionary.map(item => Number(item.repetitions) || 0);
+    return [
+      { group: 'Kana progress', label: 'Hiragana', value: `${hiragana} / 46` },
+      { group: 'Kana progress', label: 'Katakana', value: `${katakana} / 46` },
+      { group: 'Kanji vocabulary', label: 'In vocabulary', value: String(dictionary.length) },
+      { group: 'Kanji vocabulary', label: 'Not learned', value: String(repetitions.filter(value => value === 0).length) },
+      { group: 'Kanji vocabulary', label: 'Learned a little', value: String(repetitions.filter(value => value > 0 && value < 3).length) },
+      { group: 'Kanji vocabulary', label: 'Learned well', value: String(repetitions.filter(value => value >= 3).length) }
+    ];
   }
 
   async function signIn(email, password) {
@@ -199,7 +231,6 @@
   async function initialize(options) {
     getLocalProgress = options.getLocalProgress;
     applyRemoteProgress = options.applyRemoteProgress;
-    getAccountStats = options.getAccountStats || (() => []);
     bindUi();
     storeSession(readSession());
     if (await ensureSession()) loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));

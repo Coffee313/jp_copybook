@@ -62,8 +62,9 @@ button { color: inherit; }
 .main-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; margin-right: 14px; padding: 3px; border-radius: 999px; background: rgba(255,255,255,.48); }
 .main-nav a { padding: 8px 13px; border-radius: 999px; color: var(--muted); text-decoration: none; font-size: 13px; }
 .main-nav a.active { color: var(--ink); background: var(--paper); box-shadow: 0 2px 8px rgba(30,25,18,.07); }
-.account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.account-area { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .account-area > button { max-width: 180px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; }
+.account-area > button[data-signed-in="true"] { width: 38px; height: 38px; padding: 0; border-color: var(--green); color: #fff; background: var(--green); font-weight: 700; }
 .account-area small { max-width: 190px; overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 #syncStatus[data-error="true"], #accountStatus[data-error="true"] { color: #a94534; }
 .account-dialog { width: min(440px, calc(100% - 28px)); border: 1px solid var(--line); border-radius: 22px; padding: 28px; color: var(--ink); background: var(--paper); box-shadow: 0 25px 80px rgba(30,25,18,.25); }
@@ -79,7 +80,9 @@ button { color: inherit; }
 #accountStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
 .account-summary { margin-top: 18px; }
-.account-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.account-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.account-stats h3 { grid-column: 1 / -1; margin: 8px 0 0; font-size: 13px; }
+.account-stats h3:first-child { margin-top: 0; }
 .account-stats > div { min-width: 0; border: 1px solid #e9e4dc; border-radius: 13px; padding: 13px 10px; background: #faf8f3; text-align: center; }
 .account-stats strong, .account-stats span { display: block; }
 .account-stats strong { color: var(--green); font-size: 18px; }
@@ -211,7 +214,7 @@ footer a { color: inherit; }
   .topbar { flex-wrap: wrap; gap: 8px; padding-block: 10px; }
   .main-nav { order: 3; width: 100%; margin: 0; }
   .main-nav a { flex: 1; text-align: center; }
-  .account-area { order: 2; margin-left: auto; }
+  .account-area { order: 0; margin-left: 0; }
   .kana-progress-panel { grid-template-columns: 1fr auto auto; }
   .kana-progress-track { grid-column: 1 / -1; grid-row: 2; }
   main { margin-top: 12px; }
