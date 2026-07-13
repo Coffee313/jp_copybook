@@ -873,6 +873,7 @@ function startKanaTest() {
   if (guideControl) guideControl.hidden = true;
   document.querySelector('#startKanaTest').textContent = 'End test';
   document.querySelector('#testMyself').disabled = true;
+  document.querySelector('#knowCurrentRow').hidden = true;
   document.querySelector('.practice-card').classList.add('test-active');
   updateLesson();
 }
@@ -891,6 +892,7 @@ function startSelfTest() {
   guideControl.hidden = true;
   document.querySelector('#startKanaTest').disabled = true;
   document.querySelector('#testMyself').textContent = 'End self-test';
+  document.querySelector('#knowCurrentRow').hidden = true;
   document.querySelector('.practice-card').classList.add('test-active');
   updateLesson();
 }
