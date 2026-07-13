@@ -65,6 +65,8 @@ button { color: inherit; }
 .main-nav { display: flex; align-items: center; gap: 3px; margin-left: auto; margin-right: 4px; padding: 2px; border-radius: 999px; background: rgba(255,255,255,.48); }
 .main-nav a { padding: 6px 10px; border-radius: 999px; color: var(--muted); text-decoration: none; font-size: 12px; }
 .main-nav a.active { color: var(--ink); background: var(--paper); box-shadow: 0 2px 8px rgba(30,25,18,.07); }
+.header-mode-button { display: flex; align-items: center; gap: 5px; flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; color: var(--muted); background: var(--paper); cursor: pointer; white-space: nowrap; font-size: 10px; }
+.header-mode-button:hover { border-color: var(--green); color: var(--green); }
 .account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .account-area > button { max-width: 180px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .account-area > button[data-signed-in="true"] { width: 32px; height: 32px; padding: 0; border-color: var(--green); color: #fff; background: var(--green); font-weight: 700; }
@@ -194,20 +196,13 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .reference-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
 .concentration-exit { display: none; }
-body.concentration-mode { overflow: hidden; background: var(--paper); }
-body.concentration-mode .topbar,
-body.concentration-mode footer,
-body.concentration-mode .practice-card > :not(.lesson),
-body.concentration-mode .reference { display: none; }
-body.concentration-mode main { width: 100%; height: 100dvh; margin: 0; }
-body.concentration-mode .practice-card { height: 100%; border: 0; border-radius: 0; box-shadow: none; }
-body.concentration-mode .lesson { display: block; height: 100%; min-height: 0; }
-body.concentration-mode .sheet-wrap { display: grid; width: 100%; height: 100%; place-items: center; overflow: hidden; padding: 32px; }
-body.concentration-mode .sheet { width: 100%; max-width: calc((100dvh - 64px) * 1.6667); min-width: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(5px, 1.2vmin, 12px); }
-body.concentration-mode .test-active .sheet { width: min(72vmin, 480px); grid-template-columns: 1fr; }
-body.concentration-mode .ghost,
-body.concentration-mode .test-guide,
-body.concentration-mode .stroke-cell { display: none; }
+body.concentration-mode { background: var(--canvas); }
+body.concentration-mode footer { display: none; }
+body.concentration-mode .topbar { position: fixed; z-index: 49; top: max(10px, env(safe-area-inset-top)); right: max(58px, calc(env(safe-area-inset-right) + 58px)); width: auto; min-height: 38px; margin: 0; }
+body.concentration-mode .topbar > :not(.top-input-control) { display: none; }
+body.concentration-mode .top-input-control { margin: 0; }
+body.concentration-mode main { width: min(1180px, calc(100% - 16px)); margin: 0 auto 8px; padding-top: 56px; }
+body.concentration-mode .practice-card { border-radius: 18px; box-shadow: none; }
 body.concentration-mode .concentration-exit { position: fixed; z-index: 50; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid rgba(32,32,30,.14); border-radius: 50%; color: var(--ink); background: rgba(255,254,250,.9); box-shadow: 0 4px 18px rgba(30,25,18,.12); cursor: pointer; font-size: 25px; line-height: 1; }
 
 .sheet-wrap { overflow: auto; padding: 32px; background: #fbf9f5; }
@@ -279,6 +274,8 @@ footer a { color: inherit; }
   .brand-mark { width: 30px; height: 30px; font-size: 16px; }
   .main-nav { min-width: 0; width: auto; margin: 0 0 0 auto; }
   .main-nav a { flex: 0 1 auto; padding: 5px 6px; white-space: nowrap; text-align: center; font-size: 10px; }
+  .header-mode-button { width: 30px; height: 30px; justify-content: center; padding: 0; }
+  .header-mode-button > span:last-child { display: none; }
   .account-area { order: initial; margin: 0; flex: none; }
   .account-area > button { padding: 5px 7px; font-size: 10px; }
   .top-input-control { margin: 0 5px; flex: none; }
@@ -326,11 +323,6 @@ footer a { color: inherit; }
 @media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
   .lesson { grid-template-columns: 140px minmax(0, 1fr); }
   .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
-
-@media (max-width: 760px) {
-  body.concentration-mode .sheet-wrap { padding: 18px; }
-  body.concentration-mode .sheet { max-width: calc((100dvh - 36px) * 1.6667); }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
