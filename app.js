@@ -1179,6 +1179,7 @@ document.querySelector('#placementRegister').addEventListener('click', () => {
 
 const CONCENTRATION_SESSION_KEY = 'japanese-copybook-concentration';
 const IS_CONCENTRATION_FRAME = new URLSearchParams(window.location.search).has('concentration-frame');
+const USE_NATIVE_FULLSCREEN = !document.documentElement.classList.contains('apple-fullscreen-ui');
 let concentrationNavigation = false;
 
 function rememberConcentrationMode(active) {
@@ -1262,7 +1263,7 @@ document.querySelectorAll('.concentration-nav a').forEach(link => {
 
 document.querySelector('#concentrationEnter').addEventListener('click', async () => {
   setConcentrationMode(true);
-  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+  if (USE_NATIVE_FULLSCREEN && !document.fullscreenElement && document.documentElement.requestFullscreen) {
     try { await document.documentElement.requestFullscreen(); }
     catch { /* CSS concentration mode still works when fullscreen is unavailable. */ }
   }
@@ -1299,7 +1300,7 @@ try {
   } else if (sessionStorage.getItem(CONCENTRATION_SESSION_KEY) === 'active') {
     setConcentrationMode(true, false);
     requestAnimationFrame(async () => {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      if (USE_NATIVE_FULLSCREEN && !document.fullscreenElement && document.documentElement.requestFullscreen) {
         try { await document.documentElement.requestFullscreen(); }
         catch { /* The distraction-free CSS layout remains active across navigation. */ }
       }
