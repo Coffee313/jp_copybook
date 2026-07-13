@@ -231,6 +231,8 @@ body.concentration-mode .concentration-exit { position: fixed; z-index: 50; top:
 .grade-order .grade-badge { background: #d49332; }
 .grade-direction .grade-badge { background: #c17a32; }
 .grade-retry .grade-badge { background: #d85c58; }
+.cell-restart { position: absolute; z-index: 5; top: 6px; right: 6px; width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid rgba(32,32,30,.12); border-radius: 50%; padding: 0; color: #77544b; background: rgba(255,254,250,.92); box-shadow: 0 2px 8px rgba(30,25,18,.1); cursor: pointer; font-size: 16px; line-height: 1; }
+.cell-restart:hover { border-color: var(--accent); color: var(--accent); }
 
 .stroke-cell { background: #fffaf8; }
 .stroke-diagram { position: absolute; inset: 4%; z-index: 2; overflow: hidden; pointer-events: none; }

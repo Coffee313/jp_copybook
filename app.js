@@ -332,6 +332,7 @@ function setupCanvas(canvas, savedState = null) {
     clearTimeout(gradeTimer);
     cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
     cell.querySelector('.grade-badge')?.remove();
+    cell.querySelector('.cell-restart')?.remove();
   };
   const point = event => {
     const rect = canvas.getBoundingClientRect();
@@ -557,6 +558,27 @@ function showGrade(cell, result, score) {
         ? `Wrong stroke direction · ${score}%`
       : `Try again · ${score}%`;
   cell.append(badge);
+  if (!testActive && result !== 'good') {
+    const restart = document.createElement('button');
+    restart.type = 'button';
+    restart.className = 'cell-restart';
+    restart.textContent = '↻';
+    restart.setAttribute('aria-label', 'Redraw this practice cell');
+    restart.title = 'Redraw this cell';
+    restart.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const canvas = cell.querySelector('canvas');
+      if (canvas) {
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        canvas.__strokes = [];
+      }
+      cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
+      cell.querySelector('.grade-badge')?.remove();
+      restart.remove();
+    });
+    cell.append(restart);
+  }
   if (testActive) handleTestResult(result);
   else if (result === 'good') recordLearningSuccess();
 }
@@ -968,6 +990,7 @@ document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('.cell').forEach(cell => {
     cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
     cell.querySelector('.grade-badge')?.remove();
+    cell.querySelector('.cell-restart')?.remove();
   });
 });
 
