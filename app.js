@@ -105,9 +105,12 @@ const PLACEMENT_SAMPLE_INDICES = {
 };
 
 const TEST_LAYERS = [
+  { key: 'order', label: 'stroke order and directions' },
   { key: 'example', label: 'background example' },
   { key: 'blank', label: 'blank background' }
 ];
+
+let vectorMarkerId = 0;
 
 function readMastery() {
   try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
@@ -216,18 +219,38 @@ function makeTestGuide() {
   const guide = document.createElement('div');
   guide.className = `test-guide test-guide-${layer.key}`;
   guide.setAttribute('aria-hidden', 'true');
-  guide.append(makeVectorKana(selected[0], true));
+  guide.append(makeVectorKana(selected[0], true, true));
   return guide;
 }
 
-function makeVectorKana(character, numbered = false) {
+function makeVectorKana(character, numbered = false, directional = false) {
   const namespace = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(namespace, 'svg');
   svg.setAttribute('viewBox', '0 0 109 109');
   svg.setAttribute('aria-hidden', 'true');
+  let markerId = '';
+  if (directional) {
+    markerId = `kana-direction-${vectorMarkerId++}`;
+    const defs = document.createElementNS(namespace, 'defs');
+    const marker = document.createElementNS(namespace, 'marker');
+    marker.setAttribute('id', markerId);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '8');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '4');
+    marker.setAttribute('markerHeight', '4');
+    marker.setAttribute('orient', 'auto');
+    const arrow = document.createElementNS(namespace, 'path');
+    arrow.setAttribute('class', 'direction-arrow');
+    arrow.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    marker.append(arrow);
+    defs.append(marker);
+    svg.append(defs);
+  }
   (window.kanaGuidePaths?.[character] || []).forEach((data, index) => {
     const path = document.createElementNS(namespace, 'path');
     path.setAttribute('d', data);
+    if (directional) path.setAttribute('marker-end', `url(#${markerId})`);
     svg.append(path);
     if (numbered) {
       const start = data.match(/^\s*[Mm]\s*([-+\d.]+)[,\s]+([-+\d.]+)/);

@@ -178,7 +178,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .progress-reset button:hover { background: #fff0ed; }
 .test-active .sheet { grid-template-columns: minmax(220px, 340px); min-width: 0; justify-content: center; }
 .test-active .test-cell { width: min(100%, 340px); }
-.test-active .kana-picker { pointer-events: none; }
+.test-active .kana-picker { display: none; }
 .learning-path { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 20px; padding: 20px 28px; border-bottom: 1px solid #e9e4dc; background: #fffdf9; }
 .learning-path h2 { margin: 5px 0 4px; font-size: 22px; }
 .learning-path > div > p:last-child { margin: 0; color: var(--muted); font-size: 12px; }
@@ -243,6 +243,7 @@ body.concentration-mode .concentration-exit:hover, body.concentration-mode .conc
 .test-guide svg { width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 .test-guide-order { color: rgba(222, 92, 67, .28); }
 .test-guide-order text { fill: #a94534; stroke: #fff; stroke-width: 2px; paint-order: stroke; font: 700 7px/1 sans-serif; }
+.test-guide-order .direction-arrow { fill: #a94534; stroke: none; }
 .test-cell-example .ghost { color: rgba(61,92,81,.14); }
 .test-cell-blank .ghost { display: none; }
 .cell canvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
