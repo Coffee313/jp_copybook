@@ -5,23 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kanji — recognition and dictionary</title>
-    <link rel="stylesheet" href="styles.css?v=6" />
-    <link rel="stylesheet" href="kanji.css?v=6" />
+    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="kanji.css?v=8" />
   </head>
   <body>
     <header class="topbar">
-      <div class="account-area">
-        <button id="openAccount" type="button" aria-label="Open profile">
-          <span id="signedOutAccount">Profile</span>
-          <span id="signedInAccount" hidden><span id="accountEmail"></span></span>
-        </button>
-        <small id="syncStatus">Progress is stored on this device</small>
-      </div>
       <a class="brand" href="index.html"><span class="brand-mark">字</span><span>Kana</span></a>
       <nav class="main-nav" aria-label="Sections">
         <a href="index.html">Practice</a>
         <a class="active" href="kanji.html">Kanji & dictionary</a>
       </nav>
+      <div class="account-area">
+        <button id="openAccount" type="button" aria-label="Open profile">
+          <span id="signedOutAccount">Profile</span>
+          <span id="signedInAccount" hidden><span id="accountEmail"></span></span>
+        </button>
+      </div>
     </header>
 
     <dialog class="account-dialog" id="accountDialog">
@@ -118,7 +117,7 @@
       </div>
     </main>
 
-    <footer><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
+    <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
     <script src="supabase-config.js?v=1"></script>
     <script src="progress-sync.js?v=5"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
