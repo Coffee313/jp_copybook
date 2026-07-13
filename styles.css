@@ -129,6 +129,7 @@ button { color: inherit; }
 .profile-menu .profile-menu-danger { margin-top: auto; color: #a94534; }
 .profile-panels > section > h3 { margin: 0 0 12px; font-size: 18px; }
 .profile-panels > section > p { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.account-dialog .profile-input-control { display: flex; width: 100%; margin-top: 0; justify-content: flex-start; border: 1px solid #e9e4dc; border-radius: 13px; padding: 13px; background: #faf8f3; }
 .profile-reset-actions { display: grid; gap: 8px; }
 .profile-reset-actions button { border: 1px solid #ecc1b8; border-radius: 10px; padding: 10px; color: #a94534; background: #fff7f5; cursor: pointer; text-align: left; font-weight: 600; }
 #profilePasswordStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
@@ -223,7 +224,7 @@ body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-widt
 .top-input-control .toggle::after { width: 14px; height: 14px; }
 .top-input-control input:checked + .toggle::after { transform: translateX(14px); }
 .ghost-control input { position: absolute; opacity: 0; pointer-events: none; }
-.toggle { width: 40px; height: 23px; border-radius: 999px; background: #c9c4ba; position: relative; transition: .2s; }
+.toggle { width: 40px; min-width: 40px; height: 23px; flex: 0 0 40px; align-self: center; border-radius: 999px; background: #c9c4ba; position: relative; transition: .2s; }
 .toggle::after { content: ''; position: absolute; width: 17px; height: 17px; left: 3px; top: 3px; border-radius: 50%; background: white; transition: .2s; }
 .ghost-control input:checked + .toggle { background: var(--green); }
 .ghost-control input:checked + .toggle::after { transform: translateX(17px); }
@@ -234,6 +235,7 @@ body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-widt
 .reference-actions .script-switch { width: max-content; }
 .reference-actions .script-button { padding: 6px 8px; font-size: 9px; }
 .reference-actions .guide-control { gap: 6px; font-size: 10px; }
+html[lang="ru"] .reference-actions .guide-control { gap: 5px; white-space: nowrap; font-size: 8px; }
 .reference-actions .practice-clear { width: max-content; margin-left: 0; padding: 7px 9px; font-size: 9px; }
 .reference-kana { font-family: 'Noto Sans JP', sans-serif; font-size: 146px; line-height: 1; color: var(--green); }
 .reference-romanji { font-size: 32px; font-weight: 600; letter-spacing: -.04em; }
@@ -248,6 +250,7 @@ body.concentration-mode .topbar > :not(.top-input-control) { display: none; }
 body.concentration-mode .topbar > #copybookModeToggle { display: flex; border-color: rgba(255,255,255,.2); color: #fff; background: rgba(255,255,255,.1); }
 body.concentration-mode .topbar > #copybookModeToggle[aria-pressed="true"] { border-color: rgba(255,255,255,.3); background: var(--green); }
 body.concentration-mode .top-input-control { margin: 0; color: #fff; }
+.kanji-page.concentration-mode .topbar { display: none; }
 body.concentration-mode .concentration-nav { position: fixed; z-index: 50; top: max(10px, env(safe-area-inset-top)); right: max(58px, calc(env(safe-area-inset-right) + 58px)); left: auto; display: flex; gap: 3px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; padding: 3px; background: rgba(47,45,41,.82); box-shadow: 0 3px 14px rgba(30,25,18,.16); opacity: .78; transition: opacity .18s ease; }
 body.concentration-mode .concentration-nav:hover, body.concentration-mode .concentration-nav:focus-within { opacity: 1; }
 body.concentration-mode .concentration-nav a { border-radius: 999px; padding: 7px 11px; color: rgba(255,255,255,.74); text-decoration: none; font-size: 11px; }
