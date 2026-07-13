@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kanji — recognition and dictionary</title>
-    <link rel="stylesheet" href="styles.css?v=25" />
+    <link rel="stylesheet" href="styles.css?v=26" />
     <link rel="stylesheet" href="kanji.css?v=11" />
   </head>
   <body>
@@ -48,16 +48,24 @@
         <div class="profile-settings">
           <nav class="profile-menu" aria-label="Profile settings">
             <button class="active" type="button" data-profile-panel="profileStatistics">Statistics</button>
+            <button type="button" data-profile-panel="profileLanguage">Language</button>
             <a href="index.html#profile-reset">Reset progress</a>
             <button type="button" data-profile-panel="profileResetPassword">Reset password</button>
             <button class="profile-menu-danger" id="signOut" type="button">Logout</button>
           </nav>
           <div class="profile-panels">
             <section id="profileStatistics" data-profile-section><h3>Statistics</h3><div class="account-stats" id="accountStats"></div></section>
+            <section id="profileLanguage" data-profile-section hidden><h3>Language</h3><div class="language-settings"><button type="button" data-language-setting="en">English</button><button type="button" data-language-setting="ru">Русский</button></div></section>
             <section id="profileResetPassword" data-profile-section hidden><h3>Reset password</h3><form id="profilePasswordForm"><label>New password<input id="profilePassword" type="password" required minlength="6" autocomplete="new-password" /></label><button class="recovery-submit" type="submit">Save new password</button><p id="profilePasswordStatus" aria-live="polite"></p></form></section>
           </div>
         </div>
       </section>
+    </dialog>
+
+    <dialog class="account-dialog language-dialog" id="languageDialog" aria-labelledby="languageTitle">
+      <p class="eyebrow">Welcome</p><h2 id="languageTitle">Choose language</h2>
+      <p>You can change the language later in Profile settings.</p>
+      <div class="language-actions"><button type="button" data-language-choice="en"><strong>English</strong><span>Continue in English</span></button><button type="button" data-language-choice="ru"><strong>Русский</strong><span>Продолжить на русском</span></button></div>
     </dialog>
 
     <main class="kanji-main">
@@ -131,6 +139,7 @@
 
     <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
     <script src="supabase-config.js?v=1"></script>
+    <script src="i18n.js?v=1"></script>
     <script src="progress-sync.js?v=11"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
     <script src="kanjivg-directions.js?v=1"></script>
@@ -139,6 +148,6 @@
     <script src="recognizer-geometry.js?v=1"></script>
     <script src="recognizer-fixes.js?v=1"></script>
     <script src="srs.js?v=3"></script>
-    <script src="kanji-app.js?v=12"></script>
+    <script src="kanji-app.js?v=13"></script>
   </body>
 </html>

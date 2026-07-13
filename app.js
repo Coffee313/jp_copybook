@@ -1043,6 +1043,7 @@ ProgressSync.initialize({
     if (!testActive && row && !rowItems(row).some(item => item[0] === selected[0])) selected = rowItems(row)[0];
     updateLesson();
   }
-}).finally(() => {
+}).finally(async () => {
+  await window.I18n.initialize();
   if (initializeInputMode()) initializePlacement();
 });

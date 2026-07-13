@@ -90,6 +90,16 @@ button { color: inherit; }
 .input-mode-actions button:hover { border-color: var(--green); background: #f3f6f3; }
 .input-mode-actions strong { color: var(--green); font-size: 16px; }
 .input-mode-actions span { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.language-dialog { width: min(500px, calc(100% - 28px)); }
+.language-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.language-actions button { min-height: 92px; border: 1px solid var(--line); border-radius: 14px; padding: 16px; color: var(--ink); background: #faf8f3; cursor: pointer; text-align: left; }
+.language-actions button:hover { border-color: var(--green); background: #f3f6f3; }
+.language-actions strong, .language-actions span { display: block; }
+.language-actions strong { color: var(--green); font-size: 16px; }
+.language-actions span { margin-top: 5px; color: var(--muted); font-size: 11px; }
+.language-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.language-settings button { border: 1px solid var(--line); border-radius: 11px; padding: 12px; color: var(--muted); background: #faf8f3; cursor: pointer; font-weight: 600; }
+.language-settings button.active { border-color: var(--green); color: var(--green); background: #edf3ef; }
 .placement-dialog { width: min(590px, calc(100% - 28px)); }
 .placement-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 20px; }
 .placement-actions button { min-height: 112px; border: 1px solid var(--line); border-radius: 14px; padding: 14px; color: var(--ink); background: #faf8f3; cursor: pointer; text-align: left; }
@@ -308,6 +318,7 @@ footer a { color: inherit; }
   .learning-path { grid-template-columns: 1fr; padding: 18px; }
   .learned-queue { max-width: none; }
   .input-mode-actions { grid-template-columns: 1fr; }
+  .language-actions { grid-template-columns: 1fr; }
   .profile-settings { grid-template-columns: 1fr; gap: 16px; }
   .profile-menu { display: grid; grid-template-columns: repeat(2, 1fr); }
   .profile-menu .profile-menu-danger { margin-top: 0; }
