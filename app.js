@@ -278,7 +278,7 @@ function captureSheetState() {
     const cell = canvas.parentElement;
     const grade = ['good', 'order', 'direction', 'retry'].find(value => cell.classList.contains(`grade-${value}`));
     return {
-      strokes: (canvas.__strokes || []).map(stroke => stroke.map(point => [...point])),
+      strokes: canvas.__autoClearPending ? [] : (canvas.__strokes || []).map(stroke => stroke.map(point => [...point])),
       grade,
       badge: cell.querySelector('.grade-badge')?.textContent || ''
     };
@@ -362,7 +362,6 @@ function setupCanvas(canvas, savedState = null) {
     clearTimeout(gradeTimer);
     cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
     cell.querySelector('.grade-badge')?.remove();
-    cell.querySelector('.cell-restart')?.remove();
   };
   const point = event => {
     const rect = canvas.getBoundingClientRect();
@@ -586,28 +585,21 @@ function showGrade(cell, result, score) {
       ? `Good shape, wrong order · ${score}%`
       : result === 'direction'
         ? `Wrong stroke direction · ${score}%`
-      : `Try again · ${score}%`;
+      : `Shape needs work · ${score}%`;
   cell.append(badge);
   if (!testActive && result !== 'good') {
-    const restart = document.createElement('button');
-    restart.type = 'button';
-    restart.className = 'cell-restart';
-    restart.textContent = '↻';
-    restart.setAttribute('aria-label', 'Redraw this practice cell');
-    restart.title = 'Redraw this cell';
-    restart.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      const canvas = cell.querySelector('canvas');
-      if (canvas) {
+    const canvas = cell.querySelector('canvas');
+    if (canvas) {
+      canvas.__autoClearPending = true;
+      canvas.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (!canvas.isConnected) return;
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         canvas.__strokes = [];
-      }
-      cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
-      cell.querySelector('.grade-badge')?.remove();
-      restart.remove();
-    });
-    cell.append(restart);
+        canvas.__autoClearPending = false;
+        canvas.style.pointerEvents = '';
+      }, 900);
+    }
   }
   if (testActive) handleTestResult(result);
   else if (result === 'good') recordLearningSuccess();
@@ -1211,7 +1203,6 @@ document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('.cell').forEach(cell => {
     cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
     cell.querySelector('.grade-badge')?.remove();
-    cell.querySelector('.cell-restart')?.remove();
   });
 });
 

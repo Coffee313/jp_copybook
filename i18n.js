@@ -147,7 +147,6 @@
     'Sections': 'Разделы',
     'Enter concentration mode': 'Включить режим концентрации',
     'Exit concentration mode': 'Выйти из режима концентрации',
-    'Redraw this practice cell': 'Переписать знак в этой клетке',
     'K row': 'Ряд K',
     'S row': 'Ряд S',
     'T row': 'Ряд T',
@@ -230,6 +229,10 @@
         [/^This is (.+), but the stroke order or direction needs more practice\.$/, 'Это $1, но порядок или направление черт нужно отработать.'],
         [/^Incorrect\. The correct kanji is (.+)\.$/, 'Неверно. Правильный кандзи: $1.'],
         [/^Correct: (.+)\. Now repeat it without the guide\.$/, 'Верно: $1. Теперь напишите его ещё раз без образца.'],
+        [/^Good · (\d+)%$/, 'Хорошо · $1%'],
+        [/^Good shape, wrong order · (\d+)%$/, 'Форма верная, порядок черт неверный · $1%'],
+        [/^Wrong stroke direction · (\d+)%$/, 'Неверное направление черты · $1%'],
+        [/^Shape needs work · (\d+)%$/, 'Нужно исправить форму · $1%'],
         [/^You drew (\d+) of (\d+) kana correctly\. Correct answers were added to Mastered kana\.$/, 'Вы правильно написали $1 из $2 знаков. Правильно написанные знаки добавлены в список освоенных.'],
         [/^Master (\d+) basic kana to unlock voiced sounds\.$/, (_, count) => `Освойте ${count} ${russianForm(count, 'базовый знак', 'базовых знака', 'базовых знаков')}, чтобы открыть озвончённые звуки.`]
       ];
