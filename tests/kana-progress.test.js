@@ -23,6 +23,24 @@ test('resetMastery removes only the selected script', () => {
   assert.equal(Object.keys(mastery).length, 3);
 });
 
+test('reset timestamps prevent older cloud mastery from returning', () => {
+  const resets = progress.markScriptReset({}, 'hiragana', new Date('2026-07-13T12:00:00Z'));
+  const mastery = {
+    oldHiragana: { passed: true, passedAt: '2026-07-13T11:00:00Z' },
+    newHiragana: { passed: true, passedAt: '2026-07-13T13:00:00Z' },
+    katakana: { passed: true, passedAt: '2026-07-12T10:00:00Z' }
+  };
+  assert.deepEqual(progress.applyMasteryResets(mastery, resets, {
+    hiragana: ['oldHiragana', 'newHiragana'], katakana: ['katakana']
+  }), { newHiragana: mastery.newHiragana, katakana: mastery.katakana });
+});
+
+test('mergeResetTimes keeps the newest reset for each script', () => {
+  const local = { hiragana: '2026-07-13T12:00:00Z' };
+  const remote = { hiragana: '2026-07-12T12:00:00Z', katakana: '2026-07-11T12:00:00Z' };
+  assert.deepEqual(progress.mergeResetTimes(local, remote), { hiragana: local.hiragana, katakana: remote.katakana });
+});
+
 test('previousTestLayer moves back one layer without going below zero', () => {
   assert.equal(progress.previousTestLayer(2), 1);
   assert.equal(progress.previousTestLayer(1), 0);

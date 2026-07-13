@@ -99,6 +99,15 @@
     saveTimer = setTimeout(() => saveNow().catch(error => setSyncStatus(error.message, true)), 500);
   }
 
+  async function flushSave() {
+    renderAccount();
+    if (!session) return;
+    clearTimeout(saveTimer);
+    setSyncStatus('SavingвЂ¦');
+    try { await saveNow(); }
+    catch (error) { setSyncStatus(error.message, true); }
+  }
+
   function setSyncStatus(message, isError = false) {
     const element = document.querySelector('#syncStatus');
     if (!element) return;
@@ -236,5 +245,5 @@
     if (await ensureSession()) loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
   }
 
-  window.ProgressSync = { initialize, queueSave };
+  window.ProgressSync = { initialize, queueSave, flushSave };
 })();

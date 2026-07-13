@@ -26,6 +26,29 @@
     return Object.fromEntries(Object.entries(mastery).filter(([character]) => !resetCharacters.has(character)));
   }
 
+  function markScriptReset(resetTimes, script, now = new Date()) {
+    return { ...resetTimes, [script]: now.toISOString() };
+  }
+
+  function mergeResetTimes(local = {}, remote = {}) {
+    const merged = { ...remote };
+    Object.entries(local).forEach(([script, resetAt]) => {
+      if (!merged[script] || Date.parse(resetAt || 0) >= Date.parse(merged[script] || 0)) merged[script] = resetAt;
+    });
+    return merged;
+  }
+
+  function applyMasteryResets(mastery, resetTimes, scripts) {
+    const scriptByCharacter = new Map();
+    Object.entries(scripts).forEach(([script, characters]) => {
+      characters.forEach(character => scriptByCharacter.set(character, script));
+    });
+    return Object.fromEntries(Object.entries(mastery).filter(([character, value]) => {
+      const resetAt = resetTimes[scriptByCharacter.get(character)];
+      return !resetAt || Date.parse(value.passedAt || 0) > Date.parse(resetAt);
+    }));
+  }
+
   function previousTestLayer(layerIndex) {
     return Math.max(0, layerIndex - 1);
   }
@@ -51,5 +74,5 @@
     return result;
   }
 
-  return { markMastered, mergeMastery, progressCount, resetMastery, previousTestLayer, testPickerItems, cookieValue, shuffled };
+  return { markMastered, mergeMastery, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, previousTestLayer, testPickerItems, cookieValue, shuffled };
 });

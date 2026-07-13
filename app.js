@@ -33,9 +33,11 @@ const ghostToggle = document.querySelector('#ghostToggle');
 const guideControl = document.querySelector('#guideControl');
 const penOnlyToggle = document.querySelector('#penOnlyToggle');
 const MASTERY_KEY = 'kana-mastery-v1';
+const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
 let mastery = readMastery();
+let masteryResets = readMasteryResets();
 let testActive = false;
 let testQueue = [];
 let testIndex = 0;
@@ -50,6 +52,20 @@ const TEST_LAYERS = [
 function readMastery() {
   try { return JSON.parse(localStorage.getItem(MASTERY_KEY)) || {}; }
   catch { return {}; }
+}
+
+function readMasteryResets() {
+  try { return JSON.parse(localStorage.getItem(MASTERY_RESETS_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveMasteryResets(value) {
+  masteryResets = value;
+  localStorage.setItem(MASTERY_RESETS_KEY, JSON.stringify(masteryResets));
+}
+
+function kanaScripts() {
+  return Object.fromEntries(Object.entries(kana).map(([name, items]) => [name, items.map(item => item[0])]));
 }
 
 function saveMastery(value) {
@@ -522,7 +538,9 @@ document.querySelectorAll('[data-reset-script]').forEach(button => {
     if (!window.confirm(`Reset all ${label} learning progress? This cannot be undone.`)) return;
     if (testActive) stopKanaTest();
     const characters = kana[targetScript].map(item => item[0]);
+    saveMasteryResets(KanaProgress.markScriptReset(masteryResets, targetScript));
     saveMastery(KanaProgress.resetMastery(mastery, characters));
+    window.ProgressSync?.flushSave();
     button.closest('details')?.removeAttribute('open');
   });
 });
@@ -589,6 +607,10 @@ initializeInputMode();
 updateLesson();
 renderProgress();
 ProgressSync.initialize({
-  getLocalProgress: () => ({ kanaMastery: mastery }),
-  applyRemoteProgress: remote => saveMastery(KanaProgress.mergeMastery(mastery, remote.kanaMastery || {}))
+  getLocalProgress: () => ({ kanaMastery: mastery, kanaMasteryResets: masteryResets }),
+  applyRemoteProgress: remote => {
+    saveMasteryResets(KanaProgress.mergeResetTimes(masteryResets, remote.kanaMasteryResets || {}));
+    const merged = KanaProgress.mergeMastery(mastery, remote.kanaMastery || {});
+    saveMastery(KanaProgress.applyMasteryResets(merged, masteryResets, kanaScripts()));
+  }
 });
