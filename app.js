@@ -95,11 +95,11 @@ let placementCorrect = new Set();
 const PLACEMENT_SAMPLE_INDICES = {
   intermediate: {
     hiragana: [0, 6, 12, 18],
-    katakana: [0, 6, 12, 18]
+    katakana: [1, 7, 13, 19]
   },
   master: {
     hiragana: [0, 6, 12, 18, 24, 27, 32, 39, 46, 66],
-    katakana: [0, 6, 12, 18, 46, 66]
+    katakana: [1, 7, 13, 19, 52, 67]
   }
 };
 
@@ -633,7 +633,16 @@ function renderLearningPath() {
 function placementItems(level) {
   const samples = PLACEMENT_SAMPLE_INDICES[level];
   if (!samples) return [];
-  return Object.entries(samples).flatMap(([scriptName, indices]) => indices.map(index => kana[scriptName][index]).filter(Boolean));
+  const seenCharacters = new Set();
+  const seenReadings = new Set();
+  return Object.entries(samples)
+    .flatMap(([scriptName, indices]) => indices.map(index => kana[scriptName][index]).filter(Boolean))
+    .filter(item => {
+      if (seenCharacters.has(item[0]) || seenReadings.has(item[1])) return false;
+      seenCharacters.add(item[0]);
+      seenReadings.add(item[1]);
+      return true;
+    });
 }
 
 function showPlacementResult(result) {
@@ -815,8 +824,9 @@ function renderPicker() {
 }
 
 function updateLesson() {
+  const placementScript = kana.hiragana.some(item => item[0] === selected[0]) ? 'Hiragana' : 'Katakana';
   document.querySelector('#referenceKana').textContent = testActive ? '?' : selected[0];
-  document.querySelector('#referenceRomanji').textContent = selected[1];
+  document.querySelector('#referenceRomanji').textContent = placementActive ? `${placementScript} · ${selected[1]}` : selected[1];
   document.querySelector('.reference-hint').textContent = placementActive
     ? `Placement ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without hints`
     : testActive
