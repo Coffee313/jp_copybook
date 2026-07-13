@@ -19,6 +19,12 @@ test('pendingTestItems includes learned but not mastered kana', () => {
   assert.deepEqual(progress.pendingTestItems(values, learned, mastery), [['a', 'a']]);
 });
 
+test('allPracticeCellsGood requires every copybook cell to pass', () => {
+  assert.equal(progress.allPracticeCellsGood(['good', 'good', 'good']), true);
+  assert.equal(progress.allPracticeCellsGood(['good', 'pending', 'good']), false);
+  assert.equal(progress.allPracticeCellsGood([]), false);
+});
+
 test('mergeMastery keeps the newest result for each kana', () => {
   const local = { あ: { passed: true, passedAt: '2026-07-12T10:00:00Z' } };
   const remote = { あ: { passed: true, passedAt: '2026-07-11T10:00:00Z' }, ア: { passed: true, passedAt: '2026-07-10T10:00:00Z' } };

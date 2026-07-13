@@ -1,6 +1,6 @@
 .kanji-main { margin-top: 20px; }
 .account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-.account-area > button { max-width: 190px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; }
+.account-area > button { max-width: 190px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 #syncStatus[data-error="true"], #accountStatus[data-error="true"] { color: #a94534; }
 .account-dialog { width: min(440px, calc(100% - 28px)); border: 1px solid var(--line); border-radius: 22px; padding: 28px; color: var(--ink); background: var(--paper); box-shadow: 0 25px 80px rgba(30,25,18,.25); }
 .account-dialog::backdrop { background: rgba(30,25,18,.35); backdrop-filter: blur(3px); }
@@ -96,4 +96,5 @@
 .review-feedback[data-result="again"] { color: #a94534; background: #fff0ed; }
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
+@media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }
 @media (max-width: 680px) { .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .my-dictionary, .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-list { grid-template-columns: 1fr; } }

@@ -78,6 +78,10 @@
     return values.filter(item => learned[item[0]]?.learned && !mastery[item[0]]?.passed);
   }
 
+  function allPracticeCellsGood(results) {
+    return results.length > 0 && results.every(result => result === 'good');
+  }
+
   function previousTestLayer(layerIndex) {
     return Math.max(0, layerIndex - 1);
   }
@@ -103,5 +107,5 @@
     return result;
   }
 
-  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, previousTestLayer, testPickerItems, cookieValue, shuffled };
+  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, previousTestLayer, testPickerItems, cookieValue, shuffled };
 });

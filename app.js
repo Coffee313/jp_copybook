@@ -216,10 +216,24 @@ function makeVectorKana(character, numbered = false) {
   return svg;
 }
 
-function makeSheet() {
+function captureSheetState() {
+  return [...sheet.querySelectorAll('canvas')].map(canvas => {
+    const cell = canvas.parentElement;
+    const grade = ['good', 'order', 'direction', 'retry'].find(value => cell.classList.contains(`grade-${value}`));
+    return {
+      strokes: (canvas.__strokes || []).map(stroke => stroke.map(point => [...point])),
+      grade,
+      badge: cell.querySelector('.grade-badge')?.textContent || ''
+    };
+  });
+}
+
+function makeSheet(preserve = false) {
+  const savedStates = preserve ? captureSheetState() : [];
   sheet.innerHTML = '';
   const cellCount = testActive ? 1 : 15;
   const testLayer = testActive ? TEST_LAYERS[testLayerIndex] : null;
+  let canvasIndex = 0;
   for (let i = 0; i < cellCount; i++) {
     const cell = document.createElement('div');
     cell.className = `cell${!testActive && i === 0 ? ' stroke-cell' : ''}${testActive ? ` test-cell test-cell-${TEST_LAYERS[testLayerIndex]?.key || 'blank'}` : ''}`;
@@ -247,13 +261,21 @@ function makeSheet() {
     const canvas = document.createElement('canvas');
     cell.append(canvas);
     sheet.append(cell);
-    setupCanvas(canvas);
+    const savedState = savedStates[canvasIndex++];
+    if (savedState?.grade) {
+      cell.classList.add(`grade-${savedState.grade}`);
+      const badge = document.createElement('span');
+      badge.className = 'grade-badge';
+      badge.textContent = savedState.badge;
+      cell.append(badge);
+    }
+    setupCanvas(canvas, savedState);
   }
 }
 
-function setupCanvas(canvas) {
+function setupCanvas(canvas, savedState = null) {
   let baseWidth = 6;
-  canvas.__strokes = [];
+  canvas.__strokes = savedState?.strokes || [];
   const resize = () => {
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
     const rect = canvas.getBoundingClientRect();
@@ -266,6 +288,11 @@ function setupCanvas(canvas) {
     ctx.strokeStyle = '#292927';
     baseWidth = Math.max(5, rect.width * .055);
     ctx.lineWidth = baseWidth;
+    canvas.__strokes.forEach(stroke => {
+      ctx.beginPath();
+      stroke.forEach(([x, y], index) => index ? ctx.lineTo(x * rect.width, y * rect.height) : ctx.moveTo(x * rect.width, y * rect.height));
+      ctx.stroke();
+    });
   };
   requestAnimationFrame(resize);
 
@@ -319,6 +346,7 @@ function setupCanvas(canvas) {
     gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
   });
   canvas.addEventListener('pointercancel', () => { drawing = false; currentStroke = null; });
+  if (canvas.__strokes.length && !savedState?.grade) gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
 }
 
 function dilate(mask, size, radius) {
@@ -509,6 +537,9 @@ function showGrade(cell, result, score) {
 function recordLearningSuccess() {
   const character = selected[0];
   if (characterIsLearned(character)) return;
+  const practiceCells = [...document.querySelectorAll('.cell:not(.stroke-cell)')];
+  const results = practiceCells.map(cell => cell.classList.contains('grade-good') ? 'good' : 'pending');
+  if (!KanaProgress.allPracticeCellsGood(results)) return;
   const activeRow = currentLearningRow();
   if (!activeRow || !rowItems(activeRow).some(item => item[0] === character)) return;
   saveLearned(KanaProgress.markLearned(learned, character));
@@ -551,7 +582,7 @@ function renderLearningPath() {
     const items = rowItems(row);
     const learnedCount = items.filter(item => characterIsLearned(item[0])).length;
     rowTitle.textContent = row[1];
-    rowProgress.textContent = `${learnedCount} of ${items.length} learned · draw each kana correctly once`;
+    rowProgress.textContent = `${learnedCount} of ${items.length} learned · fill every copybook cell in green`;
   } else if (!advancedRowsUnlocked()) {
     rowTitle.textContent = 'Dakuten rows are locked';
     rowProgress.textContent = `Master ${ADVANCED_UNLOCK_COUNT} basic kana to unlock voiced sounds.`;
@@ -754,7 +785,7 @@ window.addEventListener('resize', () => {
   if (Math.abs(nextWidth - layoutViewportWidth) < 2) return;
   layoutViewportWidth = nextWidth;
   clearTimeout(window.__resizeTimer);
-  window.__resizeTimer = setTimeout(makeSheet, 150);
+  window.__resizeTimer = setTimeout(() => makeSheet(true), 150);
 });
 
 initializeInputMode();
