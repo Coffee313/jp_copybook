@@ -238,8 +238,8 @@ function makeVectorKana(character, numbered = false, directional = false) {
     marker.setAttribute('viewBox', '0 0 10 10');
     marker.setAttribute('refX', '8');
     marker.setAttribute('refY', '5');
-    marker.setAttribute('markerWidth', '4');
-    marker.setAttribute('markerHeight', '4');
+    marker.setAttribute('markerWidth', '2');
+    marker.setAttribute('markerHeight', '2');
     marker.setAttribute('orient', 'auto');
     const arrow = document.createElementNS(namespace, 'path');
     arrow.setAttribute('class', 'direction-arrow');
