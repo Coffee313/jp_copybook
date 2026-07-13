@@ -21,7 +21,7 @@
 
   async function readJson(response) {
     const text = await response.text();
-    if (!text) return {};
+    if (!text.trim()) return {};
     try { return JSON.parse(text); }
     catch { return {}; }
   }

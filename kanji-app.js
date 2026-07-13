@@ -12,7 +12,10 @@ async function fetchJson(url, timeout = 5000) {
   try {
     const response = await fetch(url, { signal: controller.signal });
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-    return await response.json();
+    const text = await response.text();
+    if (!text.trim()) throw new Error('Request returned an empty response.');
+    try { return JSON.parse(text); }
+    catch { throw new Error('Request returned invalid JSON.'); }
   } finally {
     clearTimeout(timer);
   }
