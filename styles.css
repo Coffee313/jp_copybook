@@ -61,6 +61,7 @@ button { color: inherit; }
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 18px;
 }
+.header-context { color: var(--muted); white-space: nowrap; font-size: 11px; }
 .main-nav { display: flex; align-items: center; gap: 3px; margin-left: auto; margin-right: 4px; padding: 2px; border-radius: 999px; background: rgba(255,255,255,.48); }
 .main-nav a { padding: 6px 10px; border-radius: 999px; color: var(--muted); text-decoration: none; font-size: 12px; }
 .main-nav a.active { color: var(--ink); background: var(--paper); box-shadow: 0 2px 8px rgba(30,25,18,.07); }
@@ -78,6 +79,9 @@ button { color: inherit; }
 .account-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 .account-actions button, .sign-out { border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .account-actions button[value="signup"] { color: var(--green); border: 1px solid var(--green); background: transparent; }
+.account-actions .reset-password { grid-column: 1 / -1; padding: 6px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 600; }
+.recovery-submit { width: 100%; margin-top: 18px; border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
+#recoveryStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 .input-mode-dialog { width: min(500px, calc(100% - 28px)); }
 .input-mode-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
 .input-mode-actions button { display: flex; min-height: 100px; flex-direction: column; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 14px; padding: 16px; color: var(--ink); background: #faf8f3; cursor: pointer; text-align: left; }
@@ -85,6 +89,7 @@ button { color: inherit; }
 .input-mode-actions strong { color: var(--green); font-size: 16px; }
 .input-mode-actions span { color: var(--muted); font-size: 11px; line-height: 1.4; }
 #accountStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
+#accountStatus[data-error="true"], #recoveryStatus[data-error="true"] { color: #a94534; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
 .account-summary { margin-top: 18px; }
 .account-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -239,7 +244,9 @@ footer a { color: inherit; }
 @media (max-width: 760px) {
   .topbar, main, footer { width: min(100% - 16px, 1180px); }
   .topbar { min-height: 42px; gap: 4px; padding-block: 3px; }
-  .brand > span:last-child, .top-input-control > span:last-child { display: none; }
+  .brand { gap: 5px; font-size: 10px; }
+  .top-input-control > span:last-child { display: none; }
+  .header-context { display: none; }
   .brand-mark { width: 30px; height: 30px; font-size: 16px; }
   .main-nav { min-width: 0; width: auto; margin: 0 0 0 auto; }
   .main-nav a { flex: 0 1 auto; padding: 5px 6px; white-space: nowrap; text-align: center; font-size: 10px; }

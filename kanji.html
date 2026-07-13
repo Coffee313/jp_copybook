@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kanji — recognition and dictionary</title>
-    <link rel="stylesheet" href="styles.css?v=18" />
-    <link rel="stylesheet" href="kanji.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=19" />
+    <link rel="stylesheet" href="kanji.css?v=10" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="index.html"><span class="brand-mark">字</span><span>Kana</span></a>
+      <a class="brand" href="index.html"><span class="brand-mark">字</span><span>My Japanese Copybook</span></a>
+      <span class="header-context">Draw a kanji</span>
       <nav class="main-nav" aria-label="Sections">
-        <a href="index.html">Practice</a>
-        <a class="active" href="kanji.html">Kanji & dictionary</a>
+        <a href="index.html">Kana</a>
+        <a class="active" href="kanji.html">Kanji</a>
       </nav>
       <div class="account-area">
         <button id="openAccount" type="button" aria-label="Open profile">
@@ -34,8 +35,14 @@
         <div class="account-actions">
           <button type="submit" name="action" value="signin">Sign in</button>
           <button type="submit" name="action" value="signup">Create account</button>
+          <button class="reset-password" id="requestPasswordReset" type="button">Reset password</button>
         </div>
         <p id="accountStatus" aria-live="polite"></p>
+      </form>
+      <form id="recoveryForm" hidden>
+        <label>New password<input id="recoveryPassword" type="password" required minlength="6" autocomplete="new-password" /></label>
+        <button class="recovery-submit" type="submit">Save new password</button>
+        <p id="recoveryStatus" aria-live="polite"></p>
       </form>
       <section class="account-summary" id="accountSummary" hidden>
         <div class="account-stats" id="accountStats"></div>
@@ -44,11 +51,6 @@
     </dialog>
 
     <main class="kanji-main">
-      <section class="kanji-heading">
-        <div><p class="eyebrow">Handwriting search</p><h1>Draw a kanji</h1></div>
-        <p>Write one character at a time. The candidate list updates after every stroke.</p>
-      </section>
-
       <div class="kanji-layout">
         <section class="recognizer-card">
           <div class="draw-panel">
@@ -119,7 +121,7 @@
 
     <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a></footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="progress-sync.js?v=9"></script>
+    <script src="progress-sync.js?v=10"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
     <script src="kanjivg-directions.js?v=1"></script>
     <script src="kanjivg-strokes.js?v=1"></script>

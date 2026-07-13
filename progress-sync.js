@@ -6,6 +6,7 @@
   let applyRemoteProgress = () => {};
   let saveTimer = null;
   let cloudProgress = {};
+  let recoveryMode = false;
 
   const readSession = () => {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
@@ -149,11 +150,14 @@
     document.querySelector('#accountEmail').textContent = Array.from(email)[0]?.toUpperCase() || '?';
     accountButton.dataset.signedIn = session ? 'true' : 'false';
     accountButton.setAttribute('aria-label', session ? `Open profile for ${email}` : 'Open profile');
-    document.querySelector('#accountForm').hidden = Boolean(session);
-    document.querySelector('#accountSummary').hidden = !session;
-    document.querySelector('#accountIntro').textContent = session
-      ? `Signed in as ${session.user?.email || 'your account'}. Your progress is synced across devices.`
-      : 'Sign in or create an account to save your learning progress.';
+    document.querySelector('#accountForm').hidden = Boolean(session) || recoveryMode;
+    document.querySelector('#recoveryForm').hidden = !recoveryMode;
+    document.querySelector('#accountSummary').hidden = !session || recoveryMode;
+    document.querySelector('#accountIntro').textContent = recoveryMode
+      ? 'Choose a new password for your account.'
+      : session
+        ? `Signed in as ${session.user?.email || 'your account'}. Your progress is synced across devices.`
+        : 'Sign in or create an account to save your learning progress.';
     renderAccountStats();
     setSyncStatus(session ? 'Cloud sync is on' : 'Progress is stored on this device');
   }
@@ -226,6 +230,24 @@
     return 'Check your email to confirm your account.';
   }
 
+  async function requestPasswordReset(email) {
+    const redirectTo = config.appUrl || new URL('./', window.location.href).href;
+    await authRequest(`recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  }
+
+  async function updatePassword(password) {
+    const active = await ensureSession();
+    if (!active) throw new Error('This password reset link has expired. Request a new one.');
+    await authRequest('user', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${active.access_token}` },
+      body: JSON.stringify({ password })
+    });
+  }
+
   async function signOut() {
     const active = await ensureSession();
     if (active) await authRequest('logout', { method: 'POST', headers: { Authorization: `Bearer ${active.access_token}` } }).catch(() => {});
@@ -237,6 +259,38 @@
     document.querySelector('#openAccount').addEventListener('click', () => dialog.showModal());
     document.querySelector('#closeAccount').addEventListener('click', () => dialog.close());
     document.querySelector('#signOut').addEventListener('click', () => signOut());
+    document.querySelector('#requestPasswordReset').addEventListener('click', async () => {
+      const emailInput = document.querySelector('#accountEmailInput');
+      const status = document.querySelector('#accountStatus');
+      status.removeAttribute('data-error');
+      if (!emailInput.reportValidity()) return;
+      status.textContent = 'Sending password reset email…';
+      try {
+        await requestPasswordReset(emailInput.value.trim());
+        status.textContent = 'Check your email for a password reset link.';
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.error = 'true';
+      }
+    });
+    document.querySelector('#recoveryForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = document.querySelector('#recoveryStatus');
+      status.removeAttribute('data-error');
+      status.textContent = 'Saving new password…';
+      try {
+        await updatePassword(document.querySelector('#recoveryPassword').value);
+        status.textContent = 'Password updated.';
+        setTimeout(() => {
+          recoveryMode = false;
+          renderAccount();
+          dialog.close();
+        }, 700);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.error = 'true';
+      }
+    });
     document.querySelector('#accountForm').addEventListener('submit', async event => {
       event.preventDefault();
       const action = event.submitter?.value || 'signin';
@@ -260,10 +314,17 @@
     getLocalProgress = options.getLocalProgress;
     applyRemoteProgress = options.applyRemoteProgress;
     bindUi();
-    const hasAuthHash = window.location.hash.includes('access_token=');
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const hasAuthHash = hashParams.has('access_token');
+    recoveryMode = hasAuthHash && hashParams.get('type') === 'recovery';
     const callbackSession = sessionFromHash();
     storeSession(callbackSession || readSession());
     if (hasAuthHash) history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    if (recoveryMode && callbackSession) {
+      renderAccount();
+      document.querySelector('#accountDialog').showModal();
+      document.querySelector('#recoveryPassword').focus();
+    }
     if (await ensureSession()) loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
   }
 

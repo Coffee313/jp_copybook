@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kana — handwriting practice</title>
-    <link rel="stylesheet" href="styles.css?v=18" />
+    <link rel="stylesheet" href="styles.css?v=19" />
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="#" aria-label="Kana — home">
         <span class="brand-mark">あ</span>
-        <span>Kana</span>
+        <span>My Japanese Copybook</span>
       </a>
+      <span class="header-context">Write · Erase · Repeat</span>
       <nav class="main-nav" aria-label="Sections">
-        <a class="active" href="index.html">Practice</a>
-        <a href="kanji.html">Kanji & dictionary</a>
+        <a class="active" href="index.html">Kana</a>
+        <a href="kanji.html">Kanji</a>
       </nav>
       <label class="ghost-control top-input-control">
         <input id="penOnlyToggle" type="checkbox" />
@@ -34,8 +35,13 @@
       <form id="accountForm">
         <label>Email<input id="accountEmailInput" type="email" required autocomplete="email" /></label>
         <label>Password<input id="accountPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
-        <div class="account-actions"><button type="submit" name="action" value="signin">Sign in</button><button type="submit" name="action" value="signup">Create account</button></div>
+        <div class="account-actions"><button type="submit" name="action" value="signin">Sign in</button><button type="submit" name="action" value="signup">Create account</button><button class="reset-password" id="requestPasswordReset" type="button">Reset password</button></div>
         <p id="accountStatus" aria-live="polite"></p>
+      </form>
+      <form id="recoveryForm" hidden>
+        <label>New password<input id="recoveryPassword" type="password" required minlength="6" autocomplete="new-password" /></label>
+        <button class="recovery-submit" type="submit">Save new password</button>
+        <p id="recoveryStatus" aria-live="polite"></p>
       </form>
       <section class="account-summary" id="accountSummary" hidden>
         <div class="account-stats" id="accountStats"></div>
@@ -54,12 +60,6 @@
     </dialog>
 
     <main>
-      <section class="intro">
-        <p class="eyebrow">Japanese handwriting practice</p>
-        <h1>Write. Erase. Repeat.</h1>
-        <p class="lead">Choose a character and practise its movement in the grid with your finger, stylus, or mouse.</p>
-      </section>
-
       <section class="practice-card" aria-label="Handwriting practice area">
         <div class="kana-progress-panel">
           <div><span>Kana mastery</span><strong id="kanaProgressText">0 of 142</strong></div>
@@ -129,7 +129,7 @@
       <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noreferrer">Stroke paths: KanjiVG, CC BY-SA 3.0</a>
     </footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="progress-sync.js?v=9"></script>
+    <script src="progress-sync.js?v=10"></script>
     <script src="kana-progress.js?v=7"></script>
     <script src="kana-guides.js?v=4"></script>
     <script src="app.js?v=16"></script>
