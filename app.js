@@ -336,6 +336,7 @@ function makeSheet(preserve = false) {
       badge.className = 'grade-badge';
       badge.textContent = savedState.badge;
       cell.append(badge);
+      if (testActive && savedState.grade === 'good') revealTestComparison(cell);
     }
     setupCanvas(canvas, savedState);
   }
@@ -598,6 +599,7 @@ function showGrade(cell, result, score) {
         ? `Wrong stroke direction · ${score}%`
       : `Shape needs work · ${score}%`;
   cell.append(badge);
+  if (testActive && result === 'good') revealTestComparison(cell);
   if (!testActive && result !== 'good') {
     const canvas = cell.querySelector('canvas');
     if (canvas) {
@@ -614,6 +616,18 @@ function showGrade(cell, result, score) {
   }
   if (testActive) handleTestResult(result);
   else if (result === 'good') recordLearningSuccess();
+}
+
+function revealTestComparison(cell) {
+  let ghost = cell.querySelector('.ghost');
+  if (!ghost) {
+    ghost = document.createElement('span');
+    ghost.className = 'ghost';
+    ghost.append(makeVectorKana(selected[0]));
+    cell.insertBefore(ghost, cell.querySelector('canvas'));
+  }
+  ghost.hidden = false;
+  ghost.classList.add('test-result-ghost');
 }
 
 function recordLearningSuccess() {

@@ -257,6 +257,7 @@ body.concentration-mode .concentration-exit:hover, body.concentration-mode .conc
 .test-guide-order .direction-arrow { fill: #a94534; stroke: none; }
 .test-cell-example .ghost { color: rgba(61,92,81,.14); }
 .test-cell-blank .ghost { display: none; }
+.test-cell .ghost.test-result-ghost { display: grid; color: rgba(61,92,81,.3); }
 .cell canvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
 .cell { container-type: size; }
 .cell.grade-good { border-color: #2f9367; box-shadow: inset 0 0 0 3px rgba(47,147,103,.16); }
