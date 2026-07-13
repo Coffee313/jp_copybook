@@ -176,9 +176,9 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 #testMyself { border: 1px solid var(--green); color: var(--green); background: transparent; }
 #startKanaTest:disabled, #testMyself:disabled { cursor: not-allowed; opacity: .5; }
 .forgot-answer { border: 1px solid var(--accent); border-radius: 10px; padding: 8px 11px; color: var(--accent); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
-.reference .forgot-answer { margin-top: 12px; }
-.copybook-mode .kana-progress-panel, .copybook-mode .learning-path > div:first-child, .copybook-mode .mastered-kana { display: none; }
-.copybook-mode .learning-path { grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 6px 10px; }
+.reference .forgot-answer { z-index: 5; align-self: flex-start; margin: 0; background: rgba(255,254,250,.92); }
+.copybook-mode .kana-progress-panel, .copybook-mode .learning-row-copy, .copybook-mode .mastered-kana { display: none; }
+.copybook-mode .learning-path { grid-template-columns: auto auto minmax(0, 1fr); gap: 10px; padding: 6px 10px; }
 .copybook-mode .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-start; padding: 10px 14px; }
 .progress-reset { position: relative; }
 .progress-reset summary { border: 1px solid var(--line); border-radius: 11px; padding: 8px 11px; color: var(--muted); background: var(--paper); cursor: pointer; font-size: 12px; list-style: none; }
@@ -198,9 +198,10 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 body:not(.copybook-mode) .learning-path .kana-picker { gap: 6px; overflow-x: visible; }
 body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-width: 48px; flex: 1 1 0; }
 .learning-path-tools { display: grid; grid-template-columns: auto auto; align-items: center; justify-content: center; gap: 6px; }
-.learning-path-tools .script-switch { grid-column: 1 / -1; justify-self: center; }
 .learning-path-tools .guide-control { gap: 6px; white-space: nowrap; font-size: 10px; }
 .learning-path-tools .practice-clear { margin-left: 0; padding: 7px 9px; white-space: nowrap; font-size: 9px; }
+.learning-path-summary .script-switch { width: max-content; margin-bottom: 7px; }
+.copybook-mode .learning-path-summary .script-switch { margin-bottom: 0; }
 .know-row-button { margin-top: 10px; border: 1px solid var(--green); border-radius: 10px; padding: 7px 10px; color: var(--green); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
 .know-row-button:hover { color: #fff; background: var(--green); }
 .know-row-button:disabled { cursor: not-allowed; opacity: .45; }
@@ -231,7 +232,7 @@ body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-widt
 .ghost-control input:checked + .toggle::after { transform: translateX(17px); }
 
 .lesson { display: grid; grid-template-columns: 235px minmax(0, 1fr); min-height: 470px; }
-.reference { padding: 32px 28px; border-right: 1px solid #e9e4dc; display: flex; flex-direction: column; justify-content: space-between; }
+.reference { position: relative; padding: 32px 28px; border-right: 1px solid #e9e4dc; display: flex; flex-direction: column; justify-content: space-between; }
 .reference-kana { font-family: 'Noto Sans JP', sans-serif; font-size: 146px; line-height: 1; color: var(--green); }
 .reference-romanji { font-size: 32px; font-weight: 600; letter-spacing: -.04em; }
 .reference-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
@@ -346,6 +347,7 @@ footer a { color: inherit; }
   .practice-card { border-radius: 20px; }
   .controls { align-items: flex-start; flex-direction: column; padding: 18px; }
   .learning-path { grid-template-columns: 1fr; gap: 10px; padding: 18px; }
+  .copybook-mode .learning-path { grid-template-columns: 1fr; }
   .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-start; padding-top: 4px; }
   .input-mode-actions { grid-template-columns: 1fr; }
   .language-actions { grid-template-columns: 1fr; }

@@ -687,7 +687,7 @@ function renderLearningPath() {
     rowTitle.textContent = row[1];
     rowProgress.textContent = `${learnedCount} of ${items.length} learned · fill every copybook cell in green`;
     const remaining = items.filter(item => !mastery[item[0]]?.passed).length;
-    knowButton.hidden = !fastTrackEligible || (testActive && !knownKanaTestActive);
+    knowButton.hidden = !fastTrackEligible || testActive;
     if (!testActive) {
       knowButton.disabled = remaining === 0;
       knowButton.textContent = remaining ? `I know these kanas · ${remaining}` : 'I know these kanas';
@@ -909,11 +909,13 @@ function startKnownKanaTest() {
   testQueue = KanaProgress.shuffled(candidates);
   selected = testQueue[0];
   guideControl.hidden = true;
-  document.querySelector('#startKanaTest').disabled = true;
+  document.querySelector('#startKanaTest').disabled = false;
+  document.querySelector('#startKanaTest').textContent = 'End test';
   document.querySelector('#testMyself').disabled = true;
   const knowButton = document.querySelector('#knowCurrentRow');
   knowButton.dataset.active = 'true';
   knowButton.textContent = 'End knowledge check';
+  knowButton.hidden = true;
   document.querySelector('.practice-card').classList.add('test-active');
   updateLesson();
 }
