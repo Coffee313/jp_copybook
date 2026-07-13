@@ -33,6 +33,7 @@ const ghostToggle = document.querySelector('#ghostToggle');
 const guideControl = document.querySelector('#guideControl');
 const penOnlyToggle = document.querySelector('#penOnlyToggle');
 const MASTERY_KEY = 'kana-mastery-v1';
+const INPUT_MODE_COOKIE = 'kana-input-mode';
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
 let mastery = readMastery();
 let testActive = false;
@@ -443,8 +444,6 @@ function handleTestResult(result) {
 
 function startKanaTest() {
   testActive = true;
-  penOnlyToggle.checked = false;
-  updateInputModeTip();
   testIndex = 0;
   testLayerIndex = 0;
   testQueue = KanaProgress.shuffled(kana[script]);
@@ -538,7 +537,32 @@ function updateInputModeTip() {
     : ' Finger drawing is enabled. ';
 }
 
-penOnlyToggle.addEventListener('change', updateInputModeTip);
+function setInputMode(mode, persist = true) {
+  const stylusMode = mode === 'stylus';
+  penOnlyToggle.checked = stylusMode;
+  document.querySelector('.test-finger-hint').hidden = stylusMode;
+  updateInputModeTip();
+  if (persist) document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
+}
+
+function initializeInputMode() {
+  const savedMode = KanaProgress.cookieValue(document.cookie, INPUT_MODE_COOKIE);
+  if (savedMode === 'stylus' || savedMode === 'finger') {
+    setInputMode(savedMode, false);
+    return;
+  }
+  setInputMode('finger', false);
+  requestAnimationFrame(() => document.querySelector('#inputModeDialog').showModal());
+}
+
+penOnlyToggle.addEventListener('change', () => setInputMode(penOnlyToggle.checked ? 'stylus' : 'finger'));
+document.querySelector('#inputModeDialog').addEventListener('cancel', event => event.preventDefault());
+document.querySelectorAll('[data-input-mode]').forEach(button => {
+  button.addEventListener('click', () => {
+    setInputMode(button.dataset.inputMode);
+    document.querySelector('#inputModeDialog').close();
+  });
+});
 
 document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('canvas').forEach(canvas => {
@@ -561,6 +585,7 @@ window.addEventListener('resize', () => {
   window.__resizeTimer = setTimeout(makeSheet, 150);
 });
 
+initializeInputMode();
 updateLesson();
 renderProgress();
 ProgressSync.initialize({

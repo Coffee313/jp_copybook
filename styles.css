@@ -76,6 +76,12 @@ button { color: inherit; }
 .account-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 .account-actions button, .sign-out { border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .account-actions button[value="signup"] { color: var(--green); border: 1px solid var(--green); background: transparent; }
+.input-mode-dialog { width: min(500px, calc(100% - 28px)); }
+.input-mode-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.input-mode-actions button { display: flex; min-height: 100px; flex-direction: column; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 14px; padding: 16px; color: var(--ink); background: #faf8f3; cursor: pointer; text-align: left; }
+.input-mode-actions button:hover { border-color: var(--green); background: #f3f6f3; }
+.input-mode-actions strong { color: var(--green); font-size: 16px; }
+.input-mode-actions span { color: var(--muted); font-size: 11px; line-height: 1.4; }
 #accountStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
 .account-summary { margin-top: 18px; }
@@ -147,6 +153,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .script-button.active { background: var(--paper); color: var(--ink); box-shadow: 0 2px 8px rgba(30,25,18,.08); font-weight: 600; }
 
 .ghost-control { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; cursor: pointer; }
+.top-input-control { margin-left: 10px; white-space: nowrap; font-size: 12px; }
 .ghost-control input { position: absolute; opacity: 0; pointer-events: none; }
 .toggle { width: 40px; height: 23px; border-radius: 999px; background: #c9c4ba; position: relative; transition: .2s; }
 .toggle::after { content: ''; position: absolute; width: 17px; height: 17px; left: 3px; top: 3px; border-radius: 50%; background: white; transition: .2s; }
@@ -229,6 +236,8 @@ footer a { color: inherit; }
   .lead { font-size: 15px; }
   .practice-card { border-radius: 20px; }
   .controls { align-items: flex-start; flex-direction: column; padding: 18px; }
+  .top-input-control { margin-left: auto; }
+  .input-mode-actions { grid-template-columns: 1fr; }
   .practice-clear { margin-left: 0; }
   .lesson { grid-template-columns: 1fr; }
   .reference { min-height: 170px; padding: 20px; border-right: 0; border-bottom: 1px solid #e9e4dc; flex-direction: row; align-items: flex-end; }

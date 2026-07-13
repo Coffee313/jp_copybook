@@ -35,6 +35,11 @@ test('testPickerItems shows only passed kana and hides the current answer', () =
   assert.deepEqual(progress.testPickerItems(values, mastery, 'a'), [['i', 'i']]);
 });
 
+test('cookieValue reads and decodes a named cookie', () => {
+  assert.equal(progress.cookieValue('theme=dark; kana-input-mode=stylus; name=Test%20User', 'kana-input-mode'), 'stylus');
+  assert.equal(progress.cookieValue('theme=dark', 'kana-input-mode'), null);
+});
+
 test('shuffled preserves every test item', () => {
   assert.deepEqual(progress.shuffled(['あ', 'い', 'う'], () => 0).sort(), ['あ', 'い', 'う']);
 });
