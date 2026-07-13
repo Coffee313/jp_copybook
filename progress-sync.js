@@ -1,4 +1,25 @@
 (function () {
+  const appleTouchDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  document.documentElement.classList.toggle('apple-fullscreen-ui', appleTouchDevice);
+  const updateAppleFullscreenUi = () => {
+    if (!appleTouchDevice) return;
+    let nativeFullscreenActive = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    try {
+      nativeFullscreenActive ||= window.parent !== window
+        && Boolean(window.parent.document.fullscreenElement || window.parent.document.webkitFullscreenElement);
+    } catch { /* Cross-origin embedding is not used by the app. */ }
+    document.documentElement.classList.toggle('apple-native-fullscreen', nativeFullscreenActive);
+  };
+  document.addEventListener('fullscreenchange', updateAppleFullscreenUi);
+  document.addEventListener('webkitfullscreenchange', updateAppleFullscreenUi);
+  try {
+    if (window.parent !== window) {
+      window.parent.document.addEventListener('fullscreenchange', updateAppleFullscreenUi);
+      window.parent.document.addEventListener('webkitfullscreenchange', updateAppleFullscreenUi);
+    }
+  } catch { /* Cross-origin embedding is not used by the app. */ }
+  updateAppleFullscreenUi();
   const config = window.SUPABASE_CONFIG;
   const SESSION_KEY = 'kana-supabase-session-v1';
   const PROGRESS_OWNER_KEY = 'kana-progress-owner-v1';
