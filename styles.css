@@ -106,6 +106,18 @@ button { color: inherit; }
 #accountStatus[data-error="true"], #recoveryStatus[data-error="true"] { color: #a94534; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
 .account-summary { margin-top: 18px; }
+.profile-dialog { width: min(680px, calc(100% - 28px)); }
+.profile-settings { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; }
+.profile-menu { display: flex; flex-direction: column; gap: 5px; }
+.profile-menu button, .profile-menu a { width: 100%; border: 0; border-radius: 10px; padding: 10px 11px; color: var(--muted); background: transparent; cursor: pointer; text-align: left; text-decoration: none; font-size: 12px; }
+.profile-menu button:hover, .profile-menu a:hover, .profile-menu button.active { color: var(--ink); background: #f2eee7; }
+.profile-menu .profile-menu-danger { margin-top: auto; color: #a94534; }
+.profile-panels > section > h3 { margin: 0 0 12px; font-size: 18px; }
+.profile-panels > section > p { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.profile-reset-actions { display: grid; gap: 8px; }
+.profile-reset-actions button { border: 1px solid #ecc1b8; border-radius: 10px; padding: 10px; color: #a94534; background: #fff7f5; cursor: pointer; text-align: left; font-weight: 600; }
+#profilePasswordStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
+#profilePasswordStatus[data-error="true"] { color: #a94534; }
 .account-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .account-stats h3 { grid-column: 1 / -1; margin: 8px 0 0; font-size: 13px; }
 .account-stats h3:first-child { margin-top: 0; }
@@ -293,6 +305,9 @@ footer a { color: inherit; }
   .learning-path { grid-template-columns: 1fr; padding: 18px; }
   .learned-queue { max-width: none; }
   .input-mode-actions { grid-template-columns: 1fr; }
+  .profile-settings { grid-template-columns: 1fr; gap: 16px; }
+  .profile-menu { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .profile-menu .profile-menu-danger { margin-top: 0; }
   .placement-actions { grid-template-columns: 1fr; }
   .placement-actions button { min-height: 76px; }
   .practice-clear { margin-left: 0; }

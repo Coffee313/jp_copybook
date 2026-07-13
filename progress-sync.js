@@ -153,6 +153,7 @@
     document.querySelector('#accountForm').hidden = Boolean(session) || recoveryMode;
     document.querySelector('#recoveryForm').hidden = !recoveryMode;
     document.querySelector('#accountSummary').hidden = !session || recoveryMode;
+    document.querySelector('#accountTitle').textContent = recoveryMode ? 'Reset password' : session ? 'Profile settings' : 'Your account';
     document.querySelector('#accountIntro').textContent = recoveryMode
       ? 'Choose a new password for your account.'
       : session
@@ -258,11 +259,27 @@
     storeSession(null);
   }
 
+  function showProfilePanel(panelId = 'profileStatistics') {
+    const requested = document.querySelector(`#${panelId}[data-profile-section]`);
+    const target = requested || document.querySelector('#profileStatistics');
+    document.querySelectorAll('[data-profile-section]').forEach(section => { section.hidden = section !== target; });
+    document.querySelectorAll('[data-profile-panel]').forEach(button => button.classList.toggle('active', button.dataset.profilePanel === target?.id));
+  }
+
   function bindUi() {
     const dialog = document.querySelector('#accountDialog');
-    document.querySelector('#openAccount').addEventListener('click', () => dialog.showModal());
+    document.querySelector('#openAccount').addEventListener('click', () => {
+      if (session) showProfilePanel();
+      dialog.showModal();
+    });
     document.querySelector('#closeAccount').addEventListener('click', () => dialog.close());
-    document.querySelector('#signOut').addEventListener('click', () => signOut());
+    document.querySelector('#signOut').addEventListener('click', async () => {
+      await signOut();
+      dialog.close();
+    });
+    document.querySelectorAll('[data-profile-panel]').forEach(button => {
+      button.addEventListener('click', () => showProfilePanel(button.dataset.profilePanel));
+    });
     document.querySelector('#requestPasswordReset').addEventListener('click', async () => {
       const emailInput = document.querySelector('#accountEmailInput');
       const status = document.querySelector('#accountStatus');
@@ -295,6 +312,21 @@
         status.dataset.error = 'true';
       }
     });
+    document.querySelector('#profilePasswordForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const passwordInput = document.querySelector('#profilePassword');
+      const status = document.querySelector('#profilePasswordStatus');
+      status.removeAttribute('data-error');
+      status.textContent = 'Saving new password…';
+      try {
+        await updatePassword(passwordInput.value);
+        passwordInput.value = '';
+        status.textContent = 'Password updated.';
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.error = 'true';
+      }
+    });
     document.querySelector('#accountForm').addEventListener('submit', async event => {
       event.preventDefault();
       const action = event.submitter?.value || 'signin';
@@ -318,6 +350,7 @@
     getLocalProgress = options.getLocalProgress;
     applyRemoteProgress = options.applyRemoteProgress;
     bindUi();
+    const requestedProfileReset = window.location.hash === '#profile-reset';
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const hasAuthHash = hashParams.has('access_token');
     recoveryMode = hasAuthHash && hashParams.get('type') === 'recovery';
@@ -330,6 +363,11 @@
       document.querySelector('#recoveryPassword').focus();
     }
     if (await ensureSession()) await loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
+    if (requestedProfileReset && session) {
+      showProfilePanel('profileResetProgress');
+      document.querySelector('#accountDialog').showModal();
+      history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
   }
 
   window.ProgressSync = { initialize, queueSave, flushSave };

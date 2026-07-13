@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f4ee" />
     <title>Kana — handwriting practice</title>
-    <link rel="stylesheet" href="styles.css?v=23" />
+    <link rel="stylesheet" href="styles.css?v=24" />
   </head>
   <body>
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -30,9 +30,9 @@
       </div>
     </header>
 
-    <dialog class="account-dialog" id="accountDialog">
+    <dialog class="account-dialog profile-dialog" id="accountDialog">
       <button class="dialog-close" id="closeAccount" type="button" aria-label="Close">×</button>
-      <p class="eyebrow">Cloud progress</p><h2>Your account</h2>
+      <p class="eyebrow">Cloud progress</p><h2 id="accountTitle">Your account</h2>
       <p id="accountIntro">Sign in or create an account to save your test results.</p>
       <form id="accountForm">
         <label>Email<input id="accountEmailInput" type="email" required autocomplete="email" /></label>
@@ -46,8 +46,19 @@
         <p id="recoveryStatus" aria-live="polite"></p>
       </form>
       <section class="account-summary" id="accountSummary" hidden>
-        <div class="account-stats" id="accountStats"></div>
-        <button class="sign-out" id="signOut" type="button">Sign out</button>
+        <div class="profile-settings">
+          <nav class="profile-menu" aria-label="Profile settings">
+            <button class="active" type="button" data-profile-panel="profileStatistics">Statistics</button>
+            <button type="button" data-profile-panel="profileResetProgress">Reset progress</button>
+            <button type="button" data-profile-panel="profileResetPassword">Reset password</button>
+            <button class="profile-menu-danger" id="signOut" type="button">Logout</button>
+          </nav>
+          <div class="profile-panels">
+            <section id="profileStatistics" data-profile-section><h3>Statistics</h3><div class="account-stats" id="accountStats"></div></section>
+            <section id="profileResetProgress" data-profile-section hidden><h3>Reset progress</h3><p>Choose which kana learning path to restart. This cannot be undone.</p><div class="profile-reset-actions"><button type="button" data-reset-script="hiragana">Reset Hiragana</button><button type="button" data-reset-script="katakana">Reset Katakana</button></div></section>
+            <section id="profileResetPassword" data-profile-section hidden><h3>Reset password</h3><form id="profilePasswordForm"><label>New password<input id="profilePassword" type="password" required minlength="6" autocomplete="new-password" /></label><button class="recovery-submit" type="submit">Save new password</button><p id="profilePasswordStatus" aria-live="polite"></p></form></section>
+          </div>
+        </div>
       </section>
     </dialog>
 
@@ -86,13 +97,6 @@
           <div><span>Kana mastery</span><strong id="kanaProgressText">0 of 142</strong></div>
           <div class="kana-progress-track" role="progressbar" aria-label="Mastered kana" aria-valuemin="0" aria-valuemax="142" aria-valuenow="0"><span id="kanaProgressBar"></span></div>
           <button id="startKanaTest" type="button" disabled>Learn a row first</button>
-          <details class="progress-reset">
-            <summary>Reset progress</summary>
-            <div>
-              <button type="button" data-reset-script="hiragana">Reset Hiragana</button>
-              <button type="button" data-reset-script="katakana">Reset Katakana</button>
-            </div>
-          </details>
         </div>
         <section class="learning-path" aria-labelledby="learningPathTitle">
           <div>
@@ -150,7 +154,7 @@
       <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noreferrer">Stroke paths: KanjiVG, CC BY-SA 3.0</a>
     </footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="progress-sync.js?v=10"></script>
+    <script src="progress-sync.js?v=11"></script>
     <script src="kana-progress.js?v=8"></script>
     <script src="kana-guides.js?v=4"></script>
     <script src="app.js?v=21"></script>
