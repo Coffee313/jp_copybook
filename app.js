@@ -88,6 +88,7 @@ let testActive = false;
 let testQueue = [];
 let testIndex = 0;
 let testLayerIndex = 0;
+let selfTestActive = false;
 let placementActive = false;
 let placementSelectedLevel = '';
 let placementCorrect = new Set();
@@ -104,7 +105,6 @@ const PLACEMENT_SAMPLE_INDICES = {
 };
 
 const TEST_LAYERS = [
-  { key: 'order', label: 'stroke-order guide' },
   { key: 'example', label: 'background example' },
   { key: 'blank', label: 'blank background' }
 ];
@@ -616,9 +616,13 @@ function renderProgress() {
   document.querySelectorAll('.kana-button').forEach(button => button.classList.toggle('mastered', Boolean(mastery[button.textContent]?.passed)));
   const pending = pendingTestKana();
   const testButton = document.querySelector('#startKanaTest');
+  const selfTestButton = document.querySelector('#testMyself');
   if (!testActive) {
     testButton.disabled = pending.length === 0;
-    testButton.textContent = pending.length ? `Test learned kana · ${pending.length}` : 'Learn a row first';
+    testButton.textContent = pending.length ? `Test new kanas · ${pending.length}` : 'Test new kanas';
+    const masteredCount = kana[script].filter(item => mastery[item[0]]?.passed).length;
+    selfTestButton.disabled = masteredCount === 0;
+    selfTestButton.textContent = masteredCount ? `Test myself · ${masteredCount}` : 'Test myself';
   }
   renderLearningPath();
 }
@@ -774,11 +778,11 @@ function handleTestResult(result) {
       updateLesson();
       return;
     }
-    saveMastery(KanaProgress.markMastered(mastery, selected[0]));
+    if (!selfTestActive) saveMastery(KanaProgress.markMastered(mastery, selected[0]));
     testIndex += 1;
-    testLayerIndex = 0;
+    testLayerIndex = TEST_LAYERS.length - 1;
     if (testIndex >= testQueue.length) {
-      stopKanaTest('Test complete');
+      stopKanaTest(selfTestActive ? 'Self-test complete' : 'Test complete');
       return;
     }
     selected = testQueue[testIndex];
@@ -790,18 +794,37 @@ function startKanaTest() {
   const pending = pendingTestKana();
   if (!pending.length) return;
   testActive = true;
+  selfTestActive = false;
   testIndex = 0;
-  testLayerIndex = 0;
+  testLayerIndex = TEST_LAYERS.length - 1;
   testQueue = KanaProgress.shuffled(pending);
   selected = testQueue[0];
   if (guideControl) guideControl.hidden = true;
   document.querySelector('#startKanaTest').textContent = 'End test';
+  document.querySelector('#testMyself').disabled = true;
+  document.querySelector('.practice-card').classList.add('test-active');
+  updateLesson();
+}
+
+function startSelfTest() {
+  const mastered = kana[script].filter(item => mastery[item[0]]?.passed);
+  if (!mastered.length) return;
+  testActive = true;
+  selfTestActive = true;
+  testIndex = 0;
+  testLayerIndex = TEST_LAYERS.length - 1;
+  testQueue = KanaProgress.shuffled(mastered);
+  selected = testQueue[0];
+  guideControl.hidden = true;
+  document.querySelector('#startKanaTest').disabled = true;
+  document.querySelector('#testMyself').textContent = 'End self-test';
   document.querySelector('.practice-card').classList.add('test-active');
   updateLesson();
 }
 
 function stopKanaTest(message = 'Start test') {
   testActive = false;
+  selfTestActive = false;
   testQueue = [];
   testLayerIndex = 0;
   selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
@@ -869,6 +892,7 @@ document.querySelectorAll('.script-button').forEach(button => {
 });
 
 document.querySelector('#startKanaTest').addEventListener('click', () => testActive ? stopKanaTest() : startKanaTest());
+document.querySelector('#testMyself').addEventListener('click', () => testActive ? stopKanaTest() : startSelfTest());
 
 document.querySelectorAll('[data-reset-script]').forEach(button => {
   button.addEventListener('click', () => {

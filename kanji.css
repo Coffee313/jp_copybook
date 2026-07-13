@@ -79,8 +79,10 @@
 .review-section { margin-top: 18px; padding: 24px; }
 .review-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .review-heading h2 { margin: 4px 0 0; font-size: 25px; }
-.review-heading > button, .check-drawing { border: 0; border-radius: 12px; padding: 11px 16px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
-.review-heading > button:disabled { opacity: .45; cursor: default; }
+.review-actions { display: flex; gap: 8px; }
+.review-actions button, .check-drawing { border: 0; border-radius: 12px; padding: 11px 16px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
+.review-actions #testKanjiMyself { border: 1px solid var(--green); color: var(--green); background: transparent; }
+.review-actions button:disabled { opacity: .45; cursor: default; }
 #dueCount { display: inline-grid; min-width: 22px; height: 22px; place-items: center; margin-left: 5px; border-radius: 999px; background: rgba(255,255,255,.2); }
 .review-empty { margin-top: 18px; padding: 22px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; text-align: center; }
 .review-card { max-width: 580px; margin: 22px auto 2px; text-align: center; }

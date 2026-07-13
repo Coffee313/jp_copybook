@@ -5,6 +5,7 @@ let reviewQueue = [];
 let reviewIndex = 0;
 let reviewActive = false;
 let reviewMode = 'test';
+let reviewSelfTest = false;
 
 async function fetchJson(url, timeout = 5000) {
   const controller = new AbortController();
@@ -175,8 +176,10 @@ function renderDictionary() {
 function updateReviewSummary(items = getDictionary()) {
   const due = items.filter(item => SRS.isDue(item));
   const startButton = document.querySelector('#startReview');
+  const selfTestButton = document.querySelector('#testKanjiMyself');
   document.querySelector('#dueCount').textContent = due.length;
   startButton.disabled = due.length === 0;
+  selfTestButton.disabled = items.length === 0;
   document.querySelector('#reviewEmpty').textContent = items.length
     ? (due.length ? `${due.length} ${due.length === 1 ? 'card is' : 'cards are'} ready for review.` : 'All reviews are complete for today. Come back later.')
     : 'Add cards to your dictionary and new kanji will appear here immediately.';
@@ -186,7 +189,9 @@ function showReviewCard() {
   const reviewCard = document.querySelector('#reviewCard');
   const empty = document.querySelector('#reviewEmpty');
   if (reviewIndex >= reviewQueue.length) {
+    const completedSelfTest = reviewSelfTest;
     reviewActive = false;
+    reviewSelfTest = false;
     const recognizer = document.querySelector('.recognizer-card');
     const drawPanel = document.querySelector('.draw-panel');
     const candidatePanel = document.querySelector('.candidate-panel');
@@ -195,8 +200,10 @@ function showReviewCard() {
     candidatePanel.hidden = false;
     reviewCard.hidden = true;
     empty.hidden = false;
-    empty.textContent = 'Review complete. Your next review schedule has been saved.';
     updateReviewSummary();
+    empty.textContent = completedSelfTest
+      ? 'Self-test complete. Your review schedule was not changed.'
+      : 'Review complete. Your next review schedule has been saved.';
     return;
   }
 
@@ -222,10 +229,9 @@ function showReviewCard() {
   erase();
 }
 
-document.querySelector('#startReview').addEventListener('click', () => {
-  reviewQueue = getDictionary()
-    .filter(item => SRS.isDue(item))
-    .sort((a, b) => Date.parse(a.nextReview || 0) - Date.parse(b.nextReview || 0));
+function startReviewTest(items, selfTest = false) {
+  reviewQueue = items;
+  reviewSelfTest = selfTest;
   reviewIndex = 0;
   reviewMode = 'test';
   document.querySelector('#reviewCanvasHost').append(document.querySelector('.draw-panel'));
@@ -233,6 +239,16 @@ document.querySelector('#startReview').addEventListener('click', () => {
   document.querySelector('.candidate-panel').hidden = true;
   showReviewCard();
   document.querySelector('#reviewSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.querySelector('#startReview').addEventListener('click', () => {
+  startReviewTest(getDictionary()
+    .filter(item => SRS.isDue(item))
+    .sort((a, b) => Date.parse(a.nextReview || 0) - Date.parse(b.nextReview || 0)));
+});
+
+document.querySelector('#testKanjiMyself').addEventListener('click', () => {
+  startReviewTest([...getDictionary()].sort(() => Math.random() - .5), true);
 });
 
 document.querySelector('#checkDrawing').addEventListener('click', () => {
@@ -261,7 +277,7 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
   feedback.hidden = false;
   checkButton.disabled = true;
 
-  if (attemptMode !== 'guided') {
+  if (attemptMode !== 'guided' && !reviewSelfTest) {
     const items = getDictionary();
     const storedIndex = items.findIndex(item => item.character === reviewed.character);
     if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], rating);
