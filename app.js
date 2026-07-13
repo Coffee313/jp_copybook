@@ -1003,11 +1003,30 @@ document.querySelectorAll('[data-placement-level]').forEach(button => {
 });
 document.querySelector('#placementContinue').addEventListener('click', () => document.querySelector('#placementDialog').close());
 
-function setConcentrationMode(active) {
+const CONCENTRATION_SESSION_KEY = 'japanese-copybook-concentration';
+let concentrationNavigation = false;
+
+function rememberConcentrationMode(active) {
+  try {
+    if (active) sessionStorage.setItem(CONCENTRATION_SESSION_KEY, 'active');
+    else sessionStorage.removeItem(CONCENTRATION_SESSION_KEY);
+  } catch { /* The active page still keeps the CSS mode when storage is unavailable. */ }
+}
+
+function setConcentrationMode(active, remember = true) {
   document.body.classList.toggle('concentration-mode', active);
   document.querySelector('#concentrationEnter').setAttribute('aria-pressed', active ? 'true' : 'false');
+  if (remember) rememberConcentrationMode(active);
   requestAnimationFrame(() => makeSheet(true));
 }
+
+document.querySelectorAll('.concentration-nav a').forEach(link => {
+  link.addEventListener('click', () => {
+    if (!document.body.classList.contains('concentration-mode')) return;
+    concentrationNavigation = true;
+    rememberConcentrationMode(true);
+  });
+});
 
 document.querySelector('#concentrationEnter').addEventListener('click', async () => {
   setConcentrationMode(true);
@@ -1026,8 +1045,20 @@ document.querySelector('#concentrationExit').addEventListener('click', async () 
 });
 
 document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement && document.body.classList.contains('concentration-mode')) setConcentrationMode(false);
+  if (!document.fullscreenElement && document.body.classList.contains('concentration-mode') && !concentrationNavigation) setConcentrationMode(false);
 });
+
+try {
+  if (sessionStorage.getItem(CONCENTRATION_SESSION_KEY) === 'active') {
+    setConcentrationMode(true, false);
+    requestAnimationFrame(async () => {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        try { await document.documentElement.requestFullscreen(); }
+        catch { /* The distraction-free CSS layout remains active across navigation. */ }
+      }
+    });
+  }
+} catch { /* Session persistence is optional. */ }
 
 document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('canvas').forEach(canvas => {

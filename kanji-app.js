@@ -51,10 +51,26 @@ function initializeDrawingControls() {
     }, { capture: true });
   });
 
-  const setConcentrationMode = active => {
+  const concentrationSessionKey = 'japanese-copybook-concentration';
+  let concentrationNavigation = false;
+  const rememberConcentrationMode = active => {
+    try {
+      if (active) sessionStorage.setItem(concentrationSessionKey, 'active');
+      else sessionStorage.removeItem(concentrationSessionKey);
+    } catch { /* The active page still keeps the CSS mode when storage is unavailable. */ }
+  };
+  const setConcentrationMode = (active, remember = true) => {
     document.body.classList.toggle('concentration-mode', active);
     document.querySelector('#concentrationEnter').setAttribute('aria-pressed', active ? 'true' : 'false');
+    if (remember) rememberConcentrationMode(active);
   };
+  document.querySelectorAll('.concentration-nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (!document.body.classList.contains('concentration-mode')) return;
+      concentrationNavigation = true;
+      rememberConcentrationMode(true);
+    });
+  });
   document.querySelector('#concentrationEnter').addEventListener('click', async () => {
     setConcentrationMode(true);
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -70,8 +86,19 @@ function initializeDrawingControls() {
     }
   });
   document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && document.body.classList.contains('concentration-mode')) setConcentrationMode(false);
+    if (!document.fullscreenElement && document.body.classList.contains('concentration-mode') && !concentrationNavigation) setConcentrationMode(false);
   });
+  try {
+    if (sessionStorage.getItem(concentrationSessionKey) === 'active') {
+      setConcentrationMode(true, false);
+      requestAnimationFrame(async () => {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          try { await document.documentElement.requestFullscreen(); }
+          catch { /* The distraction-free CSS layout remains active across navigation. */ }
+        }
+      });
+    }
+  } catch { /* Session persistence is optional. */ }
 }
 
 initializeDrawingControls();
