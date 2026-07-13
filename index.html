@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f7f4ee" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
-    <link rel="stylesheet" href="styles.css?v=40" />
+    <link rel="stylesheet" href="styles.css?v=42" />
   </head>
   <body>
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -19,7 +19,7 @@
         <span class="brand-mark">あ</span>
         <span>My Japanese Copybook</span>
       </a>
-      <span class="app-version" data-short-version="v13.23" title="App version v2026.07.13.23">v2026.07.13.23</span>
+      <span class="app-version" data-short-version="v13.25" title="App version v2026.07.13.25">v2026.07.13.25</span>
       <nav class="main-nav" aria-label="Sections">
         <a class="active" href="index.html">Kana</a>
         <a href="kanji.html">Kanji</a>
@@ -124,20 +124,20 @@
             <p id="learningRowProgress">0 of 5 learned · fill every copybook cell in green</p>
             <button class="know-row-button" id="knowCurrentRow" type="button" hidden>I know these kanas</button>
           </div>
+          <div class="learning-path-tools">
+            <div class="script-switch" role="group" aria-label="Choose a script">
+              <button class="script-button active" data-script="hiragana" type="button">Hiragana</button>
+              <button class="script-button" data-script="katakana" type="button">Katakana</button>
+            </div>
+            <label class="ghost-control guide-control" id="guideControl">
+              <input id="ghostToggle" type="checkbox" checked />
+              <span class="toggle" aria-hidden="true"></span>
+              <span>Show guides in cells</span>
+            </label>
+            <button class="clear-button practice-clear" id="clearButton" type="button"><span aria-hidden="true">↻</span> Clear drawings</button>
+          </div>
           <div class="kana-picker" id="kanaPicker" aria-label="Choose a character"></div>
         </section>
-        <div class="controls">
-          <div class="script-switch" role="group" aria-label="Choose a script">
-            <button class="script-button active" data-script="hiragana" type="button">Hiragana</button>
-            <button class="script-button" data-script="katakana" type="button">Katakana</button>
-          </div>
-          <label class="ghost-control guide-control" id="guideControl">
-            <input id="ghostToggle" type="checkbox" checked />
-            <span class="toggle" aria-hidden="true"></span>
-            <span>Show guides in cells</span>
-          </label>
-          <button class="clear-button practice-clear" id="clearButton" type="button"><span aria-hidden="true">↻</span> Clear drawings</button>
-        </div>
 
         <div class="lesson">
           <aside class="reference" aria-live="polite">
