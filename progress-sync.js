@@ -198,7 +198,7 @@
     });
     const dictionary = Array.isArray(progress.dictionary) ? progress.dictionary : [];
     const repetitions = dictionary.map(item => Number(item.repetitions) || 0);
-    return [
+    const stats = [
       { group: 'Kana progress', label: 'Hiragana', value: `${hiragana} / 71` },
       { group: 'Kana progress', label: 'Katakana', value: `${katakana} / 71` },
       { group: 'Kanji vocabulary', label: 'In vocabulary', value: String(dictionary.length) },
@@ -206,6 +206,10 @@
       { group: 'Kanji vocabulary', label: 'Learned a little', value: String(repetitions.filter(value => value > 0 && value < 3).length) },
       { group: 'Kanji vocabulary', label: 'Learned well', value: String(repetitions.filter(value => value >= 3).length) }
     ];
+    if (progress.kanaPlacement?.assignedLevel && !progress.kanaPlacement.skipped) {
+      stats.splice(0, 0, { group: 'Kana progress', label: 'Placement', value: progress.kanaPlacement.assignedLevel });
+    }
+    return stats;
   }
 
   async function signIn(email, password) {
@@ -325,7 +329,7 @@
       document.querySelector('#accountDialog').showModal();
       document.querySelector('#recoveryPassword').focus();
     }
-    if (await ensureSession()) loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
+    if (await ensureSession()) await loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
   }
 
   window.ProgressSync = { initialize, queueSave, flushSave };

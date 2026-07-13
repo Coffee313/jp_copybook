@@ -88,6 +88,16 @@ button { color: inherit; }
 .input-mode-actions button:hover { border-color: var(--green); background: #f3f6f3; }
 .input-mode-actions strong { color: var(--green); font-size: 16px; }
 .input-mode-actions span { color: var(--muted); font-size: 11px; line-height: 1.4; }
+.placement-dialog { width: min(590px, calc(100% - 28px)); }
+.placement-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 20px; }
+.placement-actions button { min-height: 112px; border: 1px solid var(--line); border-radius: 14px; padding: 14px; color: var(--ink); background: #faf8f3; cursor: pointer; text-align: left; }
+.placement-actions button:hover { border-color: var(--green); background: #f3f6f3; }
+.placement-actions strong, .placement-actions span { display: block; }
+.placement-actions strong { color: var(--green); font-size: 14px; }
+.placement-actions span { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.placement-continue { width: 100%; margin-top: 18px; border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
+.placement-active .kana-progress-panel, .placement-active .learning-path, .placement-active .controls, .placement-active .kana-picker, .placement-active .mastered-kana, .placement-active .score-legend { display: none; }
+.placement-active .reference-kana { color: var(--muted); }
 #accountStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 #accountStatus[data-error="true"], #recoveryStatus[data-error="true"] { color: #a94534; }
 .sign-out { width: 100%; margin-top: 8px; color: #a94534; background: #fff0ed; }
@@ -265,6 +275,8 @@ footer a { color: inherit; }
   .learning-path { grid-template-columns: 1fr; padding: 18px; }
   .learned-queue { max-width: none; }
   .input-mode-actions { grid-template-columns: 1fr; }
+  .placement-actions { grid-template-columns: 1fr; }
+  .placement-actions button { min-height: 76px; }
   .practice-clear { margin-left: 0; }
   .lesson { grid-template-columns: 1fr; }
   .reference { min-height: 170px; padding: 20px; border-right: 0; border-bottom: 1px solid #e9e4dc; flex-direction: row; align-items: flex-end; }

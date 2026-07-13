@@ -107,5 +107,19 @@
     return result;
   }
 
-  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, previousTestLayer, testPickerItems, cookieValue, shuffled };
+  function placementLevel(correct, total) {
+    const ratio = total > 0 ? correct / total : 0;
+    if (ratio >= .85) return 'Master of Kana';
+    if (ratio >= .6) return 'Strong intermediate';
+    if (ratio >= .35) return 'Intermediate';
+    return 'Beginner';
+  }
+
+  function mergePlacement(local, remote) {
+    if (!local) return remote || null;
+    if (!remote) return local;
+    return Date.parse(local.completedAt || 0) >= Date.parse(remote.completedAt || 0) ? local : remote;
+  }
+
+  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, previousTestLayer, testPickerItems, cookieValue, shuffled, placementLevel, mergePlacement };
 });

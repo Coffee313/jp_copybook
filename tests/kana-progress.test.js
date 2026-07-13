@@ -94,3 +94,17 @@ test('cookieValue reads and decodes a named cookie', () => {
 test('shuffled preserves every test item', () => {
   assert.deepEqual(progress.shuffled(['あ', 'い', 'う'], () => 0).sort(), ['あ', 'い', 'う']);
 });
+
+test('placementLevel assigns a measured kana level', () => {
+  assert.equal(KanaProgress.placementLevel(0, 0), 'Beginner');
+  assert.equal(KanaProgress.placementLevel(3, 8), 'Intermediate');
+  assert.equal(KanaProgress.placementLevel(5, 8), 'Strong intermediate');
+  assert.equal(KanaProgress.placementLevel(7, 8), 'Master of Kana');
+});
+
+test('mergePlacement keeps the newest completed placement', () => {
+  const older = { assignedLevel: 'Beginner', completedAt: '2026-01-01T00:00:00.000Z' };
+  const newer = { assignedLevel: 'Intermediate', completedAt: '2026-02-01T00:00:00.000Z' };
+  assert.deepEqual(KanaProgress.mergePlacement(older, newer), newer);
+  assert.deepEqual(KanaProgress.mergePlacement(newer, older), newer);
+});

@@ -78,14 +78,30 @@ const MASTERY_KEY = 'kana-mastery-v1';
 const LEARNED_KEY = 'kana-learned-v1';
 const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
+const PLACEMENT_KEY = 'kana-placement-v1';
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
 let mastery = readMastery();
 let learned = readLearned();
 let masteryResets = readMasteryResets();
+let placement = readPlacement();
 let testActive = false;
 let testQueue = [];
 let testIndex = 0;
 let testLayerIndex = 0;
+let placementActive = false;
+let placementSelectedLevel = '';
+let placementCorrect = new Set();
+
+const PLACEMENT_SAMPLE_INDICES = {
+  intermediate: {
+    hiragana: [0, 6, 12, 18],
+    katakana: [0, 6, 12, 18]
+  },
+  master: {
+    hiragana: [0, 6, 12, 18, 24, 27, 32, 39, 46, 66],
+    katakana: [0, 6, 12, 18, 46, 66]
+  }
+};
 
 const TEST_LAYERS = [
   { key: 'order', label: 'stroke-order guide' },
@@ -106,6 +122,17 @@ function readLearned() {
 function readMasteryResets() {
   try { return JSON.parse(localStorage.getItem(MASTERY_RESETS_KEY)) || {}; }
   catch { return {}; }
+}
+
+function readPlacement() {
+  try { return JSON.parse(localStorage.getItem(PLACEMENT_KEY)) || null; }
+  catch { return null; }
+}
+
+function savePlacement(value) {
+  placement = value;
+  localStorage.setItem(PLACEMENT_KEY, JSON.stringify(placement));
+  window.ProgressSync?.queueSave();
 }
 
 function saveMasteryResets(value) {
@@ -603,7 +630,102 @@ function renderLearningPath() {
   if (!masteredItems.length) masteredList.textContent = 'Pass learned-kana tests to build this list.';
 }
 
+function placementItems(level) {
+  const samples = PLACEMENT_SAMPLE_INDICES[level];
+  if (!samples) return [];
+  return Object.entries(samples).flatMap(([scriptName, indices]) => indices.map(index => kana[scriptName][index]).filter(Boolean));
+}
+
+function showPlacementResult(result) {
+  const dialog = document.querySelector('#placementDialog');
+  document.querySelector('#placementChoice').hidden = true;
+  document.querySelector('#placementResult').hidden = false;
+  document.querySelector('#placementResultLevel').textContent = result.assignedLevel;
+  document.querySelector('#placementResultSummary').textContent = result.total
+    ? `You drew ${result.correct} of ${result.total} kana correctly. Correct answers were added to Mastered kana.`
+    : 'We will begin with the vowel row and build your kana step by step.';
+  if (!dialog.open) dialog.showModal();
+}
+
+function completeBeginnerPlacement() {
+  const result = {
+    selectedLevel: 'beginner',
+    assignedLevel: 'Beginner',
+    correct: 0,
+    total: 0,
+    completedAt: new Date().toISOString()
+  };
+  savePlacement(result);
+  showPlacementResult(result);
+}
+
+function startPlacementTest(level) {
+  const items = placementItems(level);
+  if (!items.length) return;
+  placementActive = true;
+  placementSelectedLevel = level;
+  placementCorrect = new Set();
+  testActive = true;
+  testIndex = 0;
+  testLayerIndex = TEST_LAYERS.length - 1;
+  testQueue = KanaProgress.shuffled(items);
+  selected = testQueue[0];
+  guideControl.hidden = true;
+  document.querySelector('#placementDialog').close();
+  document.querySelector('.practice-card').classList.add('test-active', 'placement-active');
+  updateLesson();
+}
+
+function finishPlacementTest() {
+  const correct = placementCorrect.size;
+  const total = testQueue.length;
+  const result = {
+    selectedLevel: placementSelectedLevel,
+    assignedLevel: KanaProgress.placementLevel(correct, total),
+    correct,
+    total,
+    completedAt: new Date().toISOString()
+  };
+  let nextMastery = mastery;
+  const completedAt = new Date(result.completedAt);
+  placementCorrect.forEach(character => { nextMastery = KanaProgress.markMastered(nextMastery, character, completedAt); });
+  placementActive = false;
+  testActive = false;
+  testQueue = [];
+  testIndex = 0;
+  testLayerIndex = 0;
+  placementSelectedLevel = '';
+  placementCorrect = new Set();
+  document.querySelector('.practice-card').classList.remove('test-active', 'placement-active');
+  guideControl.hidden = false;
+  saveMastery(nextMastery);
+  savePlacement(result);
+  selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
+  updateLesson();
+  renderProgress();
+  showPlacementResult(result);
+}
+
+function handlePlacementResult(result) {
+  const canvas = document.querySelector('.test-cell canvas');
+  if (canvas) canvas.style.pointerEvents = 'none';
+  if (result === 'good') placementCorrect.add(selected[0]);
+  setTimeout(() => {
+    testIndex += 1;
+    if (testIndex >= testQueue.length) {
+      finishPlacementTest();
+      return;
+    }
+    selected = testQueue[testIndex];
+    updateLesson();
+  }, 900);
+}
+
 function handleTestResult(result) {
+  if (placementActive) {
+    handlePlacementResult(result);
+    return;
+  }
   if (result !== 'good') {
     const canvas = document.querySelector('.test-cell canvas');
     if (canvas) canvas.style.pointerEvents = 'none';
@@ -664,7 +786,9 @@ function stopKanaTest(message = 'Start test') {
 
 function renderPicker() {
   picker.innerHTML = '';
-  const items = testActive
+  const items = placementActive
+    ? []
+    : testActive
     ? KanaProgress.testPickerItems(kana[script], mastery, selected[0])
     : rowItems(currentLearningRow() || curriculumDefinitions[script][0]);
   items.forEach(item => {
@@ -693,7 +817,9 @@ function renderPicker() {
 function updateLesson() {
   document.querySelector('#referenceKana').textContent = testActive ? '?' : selected[0];
   document.querySelector('#referenceRomanji').textContent = selected[1];
-  document.querySelector('.reference-hint').textContent = testActive
+  document.querySelector('.reference-hint').textContent = placementActive
+    ? `Placement ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without hints`
+    : testActive
     ? `Test ${testIndex + 1} of ${testQueue.length}, layer ${testLayerIndex + 1} of ${TEST_LAYERS.length}: write “${selected[1]}” with the ${TEST_LAYERS[testLayerIndex].label}`
     : 'Repeat the character in each cell';
   renderPicker();
@@ -752,10 +878,30 @@ function initializeInputMode() {
   const savedMode = KanaProgress.cookieValue(document.cookie, INPUT_MODE_COOKIE);
   if (savedMode === 'stylus' || savedMode === 'finger') {
     setInputMode(savedMode, false);
-    return;
+    return true;
   }
   setInputMode('finger', false);
   requestAnimationFrame(() => document.querySelector('#inputModeDialog').showModal());
+  return false;
+}
+
+function initializePlacement() {
+  if (placement) return;
+  if (Object.keys(mastery).length || Object.keys(learned).length) {
+    savePlacement({
+      selectedLevel: 'existing',
+      assignedLevel: 'Returning learner',
+      correct: KanaProgress.progressCount(mastery, allKanaCharacters),
+      total: allKanaCharacters.length,
+      skipped: true,
+      completedAt: new Date().toISOString()
+    });
+    return;
+  }
+  const dialog = document.querySelector('#placementDialog');
+  document.querySelector('#placementChoice').hidden = false;
+  document.querySelector('#placementResult').hidden = true;
+  requestAnimationFrame(() => dialog.showModal());
 }
 
 penOnlyToggle.addEventListener('change', () => setInputMode(penOnlyToggle.checked ? 'stylus' : 'finger'));
@@ -764,8 +910,18 @@ document.querySelectorAll('[data-input-mode]').forEach(button => {
   button.addEventListener('click', () => {
     setInputMode(button.dataset.inputMode);
     document.querySelector('#inputModeDialog').close();
+    initializePlacement();
   });
 });
+document.querySelector('#placementDialog').addEventListener('cancel', event => event.preventDefault());
+document.querySelectorAll('[data-placement-level]').forEach(button => {
+  button.addEventListener('click', () => {
+    const level = button.dataset.placementLevel;
+    if (level === 'beginner') completeBeginnerPlacement();
+    else startPlacementTest(level);
+  });
+});
+document.querySelector('#placementContinue').addEventListener('click', () => document.querySelector('#placementDialog').close());
 
 document.querySelector('#clearButton').addEventListener('click', () => {
   document.querySelectorAll('canvas').forEach(canvas => {
@@ -788,19 +944,22 @@ window.addEventListener('resize', () => {
   window.__resizeTimer = setTimeout(() => makeSheet(true), 150);
 });
 
-initializeInputMode();
 updateLesson();
 renderProgress();
 ProgressSync.initialize({
-  getLocalProgress: () => ({ kanaMastery: mastery, kanaLearned: learned, kanaMasteryResets: masteryResets }),
+  getLocalProgress: () => ({ kanaMastery: mastery, kanaLearned: learned, kanaMasteryResets: masteryResets, kanaPlacement: placement }),
   applyRemoteProgress: remote => {
     saveMasteryResets(KanaProgress.mergeResetTimes(masteryResets, remote.kanaMasteryResets || {}));
     const merged = KanaProgress.mergeMastery(mastery, remote.kanaMastery || {});
     saveMastery(KanaProgress.applyMasteryResets(merged, masteryResets, kanaScripts()));
     const mergedLearned = KanaProgress.mergeLearned(learned, remote.kanaLearned || {});
     saveLearned(KanaProgress.applyLearnedResets(mergedLearned, masteryResets, kanaScripts()));
+    const mergedPlacement = KanaProgress.mergePlacement(placement, remote.kanaPlacement);
+    if (mergedPlacement) savePlacement(mergedPlacement);
     const row = currentLearningRow();
     if (!testActive && row && !rowItems(row).some(item => item[0] === selected[0])) selected = rowItems(row)[0];
     updateLesson();
   }
+}).finally(() => {
+  if (initializeInputMode()) initializePlacement();
 });
