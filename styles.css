@@ -135,9 +135,6 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .test-active .sheet { grid-template-columns: minmax(220px, 340px); min-width: 0; justify-content: center; }
 .test-active .test-cell { width: min(100%, 340px); }
 .test-active .kana-picker { pointer-events: none; }
-.test-finger-hint { display: none; margin: 0; padding: 15px 28px 0; color: var(--green); font-size: 13px; font-weight: 600; }
-.test-finger-hint span { margin-right: 6px; color: var(--accent); }
-.test-active .test-finger-hint { display: block; }
 .learning-path { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 20px; padding: 20px 28px; border-bottom: 1px solid #e9e4dc; background: #fffdf9; }
 .learning-path h2 { margin: 5px 0 4px; font-size: 22px; }
 .learning-path > div > p:last-child { margin: 0; color: var(--muted); font-size: 12px; }
@@ -210,13 +207,12 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 
 .kana-picker { display: flex; gap: 8px; overflow-x: auto; padding: 20px 28px 24px; border-top: 1px solid #e9e4dc; scrollbar-width: thin; }
 .picker-empty { align-self: center; color: var(--muted); font-size: 12px; }
-.kana-button { flex: 0 0 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--paper); border-radius: 12px; font: 500 21px/1 'Noto Sans JP', sans-serif; cursor: pointer; }
-.kana-button.mastered::after { content: '✓'; position: absolute; margin: -34px -34px 0 0; color: var(--green); font: 700 10px/1 sans-serif; }
-.kana-button.learned { border-color: #7fa393; box-shadow: inset 0 0 0 2px rgba(61,92,81,.08); }
-.kana-button.learned::after { content: 'Test'; position: absolute; margin: -34px -25px 0 0; color: var(--green); font: 700 7px/1 sans-serif; }
+.kana-button { flex: 0 0 48px; height: 48px; display: grid; place-items: center; border: 1px solid #e8b4aa; background: #fae9e5; color: #8e5147; border-radius: 12px; font: 500 21px/1 'Noto Sans JP', sans-serif; cursor: pointer; }
+.kana-button.learned { border-color: #dfc37d; color: #7a6229; background: #fbf2d9; }
+.kana-button.mastered { border-color: #9fc5b2; color: #315f4d; background: #e5f2eb; }
 .kana-button { position: relative; }
 .kana-button:hover { border-color: var(--accent); }
-.kana-button.active { background: var(--accent); border-color: var(--accent); color: white; }
+.kana-button.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(222,92,67,.2); }
 .mastered-kana { display: flex; align-items: center; gap: 24px; padding: 18px 28px; border-top: 1px solid #e9e4dc; background: #faf8f3; }
 .mastered-kana h3 { margin: 4px 0 0; font-size: 16px; }
 .mastered-kana-list { display: flex; min-width: 0; flex: 1; flex-wrap: wrap; gap: 6px; color: var(--muted); font-size: 11px; }

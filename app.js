@@ -316,7 +316,7 @@ function setupCanvas(canvas) {
     if (currentStroke?.length === 1) currentStroke.push(currentStroke[0]);
     if (currentStroke) canvas.__strokes.push(currentStroke);
     currentStroke = null;
-    gradeTimer = setTimeout(() => gradeCanvas(canvas), 850);
+    gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
   });
   canvas.addEventListener('pointercancel', () => { drawing = false; currentStroke = null; });
 }
@@ -713,7 +713,6 @@ function updateInputModeTip() {
 function setInputMode(mode, persist = true) {
   const stylusMode = mode === 'stylus';
   penOnlyToggle.checked = stylusMode;
-  document.querySelector('.test-finger-hint').hidden = stylusMode;
   updateInputModeTip();
   if (persist) document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
 }
