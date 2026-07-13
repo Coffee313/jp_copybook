@@ -188,9 +188,20 @@ function currentLearningRow(scriptName = script) {
   return availableRows(scriptName).find(row => rowItems(row, scriptName).some(item => !characterIsLearned(item[0]))) || null;
 }
 
+function currentFastTrackRow(scriptName = script) {
+  return currentLearningRow(scriptName)
+    || availableRows(scriptName).find(row => rowItems(row, scriptName).some(item => !mastery[item[0]]?.passed))
+    || null;
+}
+
+function nextLearningItem(scriptName = script) {
+  const row = currentLearningRow(scriptName);
+  if (row) return rowItems(row, scriptName).find(item => !characterIsLearned(item[0]));
+  return pendingTestKana(scriptName)[0] || rowItems(curriculumDefinitions[scriptName][0], scriptName)[0];
+}
+
 function canFastTrackKana() {
-  if (!placement) return false;
-  return placement.selectedLevel !== 'beginner' && placement.assignedLevel !== 'Beginner';
+  return Boolean(placement);
 }
 
 function pendingTestKana(scriptName = script) {
@@ -649,6 +660,7 @@ function renderProgress() {
 
 function renderLearningPath() {
   const row = currentLearningRow();
+  const fastTrackRow = currentFastTrackRow();
   const rowTitle = document.querySelector('#learningRowTitle');
   const rowProgress = document.querySelector('#learningRowProgress');
   const knowButton = document.querySelector('#knowCurrentRow');
@@ -667,11 +679,17 @@ function renderLearningPath() {
   } else if (!advancedRowsUnlocked()) {
     rowTitle.textContent = 'Dakuten rows are locked';
     rowProgress.textContent = `Master ${ADVANCED_UNLOCK_COUNT} basic kana to unlock voiced sounds.`;
-    knowButton.hidden = true;
+    const remaining = fastTrackRow ? rowItems(fastTrackRow).filter(item => !mastery[item[0]]?.passed).length : 0;
+    knowButton.hidden = !fastTrackEligible || remaining === 0 || testActive;
+    knowButton.disabled = remaining === 0;
+    knowButton.textContent = remaining ? `I know these kanas · ${remaining}` : 'I know these kanas';
   } else {
     rowTitle.textContent = 'All rows learned';
     rowProgress.textContent = 'Complete the remaining tests to master every kana.';
-    knowButton.hidden = true;
+    const remaining = fastTrackRow ? rowItems(fastTrackRow).filter(item => !mastery[item[0]]?.passed).length : 0;
+    knowButton.hidden = !fastTrackEligible || remaining === 0 || testActive;
+    knowButton.disabled = remaining === 0;
+    knowButton.textContent = remaining ? `I know these kanas · ${remaining}` : 'I know these kanas';
   }
   const masteredList = document.querySelector('#masteredKanaList');
   masteredList.innerHTML = '';
@@ -721,6 +739,7 @@ function completeBeginnerPlacement() {
     completedAt: new Date().toISOString()
   };
   savePlacement(result);
+  renderLearningPath();
   showPlacementResult(result);
 }
 
@@ -765,7 +784,7 @@ function finishPlacementTest() {
   guideControl.hidden = false;
   saveMastery(nextMastery);
   savePlacement(result);
-  selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
+  selected = nextLearningItem();
   updateLesson();
   renderProgress();
   showPlacementResult(result);
@@ -870,7 +889,7 @@ function startSelfTest() {
 }
 
 function startKnownKanaTest() {
-  const row = currentLearningRow();
+  const row = currentFastTrackRow();
   if (!row || !canFastTrackKana()) return;
   const candidates = rowItems(row).filter(item => !mastery[item[0]]?.passed);
   if (!candidates.length) return;
@@ -897,7 +916,7 @@ function stopKanaTest(message = 'Start test') {
   knownKanaTestActive = false;
   testQueue = [];
   testLayerIndex = 0;
-  selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
+  selected = nextLearningItem();
   if (guideControl) guideControl.hidden = false;
   document.querySelector('.practice-card').classList.remove('test-active');
   document.querySelector('#knowCurrentRow').removeAttribute('data-active');
@@ -962,7 +981,7 @@ document.querySelectorAll('.script-button').forEach(button => {
   button.addEventListener('click', () => {
     if (testActive) stopKanaTest();
     script = button.dataset.script;
-    selected = rowItems(currentLearningRow() || curriculumDefinitions[script][0])[0];
+    selected = nextLearningItem();
     document.querySelectorAll('.script-button').forEach(item => item.classList.toggle('active', item === button));
     updateLesson();
   });
@@ -1214,6 +1233,7 @@ window.addEventListener('resize', () => {
   window.__resizeTimer = setTimeout(() => makeSheet(true), 150);
 });
 
+selected = nextLearningItem();
 updateLesson();
 renderProgress();
 progressReady = ProgressSync.initialize({
@@ -1227,7 +1247,9 @@ progressReady = ProgressSync.initialize({
     const mergedPlacement = KanaProgress.mergePlacement(placement, remote.kanaPlacement);
     if (mergedPlacement) savePlacement(mergedPlacement);
     const row = currentLearningRow();
-    if (!testActive && row && !rowItems(row).some(item => item[0] === selected[0])) selected = rowItems(row)[0];
+    if (!testActive && row && (!rowItems(row).some(item => item[0] === selected[0]) || characterIsLearned(selected[0]))) {
+      selected = nextLearningItem();
+    }
     updateLesson();
   }
 });
