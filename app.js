@@ -614,19 +614,17 @@ function recordLearningSuccess() {
   const activeRow = currentLearningRow();
   if (!activeRow || !rowItems(activeRow).some(item => item[0] === character)) return;
   saveLearned(KanaProgress.markLearned(learned, character));
-  const rowComplete = rowItems(activeRow).every(item => characterIsLearned(item[0]));
-  if (!rowComplete) {
-    renderPicker();
-    return;
-  }
+  const nextInRow = rowItems(activeRow).find(item => !characterIsLearned(item[0]));
   const nextRow = currentLearningRow();
-  if (nextRow) {
-    setTimeout(() => {
-      if (testActive || currentLearningRow()?.[0] !== nextRow[0]) return;
-      selected = rowItems(nextRow)[0];
-      updateLesson();
-    }, 1000);
-  }
+  const nextItem = nextInRow || (nextRow ? rowItems(nextRow)[0] : null);
+  if (!nextItem) return;
+  setTimeout(() => {
+    if (testActive || selected[0] !== character || characterIsLearned(nextItem[0])) return;
+    const learningRow = currentLearningRow();
+    if (!learningRow || !rowItems(learningRow).some(item => item[0] === nextItem[0])) return;
+    selected = nextItem;
+    updateLesson();
+  }, 1000);
 }
 
 function renderProgress() {
