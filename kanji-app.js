@@ -76,6 +76,27 @@ function initializeDrawingControls() {
 
 initializeDrawingControls();
 
+window.addEventListener('load', () => {
+  window.draw = function drawThinKanjiStroke() {
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    ctx.lineTo(currX, currY);
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'black';
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 1;
+    ctx.closePath();
+    ctx.stroke();
+    ctx.arc(currX, currY, .8, 0, 2 * Math.PI, true);
+    ctx.fillStyle = 'black';
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  };
+});
+
 async function fetchJson(url, timeout = 5000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);

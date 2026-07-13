@@ -325,7 +325,7 @@ function makeSheet(preserve = false) {
 }
 
 function setupCanvas(canvas, savedState = null) {
-  let baseWidth = 3;
+  let baseWidth = 2.5;
   canvas.__strokes = savedState?.strokes || [];
   const resize = () => {
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -337,7 +337,7 @@ function setupCanvas(canvas, savedState = null) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#292927';
-    baseWidth = Math.max(3, rect.width * .036);
+    baseWidth = Math.max(2.5, rect.width * .03);
     ctx.lineWidth = baseWidth;
     canvas.__strokes.forEach(stroke => {
       ctx.beginPath();
