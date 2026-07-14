@@ -6,6 +6,8 @@
     'Kana': 'Кана',
     'Kanji': 'Кандзи',
     'Concentration mode': 'Режим концентрации',
+    'Tutorial': 'Обучение',
+    'Start tutorial': 'Запустить обучение',
     'Copybook mode': 'Режим прописи',
     'Exit copybook mode': 'Выйти из режима прописи',
     'Mobile version': 'Мобильная версия',
