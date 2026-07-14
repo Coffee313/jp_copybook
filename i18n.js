@@ -13,6 +13,7 @@
     'Small screen detected. Mobile version gives you one large practice cell.': 'Обнаружен небольшой экран. В мобильной версии доступна одна большая клетка для практики.',
     'Small screen detected. Mobile version gives you larger drawing controls.': 'Обнаружен небольшой экран. В мобильной версии элементы для рисования крупнее.',
     'Use mobile version': 'Включить мобильную версию',
+    'Use mobile version?': 'Включить мобильную версию?',
     'Dismiss mobile suggestion': 'Закрыть предложение мобильной версии',
     'Stylus only': 'Только стилус',
     'Sign In': 'Войти',

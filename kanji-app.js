@@ -2,7 +2,7 @@ const STORAGE_KEY = 'kana-kanji-dictionary-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
-const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed';
+const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed-v2';
 let selectedCharacter = '';
 let reviewQueue = [];
 let reviewIndex = 0;
@@ -36,12 +36,17 @@ function initializeDrawingControls() {
     catch { return false; }
   };
   const updateMobileSuggestion = () => {
-    mobileSuggestion.hidden = mobileMode || !window.matchMedia('(max-width: 760px)').matches || mobileSuggestionDismissed();
+    const shouldShow = !mobileMode && window.matchMedia('(max-width: 760px)').matches && !mobileSuggestionDismissed();
+    const opening = mobileSuggestion.hidden && shouldShow;
+    mobileSuggestion.hidden = !shouldShow;
+    document.body.classList.toggle('mobile-suggestion-open', shouldShow);
+    if (opening) requestAnimationFrame(() => document.querySelector('#mobileSuggestionEnable').focus());
   };
   const dismissMobileSuggestion = () => {
     try { sessionStorage.setItem(MOBILE_SUGGESTION_SESSION_KEY, 'true'); }
     catch { /* The suggestion can still be hidden for this page. */ }
     mobileSuggestion.hidden = true;
+    document.body.classList.remove('mobile-suggestion-open');
   };
   const applyMobileMode = active => {
     mobileMode = active;
@@ -64,6 +69,18 @@ function initializeDrawingControls() {
     dismissMobileSuggestion();
   });
   document.querySelector('#mobileSuggestionDismiss').addEventListener('click', dismissMobileSuggestion);
+  mobileSuggestion.addEventListener('keydown', event => {
+    if (event.key === 'Escape') dismissMobileSuggestion();
+    if (event.key !== 'Tab') return;
+    const focusable = [document.querySelector('#mobileSuggestionEnable'), document.querySelector('#mobileSuggestionDismiss')];
+    if (event.shiftKey && document.activeElement === focusable[0]) {
+      event.preventDefault();
+      focusable[1].focus();
+    } else if (!event.shiftKey && document.activeElement === focusable[1]) {
+      event.preventDefault();
+      focusable[0].focus();
+    }
+  });
   window.addEventListener('resize', updateMobileSuggestion);
 
   ['pointerdown', 'pointermove', 'pointerup'].forEach(type => {

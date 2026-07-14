@@ -80,7 +80,7 @@ const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const PLACEMENT_KEY = 'kana-placement-v1';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
-const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed';
+const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed-v2';
 const MOBILE_PRACTICE_KEY = 'kana-mobile-practice-v1';
 const MOBILE_PRACTICE_TARGET = 14;
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
@@ -1127,11 +1127,16 @@ function dismissMobileSuggestion() {
   try { sessionStorage.setItem(MOBILE_SUGGESTION_SESSION_KEY, 'true'); }
   catch { /* The suggestion can still be hidden for this page. */ }
   document.querySelector('#mobileSuggestion').hidden = true;
+  document.body.classList.remove('mobile-suggestion-open');
 }
 
 function updateMobileSuggestion() {
   const suggestion = document.querySelector('#mobileSuggestion');
-  suggestion.hidden = mobileMode || !window.matchMedia('(max-width: 760px)').matches || mobileSuggestionDismissed();
+  const shouldShow = !mobileMode && window.matchMedia('(max-width: 760px)').matches && !mobileSuggestionDismissed();
+  const opening = suggestion.hidden && shouldShow;
+  suggestion.hidden = !shouldShow;
+  document.body.classList.toggle('mobile-suggestion-open', shouldShow);
+  if (opening) requestAnimationFrame(() => document.querySelector('#mobileSuggestionEnable').focus());
 }
 
 function setMobileMode(active, persist = true) {
@@ -1193,6 +1198,18 @@ document.querySelector('#copybookModeToggle').addEventListener('click', () => se
 document.querySelector('#mobileModeToggle').addEventListener('click', () => setMobileMode(!mobileMode));
 document.querySelector('#mobileSuggestionEnable').addEventListener('click', () => setMobileMode(true));
 document.querySelector('#mobileSuggestionDismiss').addEventListener('click', dismissMobileSuggestion);
+document.querySelector('#mobileSuggestion').addEventListener('keydown', event => {
+  if (event.key === 'Escape') dismissMobileSuggestion();
+  if (event.key !== 'Tab') return;
+  const focusable = [document.querySelector('#mobileSuggestionEnable'), document.querySelector('#mobileSuggestionDismiss')];
+  if (event.shiftKey && document.activeElement === focusable[0]) {
+    event.preventDefault();
+    focusable[1].focus();
+  } else if (!event.shiftKey && document.activeElement === focusable[1]) {
+    event.preventDefault();
+    focusable[0].focus();
+  }
+});
 document.querySelector('#forgotKana').addEventListener('click', () => {
   if (!testActive || TEST_LAYERS[testLayerIndex]?.key !== 'blank') return;
   const cell = document.querySelector('.test-cell');
