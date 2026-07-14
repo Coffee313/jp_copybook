@@ -1,6 +1,6 @@
 (function () {
   const PAGE = document.body.classList.contains('kanji-page') ? 'kanji' : 'kana';
-  const STORAGE_KEY = `japanese-copybook-tour-${PAGE}-v3`;
+  const STORAGE_KEY = `japanese-copybook-tour-${PAGE}-v4`;
   const isFrame = new URLSearchParams(window.location.search).has('concentration-frame');
   const steps = PAGE === 'kana' ? [
     {
@@ -12,6 +12,11 @@
       target: '.header-script-switch',
       title: 'Choose a script',
       text: 'Switch between Hiragana and Katakana practice at any time.'
+    },
+    {
+      target: '#copybookModeToggle',
+      title: 'Use copybook mode',
+      text: 'Turn on copybook mode to choose and practise any kana outside the guided learning path.'
     },
     {
       target: '.sheet-wrap',

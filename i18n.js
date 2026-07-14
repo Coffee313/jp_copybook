@@ -25,6 +25,8 @@
     'Use these tabs to move between kana practice and the kanji dictionary.': 'Используйте эти вкладки, чтобы переключаться между практикой каны и словарём кандзи.',
     'Choose a script': 'Выберите азбуку',
     'Switch between Hiragana and Katakana practice at any time.': 'Переключайтесь между практикой хираганы и катаканы в любое время.',
+    'Use copybook mode': 'Используйте режим прописи',
+    'Turn on copybook mode to choose and practise any kana outside the guided learning path.': 'Включите режим прописи, чтобы выбрать и практиковать любой знак каны вне программы обучения.',
     'Practice handwriting': 'Практикуйте письмо',
     'Follow the guide and draw in every cell. Mobile version gives you one large reusable cell.': 'Следуйте образцу и пишите в каждой клетке. В мобильной версии доступна одна большая многоразовая клетка.',
     'Take tests': 'Проходите тесты',
