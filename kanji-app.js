@@ -20,6 +20,13 @@ function cookieValue(name) {
 function initializeDrawingControls() {
   const penOnlyToggle = document.querySelector('#penOnlyToggle');
   const canvas = document.querySelector('#can');
+  canvas.relMouseCoords = event => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * canvas.width / rect.width,
+      y: (event.clientY - rect.top) * canvas.height / rect.height
+    };
+  };
   let lastPenEventAt = 0;
   const stylusOnly = () => penOnlyToggle.checked;
   penOnlyToggle.checked = cookieValue(INPUT_MODE_COOKIE) === 'stylus';

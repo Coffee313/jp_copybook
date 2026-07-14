@@ -395,14 +395,19 @@ function makeSheet(preserve = false) {
 
 function setupCanvas(canvas, savedState = null) {
   let baseWidth = 2.5;
+  let drawing = false;
+  let currentStroke = null;
+  let drawingRect = null;
+  let gradeTimer;
   canvas.__strokes = savedState?.strokes || [];
   const resize = () => {
     const ratio = Math.max(window.devicePixelRatio || 1, 1);
     const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
     canvas.width = Math.round(rect.width * ratio);
     canvas.height = Math.round(rect.height * ratio);
     const ctx = canvas.getContext('2d');
-    ctx.scale(ratio, ratio);
+    ctx.scale(canvas.width / rect.width, canvas.height / rect.height);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#292927';
@@ -415,11 +420,16 @@ function setupCanvas(canvas, savedState = null) {
     });
   };
   requestAnimationFrame(resize);
-
-  let drawing = false;
-  let currentStroke = null;
-  let drawingRect = null;
-  let gradeTimer;
+  if (typeof ResizeObserver === 'function') {
+    const resizeObserver = new ResizeObserver(() => {
+      if (!canvas.isConnected) {
+        resizeObserver.disconnect();
+        return;
+      }
+      if (!drawing) resize();
+    });
+    resizeObserver.observe(canvas);
+  }
   const cell = canvas.parentElement;
 
   const clearGrade = () => {
@@ -1547,10 +1557,13 @@ document.querySelector('#clearButton').addEventListener('click', () => {
 });
 
 let layoutViewportWidth = document.documentElement.clientWidth;
+let layoutViewportHeight = document.documentElement.clientHeight;
 window.addEventListener('resize', () => {
   const nextWidth = document.documentElement.clientWidth;
-  if (Math.abs(nextWidth - layoutViewportWidth) < 2) return;
+  const nextHeight = document.documentElement.clientHeight;
+  if (Math.abs(nextWidth - layoutViewportWidth) < 2 && Math.abs(nextHeight - layoutViewportHeight) < 2) return;
   layoutViewportWidth = nextWidth;
+  layoutViewportHeight = nextHeight;
   updateMobileSuggestion();
   if (activeDrawingCanvas) {
     window.__drawingResizePending = true;
