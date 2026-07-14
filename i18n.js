@@ -135,6 +135,7 @@
     'Choose a kanji': 'Выберите кандзи',
     'Confirm a candidate to see its meanings and add a card to your dictionary.': 'Подтвердите вариант, чтобы увидеть значения и добавить карточку в словарь.',
     'My dictionary': 'Мой словарь',
+    'Export to Anki': 'Экспорт в Anki',
     'Meaning': 'Значение',
     'Note': 'Заметка',
     'Add to dictionary': 'Добавить в словарь',

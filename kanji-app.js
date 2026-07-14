@@ -408,6 +408,7 @@ function renderDictionary() {
   const items = getDictionary();
   updateReviewSummary(items);
   document.querySelector('#dictionaryCount').textContent = `${items.length} ${items.length === 1 ? 'card' : 'cards'}`;
+  document.querySelector('#exportAnki').disabled = items.length === 0;
   list.innerHTML = '';
   if (!items.length) {
     list.innerHTML = '<p class="dictionary-empty">Your dictionary is empty. Draw your first kanji and add a meaning.</p>';
@@ -424,6 +425,22 @@ function renderDictionary() {
     list.append(card);
   });
 }
+
+document.querySelector('#exportAnki').addEventListener('click', () => {
+  const items = getDictionary();
+  if (!items.length || !window.AnkiExport) return;
+  const content = `\uFEFF${window.AnkiExport.buildDeck(items)}`;
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const download = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  download.href = url;
+  download.download = `japanese-copybook-kanji-${date}.txt`;
+  document.body.append(download);
+  download.click();
+  download.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
 
 function updateReviewSummary(items = getDictionary()) {
   const due = items.filter(item => SRS.isDue(item));

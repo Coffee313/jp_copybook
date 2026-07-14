@@ -66,7 +66,10 @@
 .my-dictionary { margin-top: 18px; padding: 24px; }
 .dictionary-heading { display: flex; align-items: end; justify-content: space-between; }
 .dictionary-heading h2 { margin: 4px 0 0; font-size: 25px; }
-.dictionary-heading > span { color: var(--muted); font-size: 12px; }
+.dictionary-heading-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.dictionary-heading-actions > span { color: var(--muted); font-size: 12px; }
+.dictionary-heading-actions button { border: 1px solid var(--green); border-radius: 999px; padding: 8px 12px; color: #fff; background: var(--green); cursor: pointer; white-space: nowrap; font-size: 11px; font-weight: 700; }
+.dictionary-heading-actions button:disabled { border-color: var(--line); color: var(--muted); background: #f2eee7; cursor: not-allowed; }
 .dictionary-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 10px; margin-top: 18px; }
 .dictionary-item { min-width: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr) 26px; gap: 12px; align-items: start; padding: 15px; border: 1px solid #e6e0d7; border-radius: 14px; background: #fbfaf7; }
 .dictionary-item .character { font: 400 40px/1 'Noto Sans JP', sans-serif; color: var(--green); }
@@ -102,7 +105,7 @@
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
 @media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }
-@media (max-width: 680px) { .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .my-dictionary, .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-list { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .my-dictionary, .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-heading-actions { flex-direction: column; align-items: flex-end; gap: 6px; } .dictionary-list { grid-template-columns: 1fr; } }
 
 @media (max-width: 760px) {
   body.mobile-version .kanji-main { width: calc(100% - 12px); margin-top: 6px; }
