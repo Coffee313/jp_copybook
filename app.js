@@ -1177,7 +1177,15 @@ function updateConcentrationScriptIcons() {
   const brandMark = document.querySelector('.brand-mark');
   if (hiraganaButton) hiraganaButton.textContent = testActive && selected[0] === 'あ' ? 'ア' : 'あ';
   if (katakanaButton) katakanaButton.textContent = testActive && selected[0] === 'ア' ? 'あ' : 'ア';
-  if (brandMark) brandMark.textContent = testActive && selected[0] === 'あ' ? 'ア' : 'あ';
+  if (brandMark) {
+    brandMark.textContent = testActive && selected[0] === 'あ'
+      ? 'ア'
+      : testActive && selected[0] === 'ア'
+      ? 'あ'
+      : script === 'katakana'
+      ? 'ア'
+      : 'あ';
+  }
 }
 
 function updateLesson() {
