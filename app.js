@@ -1259,6 +1259,7 @@ document.querySelectorAll('.script-button').forEach(button => {
     selected = copybookMode ? kana[script][0] : nextLearningItem();
     document.querySelectorAll('.script-button').forEach(item => item.classList.toggle('active', item.dataset.script === script));
     updateLesson();
+    renderProgress();
   });
 });
 
