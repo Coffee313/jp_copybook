@@ -105,6 +105,7 @@ body.mobile-suggestion-open { overflow: hidden; }
 .account-dialog > p:not(.eyebrow) { color: var(--muted); font-size: 13px; line-height: 1.55; }
 .account-dialog label { display: block; margin-top: 14px; color: var(--muted); font-size: 12px; }
 .account-dialog input { width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; background: #fbfaf7; }
+.account-dialog select { width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; background: #fbfaf7; }
 .dialog-close { position: absolute; top: 13px; right: 13px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f2eee7; cursor: pointer; font-size: 19px; }
 .account-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 .account-actions button, .sign-out { border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
@@ -366,6 +367,10 @@ body.mobile-version .lesson { min-height: 0; }
 footer { width: min(1180px, calc(100% - 40px)); margin: 24px auto 50px; color: var(--muted); font-size: 12px; display: flex; justify-content: flex-end; gap: 18px; text-align: right; }
 footer a { color: inherit; }
 .footer-sync-status { margin-right: auto; font-size: inherit; text-align: left; }
+.footer-support { display: inline-flex; align-items: center; gap: 8px; }
+.footer-support button, .footer-support a { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; color: var(--muted); background: rgba(255,255,255,.55); cursor: pointer; text-decoration: none; white-space: nowrap; font-size: inherit; }
+.footer-support button { border-color: #ecc1b8; color: #a94534; }
+.donation-widget { display: block; width: min(100%, 350px); height: 60px; margin: 18px auto 0; border: 0; }
 
 @media (max-width: 760px) {
   .topbar, main, footer { width: min(100% - 16px, 1180px); }
@@ -451,7 +456,8 @@ footer a { color: inherit; }
   body.mobile-version .sheet { width: min(calc(100vw - 38px), 460px); }
   body.mobile-version .mastered-kana { display: none; }
   body.mobile-version .tablet-tip { padding: 8px 14px 14px; font-size: 10px; line-height: 1.4; }
-  body.mobile-version footer { display: none; }
+  body.mobile-version footer { display: flex; justify-content: center; margin: 12px auto 20px; }
+  body.mobile-version footer > :not(.footer-support) { display: none; }
 }
 
 @media (min-width: 768px) and (max-width: 1180px) {
