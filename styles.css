@@ -645,4 +645,49 @@ footer a { color: inherit; }
   .product-tour-actions button { padding: 8px 9px; }
 }
 
+@media (min-width: 768px) and (min-height: 560px) and (pointer: coarse) {
+  body.concentration-mode:not(.kanji-page) .topbar {
+    top: max(10px, env(safe-area-inset-top));
+    right: auto;
+    left: max(10px, env(safe-area-inset-left));
+    width: auto;
+    min-height: 38px;
+    padding: 3px 7px;
+  }
+  body.concentration-mode .topbar > #copybookModeToggle {
+    width: auto;
+    height: auto;
+    padding: 6px 9px;
+  }
+  body.concentration-mode .topbar > #copybookModeToggle > span:last-child { display: inline; }
+  body.concentration-mode .concentration-nav {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(58px, calc(env(safe-area-inset-right) + 58px));
+    left: auto;
+    gap: 3px;
+    padding: 3px;
+  }
+  body.concentration-mode .concentration-nav a { padding: 7px 11px; font-size: 11px; }
+  body.concentration-mode .concentration-script-switch {
+    position: static;
+    inset: auto;
+    gap: 2px;
+    margin: 0 0 0 2px;
+    border: 0;
+    border-left: 1px solid rgba(255,255,255,.18);
+    border-radius: 0;
+    padding: 0 0 0 4px;
+    background: transparent;
+    box-shadow: none;
+  }
+  body.concentration-mode .concentration-script-switch .script-button {
+    min-width: 31px;
+    height: auto;
+    padding: 5px 8px;
+  }
+  .apple-fullscreen-ui.apple-native-fullscreen body.concentration-mode .concentration-nav {
+    right: max(10px, env(safe-area-inset-right));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
