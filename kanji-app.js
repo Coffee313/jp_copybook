@@ -303,7 +303,7 @@ const readJson = (key, fallback) => {
 function getDictionary() { return readJson(STORAGE_KEY, []); }
 function saveDictionary(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  window.ProgressSync?.queueSave();
+  window.ProgressSync?.flushSave();
 }
 
 function mergeDictionary(remoteItems = []) {

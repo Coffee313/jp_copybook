@@ -35,6 +35,7 @@
   let applyRemoteProgress = () => {};
   let replaceLocalProgress = () => {};
   let saveTimer = null;
+  let saveInFlight = false;
   let cloudProgress = {};
   let recoveryMode = false;
 
@@ -154,15 +155,21 @@
     await saveNow();
   }
 
-  async function saveNow() {
+  async function saveNow({ keepalive = false } = {}) {
     if (!session?.user?.id) return;
-    await progressRequest('user_progress?on_conflict=user_id', {
-      method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ user_id: session.user.id, progress: (cloudProgress = { ...cloudProgress, ...getLocalProgress() }), updated_at: new Date().toISOString() })
-    });
-    renderAccount();
-    setSyncStatus('Progress saved');
+    saveInFlight = true;
+    try {
+      await progressRequest('user_progress?on_conflict=user_id', {
+        method: 'POST',
+        keepalive,
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ user_id: session.user.id, progress: (cloudProgress = { ...cloudProgress, ...getLocalProgress() }), updated_at: new Date().toISOString() })
+      });
+      renderAccount();
+      setSyncStatus('Progress saved');
+    } finally {
+      saveInFlight = false;
+    }
   }
 
   function queueSave() {
@@ -170,8 +177,18 @@
     if (!session) return;
     clearTimeout(saveTimer);
     setSyncStatus('Saving…');
-    saveTimer = setTimeout(() => saveNow().catch(error => setSyncStatus(error.message, true)), 500);
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      saveNow().catch(error => setSyncStatus(error.message, true));
+    }, 500);
   }
+
+  window.addEventListener('pagehide', () => {
+    if ((!saveTimer && !saveInFlight) || !session) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    saveNow({ keepalive: true }).catch(() => {});
+  });
 
   async function flushSave() {
     renderAccount();
