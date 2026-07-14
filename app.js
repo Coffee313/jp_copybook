@@ -80,6 +80,7 @@ const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const PLACEMENT_KEY = 'kana-placement-v1';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
+const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed';
 const MOBILE_PRACTICE_KEY = 'kana-mobile-practice-v1';
 const MOBILE_PRACTICE_TARGET = 14;
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
@@ -1098,7 +1099,7 @@ function renderPicker() {
 
 function updateLesson() {
   const placementScript = kana.hiragana.some(item => item[0] === selected[0]) ? 'Hiragana' : 'Katakana';
-  document.querySelector('#referenceKana').textContent = testActive ? '?' : selected[0];
+  document.querySelector('#referenceKana').textContent = testActive ? selected[1] : selected[0];
   document.querySelector('#referenceRomanji').textContent = placementActive ? `${placementScript} · ${selected[1]}` : selected[1];
   document.querySelector('.reference-hint').textContent = placementActive
     ? `Placement ${testIndex + 1} of ${testQueue.length}: write “${selected[1]}” without hints`
@@ -1117,6 +1118,22 @@ function updateLesson() {
   makeSheet();
 }
 
+function mobileSuggestionDismissed() {
+  try { return sessionStorage.getItem(MOBILE_SUGGESTION_SESSION_KEY) === 'true'; }
+  catch { return false; }
+}
+
+function dismissMobileSuggestion() {
+  try { sessionStorage.setItem(MOBILE_SUGGESTION_SESSION_KEY, 'true'); }
+  catch { /* The suggestion can still be hidden for this page. */ }
+  document.querySelector('#mobileSuggestion').hidden = true;
+}
+
+function updateMobileSuggestion() {
+  const suggestion = document.querySelector('#mobileSuggestion');
+  suggestion.hidden = mobileMode || !window.matchMedia('(max-width: 760px)').matches || mobileSuggestionDismissed();
+}
+
 function setMobileMode(active, persist = true) {
   mobileMode = active;
   document.body.classList.toggle('mobile-version', active);
@@ -1125,13 +1142,17 @@ function setMobileMode(active, persist = true) {
   const label = active ? 'Exit mobile version' : 'Mobile version';
   button.setAttribute('aria-label', window.I18n?.translate?.(label) || label);
   button.querySelector('span:last-child').textContent = label;
-  if (persist) localStorage.setItem(MOBILE_MODE_KEY, active ? 'true' : 'false');
+  if (persist) {
+    localStorage.setItem(MOBILE_MODE_KEY, active ? 'true' : 'false');
+    dismissMobileSuggestion();
+  }
+  updateMobileSuggestion();
   updateLesson();
 }
 
 function initializeMobileMode() {
   const saved = localStorage.getItem(MOBILE_MODE_KEY);
-  const active = saved === null ? window.matchMedia('(max-width: 760px)').matches : saved === 'true';
+  const active = saved === 'true';
   mobileMode = active;
   document.body.classList.toggle('mobile-version', active);
   const button = document.querySelector('#mobileModeToggle');
@@ -1139,6 +1160,7 @@ function initializeMobileMode() {
   const label = active ? 'Exit mobile version' : 'Mobile version';
   button.setAttribute('aria-label', window.I18n?.translate?.(label) || label);
   button.querySelector('span:last-child').textContent = label;
+  updateMobileSuggestion();
 }
 
 function setCopybookMode(active) {
@@ -1169,6 +1191,8 @@ document.querySelector('#testMyself').addEventListener('click', () => testActive
 document.querySelector('#knowCurrentRow').addEventListener('click', () => knownKanaTestActive ? stopKanaTest() : startKnownKanaTest());
 document.querySelector('#copybookModeToggle').addEventListener('click', () => setCopybookMode(!copybookMode));
 document.querySelector('#mobileModeToggle').addEventListener('click', () => setMobileMode(!mobileMode));
+document.querySelector('#mobileSuggestionEnable').addEventListener('click', () => setMobileMode(true));
+document.querySelector('#mobileSuggestionDismiss').addEventListener('click', dismissMobileSuggestion);
 document.querySelector('#forgotKana').addEventListener('click', () => {
   if (!testActive || TEST_LAYERS[testLayerIndex]?.key !== 'blank') return;
   const cell = document.querySelector('.test-cell');
@@ -1425,6 +1449,7 @@ window.addEventListener('resize', () => {
   const nextWidth = document.documentElement.clientWidth;
   if (Math.abs(nextWidth - layoutViewportWidth) < 2) return;
   layoutViewportWidth = nextWidth;
+  updateMobileSuggestion();
   if (activeDrawingCanvas) {
     window.__drawingResizePending = true;
     return;

@@ -71,6 +71,11 @@ button { color: inherit; }
 .header-mode-button { display: flex; align-items: center; gap: 5px; flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; color: var(--muted); background: var(--paper); cursor: pointer; white-space: nowrap; font-size: 10px; }
 .header-mode-button:hover { border-color: var(--green); color: var(--green); }
 .header-mode-button[aria-pressed="true"] { border-color: var(--green); color: #fff; background: var(--green); }
+.header-mode-button > span:first-child { line-height: 1; }
+.mobile-suggestion { position: fixed; z-index: 90; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); width: min(560px, calc(100% - 24px)); margin-left: auto; display: flex; align-items: center; gap: 10px; border: 1px solid #cfded5; border-radius: 16px; padding: 12px 42px 12px 14px; color: var(--ink); background: var(--paper); box-shadow: 0 14px 40px rgba(30,25,18,.2); font-size: 12px; line-height: 1.4; }
+.mobile-suggestion > span { min-width: 0; flex: 1; }
+.mobile-suggestion > button:not(.mobile-suggestion-dismiss) { flex: none; border: 0; border-radius: 10px; padding: 9px 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
+.mobile-suggestion-dismiss { position: absolute; top: 7px; right: 7px; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; font-size: 19px; }
 .account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .account-area > button { max-width: 180px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .account-area > button[data-signed-in="true"] { width: 32px; height: 32px; padding: 0; border-color: var(--green); color: #fff; background: var(--green); font-weight: 700; }
@@ -190,7 +195,9 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .progress-reset button { width: 100%; border: 0; border-radius: 8px; padding: 9px; color: #a94534; background: transparent; cursor: pointer; text-align: left; font-size: 12px; }
 .progress-reset button:hover { background: #fff0ed; }
 .test-active .sheet { grid-template-columns: minmax(220px, 340px); min-width: 0; justify-content: center; }
-.test-active .test-cell { width: min(100%, 340px); }
+.test-active .test-cell { width: min(100%, 340px); justify-self: center; }
+.test-active .sheet-wrap { display: grid; place-items: center; }
+.test-active .sheet { width: min(100%, 340px); margin-inline: auto; }
 .test-active .kana-picker { display: none; }
 .test-active .mastered-kana { display: none; }
 .test-active .practice-clear { display: none; }
@@ -240,6 +247,8 @@ body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-widt
 html[lang="ru"] .reference-actions .guide-control { gap: 5px; white-space: nowrap; font-size: 8px; }
 .reference-actions .practice-clear { width: max-content; margin-left: 0; padding: 7px 9px; font-size: 9px; }
 .reference-kana { font-family: 'Noto Sans JP', sans-serif; font-size: 146px; line-height: 1; color: var(--green); }
+.test-active .reference-kana { max-width: 100%; overflow-wrap: anywhere; font-size: clamp(54px, 8vw, 90px); letter-spacing: -.05em; }
+.test-active:not(.placement-active) .reference-romanji { display: none; }
 .reference-romanji { font-size: 32px; font-weight: 600; letter-spacing: -.04em; }
 .reference-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
@@ -349,6 +358,7 @@ footer a { color: inherit; }
   .header-script-switch { order: 10; width: 100%; justify-content: center; }
   .header-script-switch .script-button { flex: 1; max-width: 150px; padding: 6px 10px; }
   .header-mode-button { width: 30px; height: 30px; justify-content: center; padding: 0; }
+  #mobileModeToggle > span:first-child { font-size: 15px; }
   .header-mode-button > span:last-child { display: none; }
   .account-area { order: initial; margin: 0; flex: none; }
   .account-area > button { padding: 5px 7px; font-size: 10px; }
@@ -391,6 +401,8 @@ footer a { color: inherit; }
   .score-legend { padding-inline: 18px; flex-wrap: wrap; }
   html[lang="ru"] .profile-menu button, html[lang="ru"] .profile-menu a { padding-inline: 7px; overflow-wrap: anywhere; font-size: 10px; }
   html[lang="ru"] button { overflow-wrap: anywhere; }
+  .mobile-suggestion { align-items: stretch; flex-direction: column; gap: 8px; padding: 13px 42px 13px 13px; }
+  .mobile-suggestion > button:not(.mobile-suggestion-dismiss) { width: 100%; }
 }
 
 @media (max-width: 760px) {

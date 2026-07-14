@@ -2,6 +2,7 @@ const STORAGE_KEY = 'kana-kanji-dictionary-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
+const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed';
 let selectedCharacter = '';
 let reviewQueue = [];
 let reviewIndex = 0;
@@ -28,7 +29,20 @@ function initializeDrawingControls() {
 
   const mobileModeToggle = document.querySelector('#mobileModeToggle');
   const savedMobileMode = localStorage.getItem(MOBILE_MODE_KEY);
-  let mobileMode = savedMobileMode === null ? window.matchMedia('(max-width: 760px)').matches : savedMobileMode === 'true';
+  let mobileMode = savedMobileMode === 'true';
+  const mobileSuggestion = document.querySelector('#mobileSuggestion');
+  const mobileSuggestionDismissed = () => {
+    try { return sessionStorage.getItem(MOBILE_SUGGESTION_SESSION_KEY) === 'true'; }
+    catch { return false; }
+  };
+  const updateMobileSuggestion = () => {
+    mobileSuggestion.hidden = mobileMode || !window.matchMedia('(max-width: 760px)').matches || mobileSuggestionDismissed();
+  };
+  const dismissMobileSuggestion = () => {
+    try { sessionStorage.setItem(MOBILE_SUGGESTION_SESSION_KEY, 'true'); }
+    catch { /* The suggestion can still be hidden for this page. */ }
+    mobileSuggestion.hidden = true;
+  };
   const applyMobileMode = active => {
     mobileMode = active;
     document.body.classList.toggle('mobile-version', active);
@@ -36,12 +50,21 @@ function initializeDrawingControls() {
     const label = active ? 'Exit mobile version' : 'Mobile version';
     mobileModeToggle.setAttribute('aria-label', window.I18n?.translate?.(label) || label);
     mobileModeToggle.querySelector('span:last-child').textContent = label;
+    updateMobileSuggestion();
   };
   applyMobileMode(mobileMode);
   mobileModeToggle.addEventListener('click', () => {
     applyMobileMode(!mobileMode);
     localStorage.setItem(MOBILE_MODE_KEY, mobileMode ? 'true' : 'false');
+    dismissMobileSuggestion();
   });
+  document.querySelector('#mobileSuggestionEnable').addEventListener('click', () => {
+    applyMobileMode(true);
+    localStorage.setItem(MOBILE_MODE_KEY, 'true');
+    dismissMobileSuggestion();
+  });
+  document.querySelector('#mobileSuggestionDismiss').addEventListener('click', dismissMobileSuggestion);
+  window.addEventListener('resize', updateMobileSuggestion);
 
   ['pointerdown', 'pointermove', 'pointerup'].forEach(type => {
     canvas.addEventListener(type, event => {
