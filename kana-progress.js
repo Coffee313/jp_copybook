@@ -82,6 +82,11 @@
     return results.length > 0 && results.every(result => result === 'good');
   }
 
+  function advancePracticeCount(count, target = 14) {
+    const safeCount = Number.isFinite(Number(count)) ? Math.max(0, Math.floor(Number(count))) : 0;
+    return Math.min(safeCount + 1, target);
+  }
+
   function previousTestLayer(layerIndex) {
     return Math.max(0, layerIndex - 1);
   }
@@ -121,5 +126,5 @@
     return Date.parse(local.completedAt || 0) >= Date.parse(remote.completedAt || 0) ? local : remote;
   }
 
-  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, previousTestLayer, testPickerItems, cookieValue, shuffled, placementLevel, mergePlacement };
+  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, advancePracticeCount, previousTestLayer, testPickerItems, cookieValue, shuffled, placementLevel, mergePlacement };
 });

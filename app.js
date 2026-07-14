@@ -79,11 +79,15 @@ const LEARNED_KEY = 'kana-learned-v1';
 const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const PLACEMENT_KEY = 'kana-placement-v1';
+const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
+const MOBILE_PRACTICE_KEY = 'kana-mobile-practice-v1';
+const MOBILE_PRACTICE_TARGET = 14;
 const allKanaCharacters = [...kana.hiragana, ...kana.katakana].map(item => item[0]);
 let mastery = readMastery();
 let learned = readLearned();
 let masteryResets = readMasteryResets();
 let placement = readPlacement();
+let mobilePractice = readMobilePractice();
 let testActive = false;
 let testQueue = [];
 let testIndex = 0;
@@ -92,6 +96,7 @@ let currentTestHadError = false;
 let selfTestActive = false;
 let knownKanaTestActive = false;
 let copybookMode = false;
+let mobileMode = false;
 let placementActive = false;
 let placementSelectedLevel = '';
 let placementCorrect = new Set();
@@ -161,6 +166,16 @@ function readMasteryResets() {
 function readPlacement() {
   try { return JSON.parse(localStorage.getItem(PLACEMENT_KEY)) || null; }
   catch { return null; }
+}
+
+function readMobilePractice() {
+  try { return JSON.parse(localStorage.getItem(MOBILE_PRACTICE_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveMobilePractice(value) {
+  mobilePractice = value;
+  localStorage.setItem(MOBILE_PRACTICE_KEY, JSON.stringify(mobilePractice));
 }
 
 function savePlacement(value) {
@@ -328,13 +343,13 @@ function captureSheetState() {
 function makeSheet(preserve = false) {
   const savedStates = preserve ? captureSheetState() : [];
   sheet.innerHTML = '';
-  const cellCount = testActive ? 1 : 15;
+  const cellCount = testActive || mobileMode ? 1 : 15;
   const testLayer = testActive ? TEST_LAYERS[testLayerIndex] : null;
   let canvasIndex = 0;
   for (let i = 0; i < cellCount; i++) {
     const cell = document.createElement('div');
-    cell.className = `cell${!testActive && i === 0 ? ' stroke-cell' : ''}${testActive ? ` test-cell test-cell-${TEST_LAYERS[testLayerIndex]?.key || 'blank'}` : ''}`;
-    if (!testActive && i === 0) {
+    cell.className = `cell${!testActive && !mobileMode && i === 0 ? ' stroke-cell' : ''}${!testActive && mobileMode ? ' mobile-practice-cell' : ''}${testActive ? ` test-cell test-cell-${TEST_LAYERS[testLayerIndex]?.key || 'blank'}` : ''}`;
+    if (!testActive && !mobileMode && i === 0) {
       cell.append(makeStrokeDiagram());
       sheet.append(cell);
       continue;
@@ -665,6 +680,7 @@ function showGrade(cell, result, score) {
     }
   }
   if (testActive) handleTestResult(result);
+  else if (result === 'good' && !copybookMode && mobileMode) recordMobilePracticeSuccess(cell);
   else if (result === 'good' && !copybookMode) recordLearningSuccess();
 }
 
@@ -700,6 +716,45 @@ function recordLearningSuccess() {
     selected = nextItem;
     updateLesson();
   }, 1000);
+}
+
+function mobilePracticeCount(character = selected[0]) {
+  if (characterIsLearned(character)) return MOBILE_PRACTICE_TARGET;
+  return Math.min(MOBILE_PRACTICE_TARGET, Math.max(0, Number(mobilePractice[character]) || 0));
+}
+
+function updateMobilePracticeProgress() {
+  const progress = document.querySelector('#mobilePracticeProgress');
+  const visible = mobileMode && !testActive && !copybookMode;
+  progress.hidden = !visible;
+  if (visible) progress.textContent = `${mobilePracticeCount()} of ${MOBILE_PRACTICE_TARGET} repetitions complete`;
+}
+
+function recordMobilePracticeSuccess(cell) {
+  const character = selected[0];
+  const canvas = cell.querySelector('canvas');
+  if (canvas) canvas.style.pointerEvents = 'none';
+  if (characterIsLearned(character)) {
+    setTimeout(() => { if (selected[0] === character && !testActive) makeSheet(); }, 850);
+    return;
+  }
+  const count = KanaProgress.advancePracticeCount(mobilePracticeCount(character), MOBILE_PRACTICE_TARGET);
+  saveMobilePractice({ ...mobilePractice, [character]: count });
+  updateMobilePracticeProgress();
+  if (count < MOBILE_PRACTICE_TARGET) {
+    setTimeout(() => { if (selected[0] === character && mobileMode && !testActive) makeSheet(); }, 850);
+    return;
+  }
+  const completedPractice = { ...mobilePractice };
+  delete completedPractice[character];
+  saveMobilePractice(completedPractice);
+  saveLearned(KanaProgress.markLearned(learned, character));
+  const nextItem = nextLearningItem();
+  setTimeout(() => {
+    if (testActive || selected[0] !== character) return;
+    selected = nextItem;
+    updateLesson();
+  }, 850);
 }
 
 function renderProgress() {
@@ -875,6 +930,22 @@ function handleTestResult(result) {
     return;
   }
   if (result !== 'good') {
+    if (knownKanaTestActive) {
+      const canvas = document.querySelector('.test-cell canvas');
+      if (canvas) canvas.style.pointerEvents = 'none';
+      setTimeout(() => {
+        testIndex += 1;
+        testLayerIndex = TEST_LAYERS.length - 1;
+        currentTestHadError = false;
+        if (testIndex >= testQueue.length) {
+          stopKanaTest('Knowledge check complete');
+          return;
+        }
+        selected = testQueue[testIndex];
+        updateLesson();
+      }, 1100);
+      return;
+    }
     currentTestHadError = true;
     const canvas = document.querySelector('.test-cell canvas');
     if (canvas) canvas.style.pointerEvents = 'none';
@@ -1037,10 +1108,37 @@ function updateLesson() {
     ? `Test ${testIndex + 1} of ${testQueue.length}, layer ${testLayerIndex + 1} of ${TEST_LAYERS.length}: write “${selected[1]}” with the ${TEST_LAYERS[testLayerIndex].label}`
     : copybookMode
     ? 'Choose any kana and practise freely'
+    : mobileMode
+    ? `${mobilePracticeCount()} of ${MOBILE_PRACTICE_TARGET} repetitions complete · draw the kana again`
     : 'Repeat the character in each cell';
   document.querySelector('#forgotKana').hidden = !testActive || TEST_LAYERS[testLayerIndex]?.key !== 'blank';
   renderPicker();
+  updateMobilePracticeProgress();
   makeSheet();
+}
+
+function setMobileMode(active, persist = true) {
+  mobileMode = active;
+  document.body.classList.toggle('mobile-version', active);
+  const button = document.querySelector('#mobileModeToggle');
+  button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  const label = active ? 'Exit mobile version' : 'Mobile version';
+  button.setAttribute('aria-label', window.I18n?.translate?.(label) || label);
+  button.querySelector('span:last-child').textContent = label;
+  if (persist) localStorage.setItem(MOBILE_MODE_KEY, active ? 'true' : 'false');
+  updateLesson();
+}
+
+function initializeMobileMode() {
+  const saved = localStorage.getItem(MOBILE_MODE_KEY);
+  const active = saved === null ? window.matchMedia('(max-width: 760px)').matches : saved === 'true';
+  mobileMode = active;
+  document.body.classList.toggle('mobile-version', active);
+  const button = document.querySelector('#mobileModeToggle');
+  button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  const label = active ? 'Exit mobile version' : 'Mobile version';
+  button.setAttribute('aria-label', window.I18n?.translate?.(label) || label);
+  button.querySelector('span:last-child').textContent = label;
 }
 
 function setCopybookMode(active) {
@@ -1070,6 +1168,7 @@ document.querySelector('#startKanaTest').addEventListener('click', () => testAct
 document.querySelector('#testMyself').addEventListener('click', () => testActive ? stopKanaTest() : startSelfTest());
 document.querySelector('#knowCurrentRow').addEventListener('click', () => knownKanaTestActive ? stopKanaTest() : startKnownKanaTest());
 document.querySelector('#copybookModeToggle').addEventListener('click', () => setCopybookMode(!copybookMode));
+document.querySelector('#mobileModeToggle').addEventListener('click', () => setMobileMode(!mobileMode));
 document.querySelector('#forgotKana').addEventListener('click', () => {
   if (!testActive || TEST_LAYERS[testLayerIndex]?.key !== 'blank') return;
   const cell = document.querySelector('.test-cell');
@@ -1094,6 +1193,7 @@ document.querySelectorAll('[data-reset-script]').forEach(button => {
     if (!window.confirm(window.I18n?.translate?.(resetPrompt) || resetPrompt)) return;
     if (testActive) stopKanaTest();
     const characters = kana[targetScript].map(item => item[0]);
+    saveMobilePractice(Object.fromEntries(Object.entries(mobilePractice).filter(([character]) => !characters.includes(character))));
     saveMasteryResets(KanaProgress.markScriptReset(masteryResets, targetScript));
     saveMastery(KanaProgress.resetMastery(mastery, characters));
     saveLearned(KanaProgress.resetMastery(learned, characters));
@@ -1333,6 +1433,7 @@ window.addEventListener('resize', () => {
   window.__resizeTimer = setTimeout(() => makeSheet(true), 150);
 });
 
+initializeMobileMode();
 selected = nextLearningItem();
 updateLesson();
 renderProgress();

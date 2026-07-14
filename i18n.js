@@ -8,6 +8,8 @@
     'Concentration mode': 'Режим концентрации',
     'Copybook mode': 'Режим прописи',
     'Exit copybook mode': 'Выйти из режима прописи',
+    'Mobile version': 'Мобильная версия',
+    'Exit mobile version': 'Выйти из мобильной версии',
     'Stylus only': 'Только стилус',
     'Sign In': 'Войти',
     'Cloud progress': 'Синхронизация прогресса',
@@ -68,6 +70,7 @@
     'Show guides in cells': 'Показывать образцы в клетках',
     'Clear drawings': 'Очистить поля',
     'Repeat the character in each cell': 'Напишите знак в каждой клетке',
+    'Draw the kana in the large cell 14 times to make it ready for the test.': 'Напишите знак в большой клетке 14 раз, чтобы открыть тест.',
     'Choose any kana and practise freely': 'Выберите любой знак каны и тренируйтесь свободно',
     'Mastered kana': 'Освоенные знаки каны',
     'Pass learned-kana tests to build this list.': 'Пройдите тесты по изученным знакам, чтобы они появились здесь.',
@@ -208,6 +211,8 @@
         [/^I know these kanas · (\d+)$/, 'Я знаю эти знаки · $1'],
         [/^Knowledge check (\d+) of (\d+): write “(.+)” without hints$/, 'Проверка знаний $1 из $2: напишите «$3» без подсказок'],
         [/^(\d+) of (\d+) learned · fill every copybook cell in green$/, '$1 из $2 изучено · заполните все клетки правильно'],
+        [/^(\d+) of (\d+) repetitions complete$/, '$1 из $2 повторений выполнено'],
+        [/^(\d+) of (\d+) repetitions complete · draw the kana again$/, '$1 из $2 повторений выполнено · напишите знак ещё раз'],
         [/^Placement (\d+) of (\d+): write “(.+)” without hints$/, 'Определение уровня $1 из $2: напишите «$3» без подсказок'],
         [/^Test (\d+) of (\d+), layer (\d+) of (\d+): write “(.+)” with the (.+)$/, (_, current, total, layer, layerTotal, reading, guide) => {
           const instructions = {

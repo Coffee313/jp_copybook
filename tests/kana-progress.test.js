@@ -25,6 +25,13 @@ test('allPracticeCellsGood requires every copybook cell to pass', () => {
   assert.equal(progress.allPracticeCellsGood([]), false);
 });
 
+test('advancePracticeCount increments mobile practice and stops at the target', () => {
+  assert.equal(progress.advancePracticeCount(0), 1);
+  assert.equal(progress.advancePracticeCount(13), 14);
+  assert.equal(progress.advancePracticeCount(14), 14);
+  assert.equal(progress.advancePracticeCount('invalid'), 1);
+});
+
 test('mergeMastery keeps the newest result for each kana', () => {
   const local = { あ: { passed: true, passedAt: '2026-07-12T10:00:00Z' } };
   const remote = { あ: { passed: true, passedAt: '2026-07-11T10:00:00Z' }, ア: { passed: true, passedAt: '2026-07-10T10:00:00Z' } };

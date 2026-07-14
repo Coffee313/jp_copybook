@@ -66,6 +66,8 @@ button { color: inherit; }
 .main-nav { display: flex; align-items: center; gap: 3px; margin-left: auto; margin-right: 4px; padding: 2px; border-radius: 999px; background: rgba(255,255,255,.48); }
 .main-nav a { padding: 6px 10px; border-radius: 999px; color: var(--muted); text-decoration: none; font-size: 12px; }
 .main-nav a.active { color: var(--ink); background: var(--paper); box-shadow: 0 2px 8px rgba(30,25,18,.07); }
+.header-script-switch { flex: none; padding: 2px; }
+.header-script-switch .script-button { padding: 6px 9px; white-space: nowrap; font-size: 10px; }
 .header-mode-button { display: flex; align-items: center; gap: 5px; flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; color: var(--muted); background: var(--paper); cursor: pointer; white-space: nowrap; font-size: 10px; }
 .header-mode-button:hover { border-color: var(--green); color: var(--green); }
 .header-mode-button[aria-pressed="true"] { border-color: var(--green); color: #fff; background: var(--green); }
@@ -266,6 +268,11 @@ body.concentration-mode .concentration-exit:hover, body.concentration-mode .conc
 
 .sheet-wrap { overflow: auto; padding: 32px; background: #fbf9f5; }
 .sheet { display: grid; grid-template-columns: repeat(5, minmax(112px, 1fr)); gap: 10px; min-width: 600px; }
+.mobile-practice-progress { width: min(100%, 460px); margin: 0 auto 10px; color: var(--green); text-align: center; font-size: 13px; font-weight: 700; }
+body.mobile-version .sheet-wrap { display: grid; align-content: center; justify-items: center; overflow: visible; padding: 16px; }
+body.mobile-version .sheet { grid-template-columns: minmax(0, 1fr); width: min(100%, 460px); min-width: 0; }
+body.mobile-version .mobile-practice-cell { width: 100%; }
+body.mobile-version .lesson { min-height: 0; }
 .cell { aspect-ratio: 1; position: relative; overflow: hidden; border: 1.5px solid #bdb6aa; background: var(--paper); touch-action: none; }
 .cell::before, .cell::after { content: ''; position: absolute; pointer-events: none; z-index: 1; }
 .cell::before { left: 50%; top: 0; height: 100%; border-left: 1px dashed #dcd6cb; }
@@ -330,22 +337,26 @@ footer a { color: inherit; }
 
 @media (max-width: 760px) {
   .topbar, main, footer { width: min(100% - 16px, 1180px); }
-  .topbar { min-height: 42px; gap: 4px; padding-block: 3px; }
+  .topbar { min-height: 42px; gap: 4px; padding-block: 6px; flex-wrap: wrap; }
   .brand { gap: 5px; font-size: 10px; }
+  .brand > span:last-child { display: none; }
   .top-input-control > span:last-child { display: none; }
   .header-context { display: none; }
-  .app-version { padding: 1px 3px; font-size: 0; }
-  .app-version::after { content: attr(data-short-version); font-size: 7px; }
+  .app-version { display: none; }
   .brand-mark { width: 30px; height: 30px; font-size: 16px; }
   .main-nav { min-width: 0; width: auto; margin: 0 0 0 auto; }
   .main-nav a { flex: 0 1 auto; padding: 5px 6px; white-space: nowrap; text-align: center; font-size: 10px; }
+  .header-script-switch { order: 10; width: 100%; justify-content: center; }
+  .header-script-switch .script-button { flex: 1; max-width: 150px; padding: 6px 10px; }
   .header-mode-button { width: 30px; height: 30px; justify-content: center; padding: 0; }
   .header-mode-button > span:last-child { display: none; }
   .account-area { order: initial; margin: 0; flex: none; }
   .account-area > button { padding: 5px 7px; font-size: 10px; }
   .top-input-control { margin: 0 5px; flex: none; }
-  .kana-progress-panel { grid-template-columns: 1fr auto auto; }
-  .kana-progress-track { grid-column: 1 / -1; grid-row: 2; }
+  .kana-progress-panel { grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+  .kana-progress-panel > div:first-child, .kana-progress-track { grid-column: 1 / -1; }
+  .kana-progress-track { grid-row: 2; }
+  #startKanaTest, #testMyself { min-width: 0; min-height: 40px; padding: 8px; white-space: normal; overflow-wrap: anywhere; font-size: 11px; line-height: 1.2; }
   main { margin-top: 12px; }
   .intro { display: block; margin-bottom: 18px; }
   .eyebrow { margin-bottom: 7px; }
@@ -354,10 +365,13 @@ footer a { color: inherit; }
   .practice-card { border-radius: 20px; }
   .controls { align-items: flex-start; flex-direction: column; padding: 18px; }
   .learning-path { grid-template-columns: 1fr; gap: 10px; padding: 18px; }
+  .learning-path h2, #learningRowProgress { overflow-wrap: anywhere; }
   .copybook-mode .learning-path { grid-template-columns: 1fr; }
   .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-start; padding-top: 4px; }
   .input-mode-actions { grid-template-columns: 1fr; }
   .language-actions { grid-template-columns: 1fr; }
+  html[lang="ru"] .account-actions { grid-template-columns: 1fr; }
+  html[lang="ru"] .account-actions .reset-password { grid-column: auto; }
   .profile-settings { grid-template-columns: 1fr; gap: 16px; }
   .profile-menu { display: grid; grid-template-columns: repeat(2, 1fr); }
   .profile-menu .profile-menu-danger { margin-top: 0; }
@@ -365,13 +379,35 @@ footer a { color: inherit; }
   .placement-actions button { min-height: 76px; }
   .practice-clear { margin-left: 0; }
   .lesson { grid-template-columns: 1fr; }
-  .reference { min-height: 170px; padding: 20px; border-right: 0; border-bottom: 1px solid #e9e4dc; flex-direction: row; align-items: flex-end; }
+  .reference { min-height: 160px; gap: 12px; padding: 16px; border-right: 0; border-bottom: 1px solid #e9e4dc; flex-direction: row; align-items: flex-end; }
+  .reference-actions { min-width: 0; }
+  .reference-actions .guide-control { white-space: normal; line-height: 1.25; }
+  html[lang="ru"] .reference-actions .guide-control { white-space: normal; font-size: 9px; }
   .reference-kana { font-size: 112px; }
   .sheet-wrap { overflow: visible; padding: 14px; }
   .sheet { grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 6px; min-width: 0; }
   .kana-picker { padding: 16px 18px 20px; }
   .mastered-kana { align-items: flex-start; flex-direction: column; padding: 18px; }
   .score-legend { padding-inline: 18px; flex-wrap: wrap; }
+  html[lang="ru"] .profile-menu button, html[lang="ru"] .profile-menu a { padding-inline: 7px; overflow-wrap: anywhere; font-size: 10px; }
+  html[lang="ru"] button { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 760px) {
+  body.mobile-version main { width: calc(100% - 12px); margin-top: 6px; }
+  body.mobile-version .practice-card { border-radius: 16px; }
+  body.mobile-version .learning-path { gap: 8px; padding: 12px; }
+  body.mobile-version .learning-path .kana-picker { flex-wrap: nowrap; overflow-x: auto; padding: 2px 0; }
+  body.mobile-version .lesson { display: flex; flex-direction: column; }
+  body.mobile-version .reference { min-height: 118px; align-items: center; }
+  body.mobile-version .reference-kana { font-size: 76px; }
+  body.mobile-version .reference-romanji { font-size: 22px; }
+  body.mobile-version .reference-hint { max-width: 150px; font-size: 10px; line-height: 1.35; }
+  body.mobile-version .sheet-wrap { min-height: min(108vw, 500px); padding: 12px; }
+  body.mobile-version .sheet { width: min(calc(100vw - 38px), 460px); }
+  body.mobile-version .mastered-kana { display: none; }
+  body.mobile-version .tablet-tip { padding: 8px 14px 14px; font-size: 10px; line-height: 1.4; }
+  body.mobile-version footer { display: none; }
 }
 
 @media (min-width: 768px) and (max-width: 1180px) {

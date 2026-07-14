@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'kana-kanji-dictionary-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
+const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
 let selectedCharacter = '';
 let reviewQueue = [];
 let reviewIndex = 0;
@@ -23,6 +24,23 @@ function initializeDrawingControls() {
   penOnlyToggle.addEventListener('change', () => {
     const mode = penOnlyToggle.checked ? 'stylus' : 'finger';
     document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  });
+
+  const mobileModeToggle = document.querySelector('#mobileModeToggle');
+  const savedMobileMode = localStorage.getItem(MOBILE_MODE_KEY);
+  let mobileMode = savedMobileMode === null ? window.matchMedia('(max-width: 760px)').matches : savedMobileMode === 'true';
+  const applyMobileMode = active => {
+    mobileMode = active;
+    document.body.classList.toggle('mobile-version', active);
+    mobileModeToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+    const label = active ? 'Exit mobile version' : 'Mobile version';
+    mobileModeToggle.setAttribute('aria-label', window.I18n?.translate?.(label) || label);
+    mobileModeToggle.querySelector('span:last-child').textContent = label;
+  };
+  applyMobileMode(mobileMode);
+  mobileModeToggle.addEventListener('click', () => {
+    applyMobileMode(!mobileMode);
+    localStorage.setItem(MOBILE_MODE_KEY, mobileMode ? 'true' : 'false');
   });
 
   ['pointerdown', 'pointermove', 'pointerup'].forEach(type => {
