@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
     <link rel="stylesheet" href="styles.css?v=66" />
-    <link rel="stylesheet" href="kanji.css?v=15" />
+    <link rel="stylesheet" href="kanji.css?v=16" />
   </head>
   <body class="kanji-page">
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -17,7 +17,7 @@
     </nav>
     <header class="topbar">
       <a class="brand" href="index.html" data-language-static="en"><span class="brand-mark">字</span><span>My Japanese Copybook</span></a>
-      <span class="app-version" data-short-version="v14.28" title="App version v2026.07.14.28">v2026.07.14.28</span>
+      <span class="app-version" data-short-version="v14.29" title="App version v2026.07.14.29">v2026.07.14.29</span>
       <nav class="main-nav" aria-label="Sections">
         <a href="index.html">Kana</a>
         <a class="active" href="kanji.html">Kanji</a>
@@ -127,6 +127,10 @@
             <div class="add-stroke-example" id="addStrokeExample" hidden></div>
             <label>Meaning<input id="translationInput" required autocomplete="off" placeholder="For example: water" /></label>
             <div class="meaning-suggestions" id="meaningSuggestions"></div>
+            <label>Hiragana reading<input id="readingInput" autocomplete="off" lang="ja" placeholder="For example: みず" /></label>
+            <div class="reading-suggestions" id="readingSuggestions"></div>
+            <label>Pitch accent drop<input id="pitchAccentInput" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
+            <p class="pitch-help">Optional: 0 is flat; 1 drops after the first mora; 2+ drops after that mora.</p>
             <label>Note<textarea id="noteInput" rows="3" placeholder="Reading, association, or example"></textarea></label>
             <div class="reading-info" id="readingInfo"></div>
             <button class="save-kanji" type="submit">Add to dictionary</button>
@@ -175,7 +179,7 @@
 
     <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a><span class="footer-support"><a href="mailto:maksim.timchenko313@gmail.com?subject=Japanese%20Copybook%20feedback">Feedback</a></span></footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="i18n.js?v=21"></script>
+    <script src="i18n.js?v=22"></script>
     <script src="progress-sync.js?v=16"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
     <script src="kanjivg-directions.js?v=1"></script>
@@ -184,8 +188,8 @@
     <script src="recognizer-geometry.js?v=1"></script>
     <script src="recognizer-fixes.js?v=1"></script>
     <script src="srs.js?v=3"></script>
-    <script src="anki-export.js?v=1"></script>
-    <script src="kanji-app.js?v=30"></script>
+    <script src="anki-export.js?v=2"></script>
+    <script src="kanji-app.js?v=31"></script>
     <script src="onboarding.js?v=5"></script>
     <script src="support.js?v=2"></script>
   </body>

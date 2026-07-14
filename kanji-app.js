@@ -317,32 +317,89 @@ function mergeDictionary(remoteItems = []) {
   return [...merged.values()];
 }
 
+function toHiragana(value) {
+  return String(value || '').replace(/[ァ-ヶ]/g, character => String.fromCharCode(character.charCodeAt(0) - 0x60));
+}
+
+function readingMorae(reading) {
+  const combinedKana = /[ぁぃぅぇぉゃゅょゎゕゖ]/;
+  return [...String(reading || '').replace(/[.・\s]/g, '')].reduce((morae, character) => {
+    if (combinedKana.test(character) && morae.length) morae[morae.length - 1] += character;
+    else morae.push(character);
+    return morae;
+  }, []);
+}
+
+function pitchLevels(reading, accentValue) {
+  const morae = readingMorae(reading);
+  if (accentValue === null || accentValue === undefined || accentValue === '') return null;
+  const accent = Number(accentValue);
+  if (!morae.length || !Number.isInteger(accent) || accent < 0 || accent > morae.length) return null;
+  return morae.map((_, index) => {
+    if (accent === 0) return index === 0 ? 'low' : 'high';
+    if (accent === 1) return index === 0 ? 'high' : 'low';
+    return index === 0 || index >= accent ? 'low' : 'high';
+  });
+}
+
+function createPitchDiagram(reading, accent) {
+  const levels = pitchLevels(reading, accent);
+  if (!levels) return null;
+  const namespace = 'http://www.w3.org/2000/svg';
+  const width = Math.max(36, levels.length * 18);
+  const svg = document.createElementNS(namespace, 'svg');
+  svg.classList.add('pitch-diagram');
+  svg.setAttribute('viewBox', `0 0 ${width} 24`);
+  svg.setAttribute('width', String(width));
+  svg.setAttribute('height', '24');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', `Pitch accent ${accent}`);
+  const points = levels.map((level, index) => `${9 + index * 18},${level === 'high' ? 6 : 18}`);
+  const line = document.createElementNS(namespace, 'polyline');
+  line.setAttribute('points', points.join(' '));
+  svg.append(line);
+  points.forEach(point => {
+    const [cx, cy] = point.split(',');
+    const circle = document.createElementNS(namespace, 'circle');
+    circle.setAttribute('cx', cx);
+    circle.setAttribute('cy', cy);
+    circle.setAttribute('r', '3');
+    svg.append(circle);
+  });
+  return svg;
+}
+
 function filterDictionaryItems(items, query) {
   const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
   if (!term) return [...items];
-  return items.filter(item => [item.character, item.translation, item.note]
+  return items.filter(item => [item.character, item.translation, item.reading, item.note, item.pitchAccent]
     .map(value => String(value || '').normalize('NFKC').toLocaleLowerCase())
     .some(value => value.includes(term)));
 }
 
 function selectKanji(character, source) {
   selectedCharacter = character;
+  const existing = getDictionary().find(item => item.character === character);
   document.querySelectorAll('.kmatch').forEach(item => item.classList.toggle('selected', item.textContent.trim() === character));
   document.querySelector('#selectionEmpty').hidden = true;
   document.querySelector('#kanjiForm').hidden = false;
   document.querySelector('#selectedKanji').textContent = character;
   renderStrokeGuide(document.querySelector('#addStrokeExample'), character);
-  document.querySelector('#translationInput').value = '';
-  document.querySelector('#noteInput').value = '';
+  document.querySelector('#translationInput').value = existing?.translation || '';
+  document.querySelector('#readingInput').value = existing?.reading || '';
+  document.querySelector('#pitchAccentInput').value = Number.isInteger(existing?.pitchAccent) ? existing.pitchAccent : '';
+  document.querySelector('#noteInput').value = existing?.note || '';
   loadMeanings(character);
   source?.scrollIntoView({ block: 'nearest' });
 }
 
 async function loadMeanings(character) {
   const suggestions = document.querySelector('#meaningSuggestions');
+  const readingSuggestions = document.querySelector('#readingSuggestions');
   const info = document.querySelector('#readingInfo');
   const cache = readJson(MEANING_CACHE_KEY, {});
   suggestions.innerHTML = '<span>Looking up meanings…</span>';
+  readingSuggestions.innerHTML = '';
   info.textContent = '';
   let data = cache[character];
   if (!data) {
@@ -368,6 +425,18 @@ async function loadMeanings(character) {
   if (!meanings.length) {
     suggestions.innerHTML = '<span>No suggested meanings are available for this kanji. Enter one manually.</span>';
   }
+  const readings = [...new Set([...(data.kun_readings || []), ...(data.on_readings || [])]
+    .map(reading => toHiragana(reading))
+    .filter(Boolean))];
+  readings.slice(0, 10).forEach(reading => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = reading;
+    button.addEventListener('click', () => { document.querySelector('#readingInput').value = reading; });
+    readingSuggestions.append(button);
+  });
+  const readingInput = document.querySelector('#readingInput');
+  if (!readingInput.value && readings.length) readingInput.value = readings[0];
   const on = data.on_readings?.length ? `On: ${data.on_readings.join('、')}` : '';
   const kun = data.kun_readings?.length ? `Kun: ${data.kun_readings.join('、')}` : '';
   info.textContent = [on, kun, data.stroke_count ? `Strokes: ${data.stroke_count}` : ''].filter(Boolean).join(' · ');
@@ -389,12 +458,25 @@ document.querySelectorAll('.candidate-list').forEach(list => candidateObserver.o
 document.querySelector('#kanjiForm').addEventListener('submit', event => {
   event.preventDefault();
   const translation = document.querySelector('#translationInput').value.trim();
+  const reading = toHiragana(document.querySelector('#readingInput').value.trim());
+  const pitchInput = document.querySelector('#pitchAccentInput');
+  const pitchValue = pitchInput.value;
+  const pitchAccent = pitchValue === '' ? null : Number(pitchValue);
+  pitchInput.setCustomValidity('');
   if (!selectedCharacter || !translation) return;
+  if (pitchAccent !== null && !pitchLevels(reading, pitchAccent)) {
+    const message = 'Pitch accent must be between 0 and the number of morae.';
+    pitchInput.setCustomValidity(window.I18n?.translate?.(message) || message);
+    pitchInput.reportValidity();
+    return;
+  }
   const items = getDictionary();
   const existing = items.find(item => item.character === selectedCharacter);
   const card = {
     character: selectedCharacter,
     translation,
+    reading,
+    pitchAccent,
     note: document.querySelector('#noteInput').value.trim(),
     createdAt: existing?.createdAt || new Date().toISOString(),
     nextReview: new Date().toISOString(),
@@ -410,6 +492,9 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
   document.querySelector('#selectionEmpty').hidden = false;
   selectedCharacter = '';
 });
+
+document.querySelector('#pitchAccentInput').addEventListener('input', event => event.currentTarget.setCustomValidity(''));
+document.querySelector('#readingInput').addEventListener('input', () => document.querySelector('#pitchAccentInput').setCustomValidity(''));
 
 function renderDictionary() {
   const list = document.querySelector('#dictionaryList');
@@ -436,6 +521,15 @@ function renderDictionary() {
     character.className = 'character';
     character.textContent = item.character;
     const details = document.createElement('div');
+    if (item.reading) {
+      const reading = document.createElement('span');
+      reading.className = 'dictionary-reading';
+      reading.lang = 'ja';
+      reading.textContent = toHiragana(item.reading);
+      details.append(reading);
+      const diagram = createPitchDiagram(item.reading, item.pitchAccent);
+      if (diagram) details.append(diagram);
+    }
     const meaning = document.createElement('strong');
     meaning.textContent = item.translation;
     const note = document.createElement('small');

@@ -19,3 +19,8 @@ test('buildDeck safely encodes notes for Anki HTML fields', () => {
   assert.match(deck, /&lt;b&gt;example&lt;\/b&gt;<br>line/);
   assert.doesNotMatch(deck, /<b>example<\/b>/);
 });
+
+test('buildDeck includes hiragana reading and pitch accent when available', () => {
+  const deck = AnkiExport.buildDeck([{ character: '水', translation: 'water', reading: 'みず', pitchAccent: 1, note: '' }]);
+  assert.match(deck, /<div>みず<\/div><div>water<\/div><div>Pitch accent: 1<\/div>/);
+});
