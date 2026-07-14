@@ -317,6 +317,14 @@ function mergeDictionary(remoteItems = []) {
   return [...merged.values()];
 }
 
+function filterDictionaryItems(items, query) {
+  const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
+  if (!term) return [...items];
+  return items.filter(item => [item.character, item.translation, item.note]
+    .map(value => String(value || '').normalize('NFKC').toLocaleLowerCase())
+    .some(value => value.includes(term)));
+}
+
 function selectKanji(character, source) {
   selectedCharacter = character;
   document.querySelectorAll('.kmatch').forEach(item => item.classList.toggle('selected', item.textContent.trim() === character));
@@ -406,7 +414,7 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
 function renderDictionary() {
   const list = document.querySelector('#dictionaryList');
   const allItems = getDictionary();
-  const items = window.KanjiVocabulary?.filterItems(allItems, document.querySelector('#dictionarySearch').value) || allItems;
+  const items = filterDictionaryItems(allItems, document.querySelector('#dictionarySearch').value);
   updateReviewSummary(allItems);
   document.querySelector('#dictionaryCount').textContent = `${allItems.length} ${allItems.length === 1 ? 'card' : 'cards'}`;
   document.querySelector('#dictionaryLauncherCount').textContent = allItems.length;
