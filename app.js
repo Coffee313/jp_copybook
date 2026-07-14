@@ -1155,8 +1155,16 @@ function renderPicker() {
   }
 }
 
+function updateConcentrationScriptIcons() {
+  const hiraganaButton = document.querySelector('.concentration-script-switch [data-script="hiragana"]');
+  const katakanaButton = document.querySelector('.concentration-script-switch [data-script="katakana"]');
+  if (hiraganaButton) hiraganaButton.textContent = testActive && selected[0] === 'あ' ? 'ア' : 'あ';
+  if (katakanaButton) katakanaButton.textContent = testActive && selected[0] === 'ア' ? 'あ' : 'ア';
+}
+
 function updateLesson() {
   if (mobilePracticeRecoveryActive && mobilePracticeRecoveryCharacter !== selected[0]) resetMobilePracticeRecovery();
+  updateConcentrationScriptIcons();
   const placementScript = kana.hiragana.some(item => item[0] === selected[0]) ? 'Hiragana' : 'Katakana';
   document.querySelector('#referenceKana').textContent = testActive ? selected[1] : selected[0];
   document.querySelector('#referenceRomanji').textContent = placementActive ? `${placementScript} · ${selected[1]}` : selected[1];
