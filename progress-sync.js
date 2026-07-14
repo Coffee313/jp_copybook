@@ -226,6 +226,8 @@
       : session
         ? `Signed in as ${session.user?.email || 'your account'}. Your progress is synced across devices.`
         : 'Sign in or create an account to save your learning progress.';
+    const dictionaryStorageStatus = document.querySelector('#dictionaryStorageStatus');
+    if (dictionaryStorageStatus) dictionaryStorageStatus.textContent = session ? 'Cloud sync is on' : 'Stored on this device';
     renderAccountStats();
     setSyncStatus(session ? 'Cloud sync is on' : 'Progress is stored on this device');
   }
