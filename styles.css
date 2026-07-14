@@ -469,6 +469,16 @@ footer a { color: inherit; }
   .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; min-width: 0; }
 }
 
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: portrait) {
+  body:not(.concentration-mode) .topbar,
+  body:not(.concentration-mode) main,
+  body:not(.concentration-mode) footer {
+    width: calc(100% - 16px);
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
   .lesson { grid-template-columns: 140px minmax(0, 1fr); }
   .sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -574,7 +584,9 @@ footer a { color: inherit; }
   body.concentration-mode .tablet-tip { overflow: hidden; padding: 4px 14px 6px; white-space: nowrap; text-overflow: ellipsis; font-size: 9px; }
 }
 
-@media (min-width: 768px) and (max-width: 1000px) and (orientation: landscape) {
+@media (min-width: 768px) and (max-width: 1000px) {
+  body:not(.concentration-mode) .topbar { min-width: 0; gap: 5px; }
+  body:not(.concentration-mode) .brand > span:last-child { display: none; }
   body:not(.concentration-mode) .header-mode-button { width: 29px; height: 29px; justify-content: center; padding: 0; }
   body:not(.concentration-mode) .header-mode-button > span:last-child,
   body:not(.concentration-mode) .top-input-control > span:last-child { display: none; }
