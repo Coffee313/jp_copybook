@@ -213,8 +213,15 @@
       const patterns = [
         [/^Test new kanas · (\d+)$/, 'Проверить новые знаки · $1'],
         [/^Test myself · (\d+)$/, 'Проверить себя · $1'],
-        [/^I know these kanas · (\d+)$/, 'Я знаю эти знаки · $1'],
         [/^Knowledge check (\d+) of (\d+): write “(.+)” without hints$/, 'Проверка знаний $1 из $2: напишите «$3» без подсказок'],
+        [/^Correction (\d+) of (\d+) · (.+)$/, (_, current, total, guide) => {
+          const instructions = {
+            'stroke order and directions': 'порядок и направление черт',
+            'background example': 'образец на фоне',
+            'blank background': 'без образца'
+          };
+          return `Исправление ${current} из ${total} · ${instructions[guide] || guide}`;
+        }],
         [/^(\d+) of (\d+) learned · fill every copybook cell in green$/, '$1 из $2 изучено · заполните все клетки правильно'],
         [/^(\d+) of (\d+) repetitions complete$/, '$1 из $2 повторений выполнено'],
         [/^(\d+) of (\d+) repetitions complete · draw the kana again$/, '$1 из $2 повторений выполнено · напишите знак ещё раз'],

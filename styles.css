@@ -270,6 +270,9 @@ body.concentration-mode .concentration-nav { position: fixed; z-index: 50; top: 
 body.concentration-mode .concentration-nav:hover, body.concentration-mode .concentration-nav:focus-within { opacity: 1; }
 body.concentration-mode .concentration-nav a { border-radius: 999px; padding: 7px 11px; color: rgba(255,255,255,.74); text-decoration: none; font-size: 11px; }
 body.concentration-mode .concentration-nav a.active { color: #fff; background: rgba(255,255,255,.22); }
+.concentration-script-switch { display: flex; gap: 2px; margin-left: 2px; border-left: 1px solid rgba(255,255,255,.18); padding-left: 4px; }
+body.concentration-mode .concentration-script-switch .script-button { min-width: 31px; border: 0; border-radius: 999px; padding: 5px 8px; color: rgba(255,255,255,.7); background: transparent; font: 500 16px/1 'Noto Sans JP', sans-serif; }
+body.concentration-mode .concentration-script-switch .script-button.active { color: #fff; background: rgba(255,255,255,.22); box-shadow: none; }
 body.concentration-mode main { width: min(1180px, calc(100% - 16px)); margin: 0 auto 8px; padding-top: 56px; }
 body.concentration-mode .practice-card { border-radius: 18px; box-shadow: none; }
 body.concentration-mode .concentration-exit { position: fixed; z-index: 50; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; color: #fff; background: rgba(47,45,41,.82); box-shadow: 0 3px 14px rgba(30,25,18,.16); opacity: .78; cursor: pointer; font-size: 25px; line-height: 1; transition: opacity .18s ease; }
@@ -567,6 +570,18 @@ footer a { color: inherit; }
   .test-active .lesson { position: relative; display: block; }
   .test-active .reference { position: absolute; z-index: 3; inset: 0 auto 0 0; width: 170px; background: var(--paper); }
   .test-active .sheet-wrap { min-height: inherit; display: grid; place-items: center; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
+  body.mobile-version .sheet-wrap { min-height: 0; overflow: visible; padding: 8px; }
+  body.mobile-version .practice-card .sheet {
+    --landscape-cell: auto;
+    grid-template-columns: minmax(0, 1fr);
+    width: min(calc(100dvh - 150px), calc(100vw - 230px), 460px);
+    min-width: 190px;
+    gap: 0;
+  }
+  body.mobile-version .mobile-practice-cell { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

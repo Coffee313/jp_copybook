@@ -3,6 +3,7 @@ const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
 const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed-v2';
+const MOBILE_SCREEN_QUERY = '(max-width: 760px), (max-height: 600px) and (pointer: coarse)';
 let selectedCharacter = '';
 let reviewQueue = [];
 let reviewIndex = 0;
@@ -36,7 +37,7 @@ function initializeDrawingControls() {
     catch { return false; }
   };
   const updateMobileSuggestion = () => {
-    const shouldShow = !mobileMode && window.matchMedia('(max-width: 760px)').matches && !mobileSuggestionDismissed();
+    const shouldShow = !mobileMode && window.matchMedia(MOBILE_SCREEN_QUERY).matches && !mobileSuggestionDismissed();
     const opening = mobileSuggestion.hidden && shouldShow;
     mobileSuggestion.hidden = !shouldShow;
     document.body.classList.toggle('mobile-suggestion-open', shouldShow);

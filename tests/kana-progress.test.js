@@ -32,6 +32,22 @@ test('advancePracticeCount increments mobile practice and stops at the target', 
   assert.equal(progress.advancePracticeCount('invalid'), 1);
 });
 
+test('completedRowTestItems returns pending items only after the whole row is learned', () => {
+  const values = [['a', 'a'], ['i', 'i'], ['u', 'u']];
+  assert.deepEqual(progress.completedRowTestItems(values, { a: { learned: true }, i: { learned: true } }, {}), []);
+  assert.deepEqual(progress.completedRowTestItems(values, {
+    a: { learned: true }, i: { learned: true }, u: { learned: true }
+  }, { a: { passed: true } }), [['i', 'i'], ['u', 'u']]);
+});
+
+test('practiceRecoveryTransition advances on success and moves back on a mistake', () => {
+  assert.deepEqual(progress.practiceRecoveryTransition(0, 'good'), { layerIndex: 1, complete: false });
+  assert.deepEqual(progress.practiceRecoveryTransition(1, 'good'), { layerIndex: 2, complete: false });
+  assert.deepEqual(progress.practiceRecoveryTransition(2, 'good'), { layerIndex: 2, complete: true });
+  assert.deepEqual(progress.practiceRecoveryTransition(2, 'retry'), { layerIndex: 1, complete: false });
+  assert.deepEqual(progress.practiceRecoveryTransition(0, 'direction'), { layerIndex: 0, complete: false });
+});
+
 test('mergeMastery keeps the newest result for each kana', () => {
   const local = { あ: { passed: true, passedAt: '2026-07-12T10:00:00Z' } };
   const remote = { あ: { passed: true, passedAt: '2026-07-11T10:00:00Z' }, ア: { passed: true, passedAt: '2026-07-10T10:00:00Z' } };

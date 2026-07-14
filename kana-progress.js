@@ -87,6 +87,19 @@
     return Math.min(safeCount + 1, target);
   }
 
+  function completedRowTestItems(values, learned, mastery) {
+    if (!values.length || values.some(item => !learned[item[0]]?.learned && !mastery[item[0]]?.passed)) return [];
+    return pendingTestItems(values, learned, mastery);
+  }
+
+  function practiceRecoveryTransition(layerIndex, result, layerCount = 3) {
+    const lastLayer = Math.max(0, layerCount - 1);
+    const current = Math.min(lastLayer, Math.max(0, Number(layerIndex) || 0));
+    if (result !== 'good') return { layerIndex: Math.max(0, current - 1), complete: false };
+    if (current === lastLayer) return { layerIndex: current, complete: true };
+    return { layerIndex: current + 1, complete: false };
+  }
+
   function previousTestLayer(layerIndex) {
     return Math.max(0, layerIndex - 1);
   }
@@ -126,5 +139,5 @@
     return Date.parse(local.completedAt || 0) >= Date.parse(remote.completedAt || 0) ? local : remote;
   }
 
-  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, advancePracticeCount, previousTestLayer, testPickerItems, cookieValue, shuffled, placementLevel, mergePlacement };
+  return { markMastered, markLearned, mergeMastery, mergeLearned, progressCount, resetMastery, markScriptReset, mergeResetTimes, applyMasteryResets, applyLearnedResets, pendingTestItems, allPracticeCellsGood, advancePracticeCount, completedRowTestItems, practiceRecoveryTransition, previousTestLayer, testPickerItems, cookieValue, shuffled, placementLevel, mergePlacement };
 });
