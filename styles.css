@@ -109,6 +109,10 @@ body.mobile-suggestion-open { overflow: hidden; }
 .account-dialog input { width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; background: #fbfaf7; }
 .account-dialog select { width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; background: #fbfaf7; }
 .dialog-close { position: absolute; top: 13px; right: 13px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f2eee7; cursor: pointer; font-size: 19px; }
+.donation-dialog { text-align: center; }
+.donation-dialog .eyebrow { margin-top: 0; }
+.donation-checkout-link { display: inline-flex; min-height: 44px; margin-top: 12px; align-items: center; justify-content: center; border-radius: 999px; padding: 11px 20px; color: #fff; background: #a94534; text-decoration: none; font-size: 13px; font-weight: 700; }
+.donation-checkout-link:hover { background: #8d382a; }
 .account-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
 .account-actions button, .sign-out { border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .account-actions button[value="signup"] { color: var(--green); border: 1px solid var(--green); background: transparent; }
