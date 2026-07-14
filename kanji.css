@@ -1,4 +1,7 @@
 .kanji-main { margin-top: 10px; }
+.kanji-page-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.kanji-page-actions button { display: inline-flex; min-height: 38px; align-items: center; gap: 9px; border: 1px solid var(--green); border-radius: 999px; padding: 8px 13px; color: var(--green); background: var(--paper); cursor: pointer; font-size: 11px; font-weight: 700; }
+.kanji-page-actions strong { display: inline-grid; min-width: 21px; height: 21px; place-items: center; border-radius: 999px; color: #fff; background: var(--green); font-size: 10px; }
 .account-area { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .account-area > button { max-width: 190px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--paper); cursor: pointer; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 #syncStatus[data-error="true"], #accountStatus[data-error="true"] { color: #a94534; }
@@ -26,7 +29,7 @@
 .kanji-heading h1 { margin-top: 5px; }
 .kanji-heading > p { max-width: 480px; margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.55; }
 .kanji-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .75fr); gap: 18px; align-items: stretch; }
-.recognizer-card, .dictionary-card, .my-dictionary, .review-section { border: 1px solid rgba(216,210,199,.8); border-radius: 24px; background: var(--paper); box-shadow: 0 16px 50px rgba(55,46,32,.055); }
+.recognizer-card, .dictionary-card, .review-section { border: 1px solid rgba(216,210,199,.8); border-radius: 24px; background: var(--paper); box-shadow: 0 16px 50px rgba(55,46,32,.055); }
 .recognizer-card { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(290px, 1.1fr); overflow: hidden; }
 .recognizer-card[hidden] { display: none; }
 .draw-panel { padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fbf9f5; border-right: 1px solid #e9e4dc; }
@@ -63,14 +66,20 @@
 .meaning-suggestions button { border: 1px solid var(--accent-soft); border-radius: 999px; padding: 6px 10px; color: #a94534; background: #fff7f4; cursor: pointer; font-size: 11px; }
 .reading-info { color: var(--muted); font-size: 11px; line-height: 1.6; }
 .save-kanji { width: 100%; border: 0; border-radius: 12px; padding: 12px; color: white; background: var(--green); cursor: pointer; font-weight: 700; }
-.my-dictionary { margin-top: 18px; padding: 24px; }
+.vocabulary-dialog { width: min(920px, calc(100% - 28px)); max-height: min(760px, calc(100dvh - 28px)); border: 1px solid var(--line); border-radius: 24px; padding: 24px; color: var(--ink); background: var(--paper); box-shadow: 0 25px 80px rgba(30,25,18,.28); }
+.vocabulary-dialog[open] { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
+.vocabulary-dialog::backdrop { background: rgba(30,25,18,.42); backdrop-filter: blur(4px); }
 .dictionary-heading { display: flex; align-items: end; justify-content: space-between; }
 .dictionary-heading h2 { margin: 4px 0 0; font-size: 25px; }
 .dictionary-heading-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .dictionary-heading-actions > span { color: var(--muted); font-size: 12px; }
 .dictionary-heading-actions button { border: 1px solid var(--green); border-radius: 999px; padding: 8px 12px; color: #fff; background: var(--green); cursor: pointer; white-space: nowrap; font-size: 11px; font-weight: 700; }
 .dictionary-heading-actions button:disabled { border-color: var(--line); color: var(--muted); background: #f2eee7; cursor: not-allowed; }
+.vocabulary-search { display: block; margin-top: 18px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.vocabulary-search input { width: 100%; margin-top: 7px; border: 1px solid var(--line); border-radius: 13px; padding: 11px 13px; color: var(--ink); background: #fbfaf7; outline: none; font: inherit; font-size: 13px; }
+.vocabulary-search input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); }
 .dictionary-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 10px; margin-top: 18px; }
+.vocabulary-dialog .dictionary-list { min-height: 0; overflow: auto; overscroll-behavior: contain; padding-right: 3px; }
 .dictionary-item { min-width: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr) 26px; gap: 12px; align-items: start; padding: 15px; border: 1px solid #e6e0d7; border-radius: 14px; background: #fbfaf7; }
 .dictionary-item .character { font: 400 40px/1 'Noto Sans JP', sans-serif; color: var(--green); }
 .dictionary-item > div { min-width: 0; }
@@ -105,7 +114,7 @@
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
 @media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }
-@media (max-width: 680px) { .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .my-dictionary, .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-heading-actions { flex-direction: column; align-items: flex-end; gap: 6px; } .dictionary-list { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-heading-actions { flex-direction: column; align-items: flex-end; gap: 6px; } .dictionary-list { grid-template-columns: 1fr; } .vocabulary-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 18px; padding: 18px; } }
 
 @media (max-width: 760px) {
   body.mobile-version .kanji-main { width: calc(100% - 12px); margin-top: 6px; }

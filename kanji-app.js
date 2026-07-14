@@ -405,26 +405,57 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
 
 function renderDictionary() {
   const list = document.querySelector('#dictionaryList');
-  const items = getDictionary();
-  updateReviewSummary(items);
-  document.querySelector('#dictionaryCount').textContent = `${items.length} ${items.length === 1 ? 'card' : 'cards'}`;
-  document.querySelector('#exportAnki').disabled = items.length === 0;
+  const allItems = getDictionary();
+  const items = window.KanjiVocabulary?.filterItems(allItems, document.querySelector('#dictionarySearch').value) || allItems;
+  updateReviewSummary(allItems);
+  document.querySelector('#dictionaryCount').textContent = `${allItems.length} ${allItems.length === 1 ? 'card' : 'cards'}`;
+  document.querySelector('#dictionaryLauncherCount').textContent = allItems.length;
+  document.querySelector('#exportAnki').disabled = allItems.length === 0;
   list.innerHTML = '';
-  if (!items.length) {
-    list.innerHTML = '<p class="dictionary-empty">Your dictionary is empty. Draw your first kanji and add a meaning.</p>';
+  if (!allItems.length || !items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'dictionary-empty';
+    empty.textContent = allItems.length
+      ? 'No vocabulary matches your search.'
+      : 'Your dictionary is empty. Draw your first kanji and add a meaning.';
+    list.append(empty);
     return;
   }
   items.forEach(item => {
     const card = document.createElement('article');
     card.className = 'dictionary-item';
-    card.innerHTML = `<span class="character">${item.character}</span><div><strong>${item.translation}</strong><small>${item.note || 'Ready for the first review'}</small></div><button type="button" aria-label="Delete ${item.character}">×</button>`;
-    card.querySelector('button').addEventListener('click', () => {
+    const character = document.createElement('span');
+    character.className = 'character';
+    character.textContent = item.character;
+    const details = document.createElement('div');
+    const meaning = document.createElement('strong');
+    meaning.textContent = item.translation;
+    const note = document.createElement('small');
+    note.textContent = item.note || 'Ready for the first review';
+    details.append(meaning, note);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `Delete ${item.character}`);
+    remove.textContent = '×';
+    remove.addEventListener('click', () => {
       saveDictionary(getDictionary().filter(entry => entry.character !== item.character));
       renderDictionary();
     });
+    card.append(character, details, remove);
     list.append(card);
   });
 }
+
+const dictionaryDialog = document.querySelector('#dictionaryDialog');
+const dictionarySearch = document.querySelector('#dictionarySearch');
+document.querySelector('#openDictionary').addEventListener('click', () => {
+  dictionarySearch.value = '';
+  renderDictionary();
+  dictionaryDialog.showModal();
+  requestAnimationFrame(() => dictionarySearch.focus());
+});
+document.querySelector('#closeDictionary').addEventListener('click', () => dictionaryDialog.close());
+dictionarySearch.addEventListener('input', renderDictionary);
 
 document.querySelector('#exportAnki').addEventListener('click', () => {
   const items = getDictionary();
