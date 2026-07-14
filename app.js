@@ -1339,7 +1339,10 @@ function initializeInputMode() {
 }
 
 function initializePlacement() {
-  if (placement) return;
+  if (placement) {
+    markProductTourReady();
+    return;
+  }
   if (Object.keys(mastery).length || Object.keys(learned).length) {
     savePlacement({
       selectedLevel: 'existing',
@@ -1350,12 +1353,18 @@ function initializePlacement() {
       completedAt: new Date().toISOString()
     });
     renderLearningPath();
+    markProductTourReady();
     return;
   }
   const dialog = document.querySelector('#placementDialog');
   document.querySelector('#placementChoice').hidden = false;
   document.querySelector('#placementResult').hidden = true;
   requestAnimationFrame(() => dialog.showModal());
+}
+
+function markProductTourReady() {
+  document.body.dataset.productTourReady = 'true';
+  document.dispatchEvent(new CustomEvent('copybook-product-tour-ready'));
 }
 
 penOnlyToggle.addEventListener('change', () => setInputMode(penOnlyToggle.checked ? 'stylus' : 'finger'));
@@ -1375,9 +1384,13 @@ document.querySelectorAll('[data-placement-level]').forEach(button => {
     else startPlacementTest(level);
   });
 });
-document.querySelector('#placementContinue').addEventListener('click', () => document.querySelector('#placementDialog').close());
+document.querySelector('#placementContinue').addEventListener('click', () => {
+  document.querySelector('#placementDialog').close();
+  markProductTourReady();
+});
 document.querySelector('#placementRegister').addEventListener('click', () => {
   document.querySelector('#placementDialog').close();
+  markProductTourReady();
   document.querySelector('#openAccount').click();
 });
 

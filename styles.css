@@ -627,9 +627,9 @@ footer a { color: inherit; }
     right: max(8px, env(safe-area-inset-right));
   }
   body.concentration-mode:not(.kanji-page) .topbar {
-    top: max(8px, env(safe-area-inset-top));
+    top: max(50px, calc(env(safe-area-inset-top) + 50px));
     right: auto;
-    left: max(98px, calc(env(safe-area-inset-left) + 98px));
+    left: max(8px, env(safe-area-inset-left));
     width: 34px;
     min-height: 34px;
     padding: 3px;
