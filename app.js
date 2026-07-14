@@ -682,7 +682,7 @@ function showGrade(cell, result, score) {
       : `Shape needs work · ${score}%`;
   cell.append(badge);
   if (testActive && result === 'good') revealTestComparison(cell);
-  if (!testActive && result !== 'good' && (!mobileMode || copybookMode)) {
+  if (!testActive && result !== 'good' && !mobileMode) {
     const canvas = cell.querySelector('canvas');
     if (canvas) {
       canvas.__autoClearPending = true;
@@ -697,7 +697,7 @@ function showGrade(cell, result, score) {
     }
   }
   if (testActive) handleTestResult(result);
-  else if (!copybookMode && mobileMode) handleMobilePracticeResult(result, cell);
+  else if (mobileMode) handleMobilePracticeResult(result, cell);
   else if (result === 'good' && !copybookMode) recordLearningSuccess();
 }
 
@@ -767,6 +767,10 @@ function resetMobilePracticeRecovery() {
 function handleMobilePracticeResult(result, cell) {
   const character = selected[0];
   const canvas = cell.querySelector('canvas');
+  if (!mobilePracticeRecoveryActive && result === 'good') {
+    if (!copybookMode) recordMobilePracticeSuccess(cell);
+    return;
+  }
   if (canvas) canvas.style.pointerEvents = 'none';
   if (!mobilePracticeRecoveryActive && result !== 'good') {
     mobilePracticeRecoveryActive = true;
@@ -777,15 +781,17 @@ function handleMobilePracticeResult(result, cell) {
     }, 900);
     return;
   }
-  if (!mobilePracticeRecoveryActive) {
-    recordMobilePracticeSuccess(cell);
-    return;
-  }
   const transition = KanaProgress.practiceRecoveryTransition(mobilePracticeLayerIndex, result, TEST_LAYERS.length);
   mobilePracticeLayerIndex = transition.layerIndex;
   if (transition.complete) {
     resetMobilePracticeRecovery();
-    recordMobilePracticeSuccess(cell);
+    if (copybookMode) {
+      setTimeout(() => {
+        if (!testActive && mobileMode && copybookMode && selected[0] === character) updateLesson();
+      }, 850);
+    } else {
+      recordMobilePracticeSuccess(cell);
+    }
     return;
   }
   setTimeout(() => {

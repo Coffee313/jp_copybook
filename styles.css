@@ -259,11 +259,12 @@ body:not(.copybook-mode) .learning-path .kana-button { min-width: 34px; max-widt
 
 .lesson { display: grid; grid-template-columns: 235px minmax(0, 1fr); min-height: 470px; }
 .reference { position: relative; padding: 32px 28px; border-right: 1px solid #e9e4dc; display: flex; flex-direction: column; justify-content: space-between; }
-.reference-actions { display: grid; gap: 7px; }
+.reference-actions { min-width: 0; display: grid; gap: 7px; }
 .reference-actions .script-switch { width: max-content; }
 .reference-actions .script-button { padding: 6px 8px; font-size: 9px; }
-.reference-actions .guide-control { gap: 6px; font-size: 10px; }
-html[lang="ru"] .reference-actions .guide-control { gap: 5px; white-space: nowrap; font-size: 8px; }
+.reference-actions .guide-control { width: 100%; gap: 6px; font-size: 10px; }
+.reference-actions .guide-control > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+html[lang="ru"] .reference-actions .guide-control { gap: 5px; white-space: normal; font-size: 8px; line-height: 1.25; }
 .reference-actions .practice-clear { width: max-content; margin-left: 0; padding: 7px 9px; font-size: 9px; }
 .reference-kana { font-family: 'Noto Sans JP', sans-serif; font-size: 146px; line-height: 1; color: var(--green); }
 .test-active .reference-kana { max-width: 100%; overflow-wrap: anywhere; font-size: clamp(54px, 8vw, 90px); letter-spacing: -.05em; }
