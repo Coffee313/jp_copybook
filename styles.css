@@ -407,6 +407,12 @@ footer a { color: inherit; }
   html[lang="ru"] button { overflow-wrap: anywhere; }
   .mobile-suggestion { padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
   .mobile-suggestion-card { border-radius: 20px; padding: 30px 20px 22px; }
+  .test-active .reference { min-height: 176px; flex-direction: column; align-items: stretch; justify-content: center; gap: 8px; padding: 12px; }
+  .test-active .reference-actions { width: 100%; }
+  .test-active .reference .forgot-answer { width: 100%; align-self: stretch; padding: 9px 10px; text-align: center; white-space: normal; }
+  .test-active .reference-kana { width: 100%; align-self: center; overflow: hidden; font-size: clamp(38px, 15vw, 62px); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+  .test-active .reference > div:last-child { width: 100%; text-align: center; }
+  .test-active .reference-hint { max-width: none; margin-top: 0; }
 }
 
 @media (max-width: 760px) {
@@ -416,9 +422,12 @@ footer a { color: inherit; }
   body.mobile-version .learning-path .kana-picker { flex-wrap: nowrap; overflow-x: auto; padding: 2px 0; }
   body.mobile-version .lesson { display: flex; flex-direction: column; }
   body.mobile-version .reference { min-height: 118px; align-items: center; }
+  body.mobile-version .test-active .reference { min-height: 176px; align-items: stretch; }
   body.mobile-version .reference-kana { font-size: 76px; }
   body.mobile-version .reference-romanji { font-size: 22px; }
   body.mobile-version .reference-hint { max-width: 150px; font-size: 10px; line-height: 1.35; }
+  body.mobile-version .test-active .reference-kana { font-size: clamp(38px, 15vw, 62px); }
+  body.mobile-version .test-active .reference-hint { max-width: none; }
   body.mobile-version .sheet-wrap { min-height: min(108vw, 500px); padding: 12px; }
   body.mobile-version .sheet { width: min(calc(100vw - 38px), 460px); }
   body.mobile-version .mastered-kana { display: none; }

@@ -270,7 +270,9 @@
     });
     clearTimeout(saveTimer);
     storeSession(data);
-    await loadAndMergeProgress({ replaceLocal: previousOwner !== data.user?.id });
+    document.querySelector('#accountDialog')?.close();
+    await loadAndMergeProgress({ replaceLocal: previousOwner !== data.user?.id })
+      .catch(error => setSyncStatus(error.message, true));
   }
 
   async function signUp(email, password) {
@@ -282,7 +284,8 @@
     if (data.access_token) {
       clearTimeout(saveTimer);
       storeSession(data);
-      await loadAndMergeProgress();
+      document.querySelector('#accountDialog')?.close();
+      await loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
       return 'Account created.';
     }
     return 'Check your email to confirm your account.';
@@ -397,7 +400,7 @@
       try {
         const message = action === 'signup' ? await signUp(email, password) : (await signIn(email, password), 'Signed in.');
         status.textContent = message;
-        if (session) setTimeout(() => dialog.close(), 500);
+        if (session && dialog.open) dialog.close();
       } catch (error) {
         status.textContent = error.message;
         status.dataset.error = 'true';
