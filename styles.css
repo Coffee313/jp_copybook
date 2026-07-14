@@ -369,8 +369,7 @@ footer a { color: inherit; }
 .footer-sync-status { margin-right: auto; font-size: inherit; text-align: left; }
 .footer-support { display: inline-flex; align-items: center; gap: 8px; }
 .footer-support button, .footer-support a { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; color: var(--muted); background: rgba(255,255,255,.55); cursor: pointer; text-decoration: none; white-space: nowrap; font-size: inherit; }
-.footer-support button { border-color: #ecc1b8; color: #a94534; }
-.donation-widget { display: block; width: min(100%, 350px); height: 60px; margin: 18px auto 0; border: 0; }
+.footer-support .donate-link { border-color: #ecc1b8; color: #a94534; }
 
 @media (max-width: 760px) {
   .topbar, main, footer { width: min(100% - 16px, 1180px); }
