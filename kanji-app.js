@@ -385,10 +385,18 @@ function localVocabularyEntry(word) {
 function searchLocalVocabulary(query, limit = 12) {
   const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
   if (!term || !window.JMDICT_COMMON?.entries) return [];
+  const readingTerm = normalizeWordReading(term);
   const matches = [];
   Object.entries(window.JMDICT_COMMON.entries).forEach(([word, entry]) => {
+    const characters = kanjiInWord(word);
+    if (!characters.length || characters.length > 4) return;
+    const normalizedWord = word.normalize('NFKC').toLocaleLowerCase();
+    const readings = entry.r.map(normalizeWordReading);
     const meanings = entry.m.map(value => value.toLocaleLowerCase());
-    let score = meanings.includes(term) ? 0 : meanings.some(value => value.startsWith(term)) ? 1 : meanings.some(value => value.includes(term)) ? 2 : -1;
+    let score = normalizedWord === term || readings.includes(readingTerm) || meanings.includes(term) ? 0
+      : normalizedWord.startsWith(term) || readings.some(value => value.startsWith(readingTerm)) || meanings.some(value => value.startsWith(term)) ? 1
+        : normalizedWord.includes(term) || readings.some(value => value.includes(readingTerm)) || meanings.some(value => value.includes(term)) ? 2
+          : -1;
     if (score === -1) return;
     matches.push({ word, entry, score });
   });
@@ -598,7 +606,9 @@ wordLookupForm.addEventListener('submit', async event => {
   wordLookupResults.innerHTML = '';
   wordLookupStatus.textContent = 'Looking for Japanese words…';
   try {
-    const sourceLanguage = /[А-Яа-яЁё]/u.test(originalQuery) ? 'ru' : 'en';
+    const sourceLanguage = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/u.test(originalQuery)
+      ? 'ja'
+      : /[А-Яа-яЁё]/u.test(originalQuery) ? 'ru' : 'en';
     let lookupQuery = originalQuery;
     if (sourceLanguage === 'ru') {
       const translation = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=ru|en`);
@@ -609,7 +619,7 @@ wordLookupForm.addEventListener('submit', async event => {
       const characters = kanjiInWord(word);
       suggestions.set(word, { word, characters, reading: normalizeWordReading(entry.r[0]), meanings: entry.m });
     });
-    if (!suggestions.size) {
+    if (!suggestions.size && sourceLanguage !== 'ja') {
       const fallback = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=${sourceLanguage}|ja`);
       [fallback.responseData?.translatedText, ...(fallback.matches || []).map(match => match.translation)].forEach(value => {
         const word = String(value || '').trim();
@@ -634,7 +644,9 @@ wordLookupForm.addEventListener('submit', async event => {
         activeWordIndex = 0;
         renderWordCells();
         selectWord(suggestion.word, button);
-        document.querySelector('#translationInput').value = originalQuery;
+        document.querySelector('#translationInput').value = sourceLanguage === 'ja'
+          ? suggestion.meanings[0] || originalQuery
+          : originalQuery;
         syncMeaningSuggestionState();
         wordLookupForm.hidden = true;
         toggleWordLookup.setAttribute('aria-expanded', 'false');
