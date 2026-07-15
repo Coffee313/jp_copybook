@@ -215,6 +215,7 @@ h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spa
 .test-sheet-layout { display: contents; }
 .test-active .test-sheet-layout { display: grid; grid-template-columns: minmax(110px, 145px) minmax(220px, 340px); align-items: center; gap: 12px; width: max-content; max-width: 100%; }
 .test-active .test-sheet-layout > .forgot-answer { justify-self: end; margin: 0; background: rgba(255,254,250,.96); text-align: center; white-space: normal; }
+.test-active .test-sheet-layout > .sheet { grid-column: 2; }
 .copybook-mode .kana-progress-panel, .copybook-mode .learning-path-summary, .copybook-mode .know-row-button, .copybook-mode .mastered-kana { display: none; }
 .copybook-mode .learning-path { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 6px 10px; }
 .copybook-mode .learning-path .kana-picker { width: 100%; max-width: none; justify-content: flex-start; padding: 10px 14px; }
