@@ -58,6 +58,7 @@
 .recognizer-card { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(290px, 1.1fr); overflow: hidden; }
 .recognizer-card[hidden] { display: none; }
 .draw-panel { padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fbf9f5; border-right: 1px solid #e9e4dc; }
+.recognizer-card > .draw-panel { justify-content: flex-start; }
 .canvas-wrap { position: relative; width: min(100%, 360px); }
 #can { width: min(100%, 360px); height: auto; aspect-ratio: 1; border: 1.5px solid #9f988c; background: #fffefa; touch-action: none; cursor: crosshair; }
 .canvas-stroke-guide { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .24; }
