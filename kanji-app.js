@@ -944,8 +944,16 @@ function renderReviewPracticeIcons(cards) {
   container.hidden = reviewActive || !cards.length;
 }
 
+function clearReviewDrawing() {
+  const guide = document.querySelector('#reviewStrokeGuide');
+  guide.hidden = true;
+  guide.replaceChildren();
+  clearRecognizerDrawing();
+}
+
 function leaveReviewTest(message = 'Test exited. Your unfinished card was not reviewed.') {
   clearTimeout(reviewAdvanceTimer);
+  clearReviewDrawing();
   reviewActive = false;
   reviewSelfTest = false;
   reviewMode = 'test';
@@ -973,7 +981,7 @@ function leaveReviewTest(message = 'Test exited. Your unfinished card was not re
     empty.hidden = false;
     empty.textContent = message;
   }
-  erase();
+  clearReviewDrawing();
 }
 
 function showReviewCard() {
