@@ -1,14 +1,29 @@
 .kanji-main { margin-top: 10px; }
-.word-builder { display: grid; grid-template-columns: minmax(240px, 1fr) auto; align-items: center; gap: 12px 24px; margin-bottom: 18px; padding: 20px 24px; border: 1px solid rgba(216,210,199,.8); border-radius: 20px; background: var(--paper); box-shadow: 0 12px 38px rgba(55,46,32,.045); }
-.word-builder h1 { margin: 4px 0 0; font-size: 21px; }
-.word-length-options { display: flex; gap: 7px; }
-.word-length-options button { width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: #fbfaf7; cursor: pointer; font-weight: 700; }
+.word-builder { display: grid; grid-template-columns: auto auto minmax(180px, 1fr) auto; align-items: center; gap: 8px 14px; margin-bottom: 14px; padding: 11px 14px; border: 1px solid rgba(216,210,199,.8); border-radius: 15px; background: var(--paper); box-shadow: 0 10px 30px rgba(55,46,32,.04); }
+.word-builder-title { display: flex; align-items: baseline; gap: 9px; white-space: nowrap; }
+.word-builder-title .eyebrow { margin: 0; }
+.word-builder h1 { margin: 0; font-size: 13px; }
+.word-length-options { display: flex; gap: 5px; }
+.word-length-options button { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: #fbfaf7; cursor: pointer; font-weight: 700; }
 .word-length-options button:hover, .word-length-options button.active { border-color: var(--green); color: #fff; background: var(--green); }
-.word-cells { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.word-cell { display: grid; width: 68px; height: 68px; place-items: center; border: 1.5px dashed var(--line); border-radius: 13px; color: var(--muted); background: #fffefa; cursor: pointer; font: 500 31px/1 'Noto Sans JP', sans-serif; }
+.word-lookup-toggle { justify-self: end; border: 1px solid var(--green); border-radius: 999px; padding: 7px 11px; color: var(--green); background: transparent; cursor: pointer; white-space: nowrap; font-size: 11px; font-weight: 700; }
+.word-lookup-toggle:hover, .word-lookup-toggle[aria-expanded=true] { color: #fff; background: var(--green); }
+.word-cells { grid-column: 1 / 3; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 7px; }
+.word-cell { display: grid; width: 48px; height: 48px; place-items: center; border: 1.5px dashed var(--line); border-radius: 11px; color: var(--muted); background: #fffefa; cursor: pointer; font: 500 25px/1 'Noto Sans JP', sans-serif; }
 .word-cell.active { border-style: solid; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(222,92,67,.13); color: var(--accent); }
 .word-cell.complete { border-style: solid; color: var(--green); }
-.word-builder-help { grid-column: 1 / -1; margin: 0; color: var(--muted); text-align: center; font-size: 11px; }
+.word-builder-help { grid-column: 3 / -1; margin: 0; color: var(--muted); text-align: right; font-size: 10px; }
+.word-lookup-form { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 10px; }
+.word-lookup-form label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.word-lookup-form > div:first-of-type { display: flex; gap: 7px; }
+.word-lookup-form input { min-width: 0; flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; background: #fbfaf7; }
+.word-lookup-form button { border: 0; border-radius: 10px; padding: 9px 13px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
+#wordLookupStatus { min-height: 16px; margin: 7px 0 0; color: var(--muted); font-size: 10px; }
+.word-lookup-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 7px; margin-top: 6px; }
+.word-lookup-results button { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); padding: 9px 11px; color: var(--ink); background: #fbfaf7; text-align: left; }
+.word-lookup-results button:hover { border-color: var(--green); background: #f1f6f2; }
+.word-lookup-results strong { color: var(--green); font: 500 20px/1.2 'Noto Sans JP', sans-serif; }
+.word-lookup-results span { margin-top: 3px; overflow-wrap: anywhere; color: var(--muted); font-size: 10px; line-height: 1.35; }
 .kanji-page-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
 .kanji-page-actions button { display: inline-flex; min-height: 38px; align-items: center; gap: 9px; border: 1px solid var(--green); border-radius: 999px; padding: 8px 13px; color: var(--green); background: var(--paper); cursor: pointer; font-size: 11px; font-weight: 700; }
 .kanji-page-actions strong { display: inline-grid; min-width: 21px; height: 21px; place-items: center; border-radius: 999px; color: #fff; background: var(--green); font-size: 10px; }
@@ -77,6 +92,7 @@
 #kanjiForm input:focus, #kanjiForm textarea:focus { border-color: var(--green); }
 .meaning-suggestions, .reading-suggestions { display: flex; flex-wrap: wrap; gap: 6px; }
 .meaning-suggestions button, .reading-suggestions button { border: 1px solid var(--accent-soft); border-radius: 999px; padding: 6px 10px; color: #a94534; background: #fff7f4; cursor: pointer; font-size: 11px; }
+.meaning-suggestions button.selected { border-color: var(--accent); color: #fff; background: var(--accent); }
 .reading-suggestions button { font-family: 'Noto Sans JP', sans-serif; }
 .reading-info { color: var(--muted); font-size: 11px; line-height: 1.6; }
 .save-kanji { width: 100%; border: 0; border-radius: 12px; padding: 12px; color: white; background: var(--green); cursor: pointer; font-weight: 700; }
@@ -134,7 +150,7 @@
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
 @media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }
-@media (max-width: 680px) { .word-builder { grid-template-columns: 1fr; padding: 17px; } .word-length-options { justify-content: center; } .word-cell { width: 56px; height: 56px; font-size: 27px; } .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-heading-actions { flex-direction: column; align-items: flex-end; gap: 6px; } .vocabulary-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 18px; padding: 18px; } }
+@media (max-width: 680px) { .word-builder { grid-template-columns: 1fr auto; padding: 10px; } .word-builder-title { display: none; } .word-length-options { justify-content: flex-start; } .word-lookup-toggle { grid-column: 2; } .word-cells { grid-column: 1 / -1; justify-content: center; } .word-builder-help { grid-column: 1 / -1; text-align: center; } .word-lookup-form { grid-column: 1 / -1; } .word-cell { width: 48px; height: 48px; font-size: 25px; } .kanji-heading { display: block; } .kanji-heading > p { margin-top: 10px; } .recognizer-card { grid-template-columns: 1fr; } .draw-panel { border-right: 0; border-bottom: 1px solid #e9e4dc; } .candidate-panel { min-height: 300px; } .review-section { padding: 18px; } .dictionary-heading, .review-heading { align-items: start; } .dictionary-heading-actions { flex-direction: column; align-items: flex-end; gap: 6px; } .vocabulary-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 18px; padding: 18px; } }
 
 @media (max-width: 760px) {
   body.mobile-version .kanji-main { width: calc(100% - 12px); margin-top: 6px; }

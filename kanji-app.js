@@ -347,6 +347,26 @@ function normalizeWordReading(value) {
   return toHiragana(value).replace(/[.・-]/g, '').trim();
 }
 
+function kanjiInWord(word) {
+  return [...String(word || '')].filter(character => /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/u.test(character));
+}
+
+function selectedMeanings() {
+  return document.querySelector('#translationInput').value
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean);
+}
+
+function syncMeaningSuggestionState() {
+  const selected = new Set(selectedMeanings().map(value => value.toLocaleLowerCase()));
+  document.querySelectorAll('#meaningSuggestions button').forEach(button => {
+    const active = selected.has(button.textContent.trim().toLocaleLowerCase());
+    button.classList.toggle('selected', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+}
+
 function filterDictionaryItems(items, query) {
   const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
   if (!term) return [...items];
@@ -406,7 +426,7 @@ function selectWord(word, source) {
   document.querySelector('#selectedKanji').textContent = word;
   const examples = document.querySelector('#wordStrokeExamples');
   examples.innerHTML = '';
-  [...word].forEach((character, index) => {
+  kanjiInWord(word).forEach((character, index) => {
     const example = document.createElement('div');
     example.className = 'word-stroke-example';
     const label = document.createElement('span');
@@ -467,9 +487,18 @@ async function loadWordDetails(word) {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = meaning;
-    button.addEventListener('click', () => { document.querySelector('#translationInput').value = meaning; });
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', () => {
+      const input = document.querySelector('#translationInput');
+      const values = selectedMeanings();
+      const existingIndex = values.findIndex(value => value.toLocaleLowerCase() === meaning.toLocaleLowerCase());
+      if (existingIndex === -1) values.push(meaning); else values.splice(existingIndex, 1);
+      input.value = values.join(', ');
+      syncMeaningSuggestionState();
+    });
     suggestions.append(button);
   });
+  syncMeaningSuggestionState();
   if (!meanings.length) {
     suggestions.innerHTML = '<span>No suggested meaning was found for this word. Enter one manually.</span>';
   }
@@ -501,6 +530,75 @@ document.querySelector('#wordLengthOptions').addEventListener('click', event => 
   const button = event.target.closest('[data-word-length]');
   if (button) resetWordBuilder(Number(button.dataset.wordLength));
 });
+
+const wordLookupForm = document.querySelector('#wordLookupForm');
+const wordLookupInput = document.querySelector('#wordLookupInput');
+const wordLookupStatus = document.querySelector('#wordLookupStatus');
+const wordLookupResults = document.querySelector('#wordLookupResults');
+const toggleWordLookup = document.querySelector('#toggleWordLookup');
+
+toggleWordLookup.addEventListener('click', () => {
+  const opening = wordLookupForm.hidden;
+  wordLookupForm.hidden = !opening;
+  toggleWordLookup.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  if (opening) requestAnimationFrame(() => wordLookupInput.focus());
+});
+
+async function englishLookupQuery(query) {
+  if (!/[А-Яа-яЁё]/u.test(query)) return query;
+  wordLookupStatus.textContent = 'Translating the Russian word for lookup…';
+  const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=ru|en`);
+  return result.responseData?.translatedText?.trim() || query;
+}
+
+wordLookupForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const originalQuery = wordLookupInput.value.trim();
+  if (!originalQuery) return;
+  wordLookupResults.innerHTML = '';
+  wordLookupStatus.textContent = 'Looking for Japanese words…';
+  try {
+    const query = await englishLookupQuery(originalQuery);
+    const result = await fetchJson(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(query)}`);
+    const suggestions = new Map();
+    (result.data || []).forEach(entry => {
+      const definitions = [...new Set((entry.senses || []).flatMap(sense => sense.english_definitions || []))].slice(0, 3);
+      (entry.japanese || []).forEach(form => {
+        const word = form.word || '';
+        const characters = kanjiInWord(word);
+        if (!word || !characters.length || characters.length > 4 || suggestions.has(word)) return;
+        suggestions.set(word, { word, characters, reading: normalizeWordReading(form.reading), definitions });
+      });
+    });
+    [...suggestions.values()].slice(0, 12).forEach(suggestion => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      const word = document.createElement('strong');
+      word.lang = 'ja';
+      word.textContent = suggestion.word;
+      const details = document.createElement('span');
+      details.textContent = [suggestion.reading, suggestion.definitions.join(', ')].filter(Boolean).join(' — ');
+      button.append(word, details);
+      button.addEventListener('click', () => {
+        resetWordBuilder(suggestion.characters.length);
+        wordCharacters = [...suggestion.characters];
+        activeWordIndex = 0;
+        renderWordCells();
+        selectWord(suggestion.word, button);
+        wordLookupForm.hidden = true;
+        toggleWordLookup.setAttribute('aria-expanded', 'false');
+      });
+      wordLookupResults.append(button);
+    });
+    wordLookupStatus.textContent = suggestions.size
+      ? (query.toLocaleLowerCase() === originalQuery.toLocaleLowerCase() ? 'Choose the word you meant.' : `Translated as “${query}”. Choose the word you meant.`)
+      : 'No kanji words were found. Try a simpler meaning.';
+  } catch {
+    wordLookupStatus.textContent = 'Word lookup is unavailable right now. Please try again.';
+  }
+});
+
+document.querySelector('#translationInput').addEventListener('input', syncMeaningSuggestionState);
 
 const candidateObserver = new MutationObserver(() => {
   const hasCandidates = [...document.querySelectorAll('.candidate-list')].some(list => list.textContent.trim());
@@ -557,6 +655,15 @@ function renderDictionary() {
   items.forEach(item => {
     const card = document.createElement('details');
     card.className = 'dictionary-item';
+    card.addEventListener('toggle', () => {
+      if (!card.open) return;
+      list.querySelectorAll('.dictionary-item[open]').forEach(other => {
+        if (other !== card) other.removeAttribute('open');
+      });
+    });
+    card.addEventListener('pointerleave', () => {
+      if (window.matchMedia('(hover: hover)').matches) card.removeAttribute('open');
+    });
     const character = document.createElement('summary');
     character.className = 'character';
     character.classList.toggle('single-character', [...item.character].length === 1);
@@ -594,6 +701,17 @@ function renderDictionary() {
 
 const dictionaryDialog = document.querySelector('#dictionaryDialog');
 const dictionarySearch = document.querySelector('#dictionarySearch');
+document.querySelector('#dictionaryList').addEventListener('pointerover', event => {
+  const hovered = event.target.closest('.dictionary-item');
+  if (!hovered) return;
+  document.querySelectorAll('.dictionary-item[open]').forEach(item => {
+    if (item !== hovered) item.removeAttribute('open');
+  });
+});
+document.addEventListener('click', event => {
+  if (event.target.closest('.dictionary-item')) return;
+  document.querySelectorAll('.dictionary-item[open]').forEach(item => item.removeAttribute('open'));
+});
 document.querySelector('#openDictionary').addEventListener('click', () => {
   dictionarySearch.value = '';
   renderDictionary();

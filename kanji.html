@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
     <link rel="stylesheet" href="styles.css?v=66" />
-    <link rel="stylesheet" href="kanji.css?v=17" />
+    <link rel="stylesheet" href="kanji.css?v=18" />
   </head>
   <body class="kanji-page">
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -17,7 +17,7 @@
     </nav>
     <header class="topbar">
       <a class="brand" href="index.html" data-language-static="en"><span class="brand-mark">字</span><span>My Japanese Copybook</span></a>
-      <span class="app-version" data-short-version="v14.29" title="App version v2026.07.14.29">v2026.07.14.29</span>
+      <span class="app-version" data-short-version="v15.1" title="App version v2026.07.15.1">v2026.07.15.1</span>
       <nav class="main-nav" aria-label="Sections">
         <a href="index.html">Kana</a>
         <a class="active" href="kanji.html">Kanji</a>
@@ -92,15 +92,22 @@
     <main class="kanji-main">
       <div class="kanji-page-actions"><button id="openDictionary" type="button"><span>My dictionary</span><strong id="dictionaryLauncherCount">0</strong></button></div>
       <section class="word-builder" aria-labelledby="wordBuilderTitle">
-        <div><p class="eyebrow">Build a vocabulary word</p><h1 id="wordBuilderTitle">How many kanji are in the word?</h1></div>
+        <div class="word-builder-title"><p class="eyebrow">Build a vocabulary word</p><h1 id="wordBuilderTitle">Kanji count</h1></div>
         <div class="word-length-options" id="wordLengthOptions" role="group" aria-label="Number of kanji">
           <button class="active" type="button" data-word-length="1" aria-pressed="true">1</button>
           <button type="button" data-word-length="2" aria-pressed="false">2</button>
           <button type="button" data-word-length="3" aria-pressed="false">3</button>
           <button type="button" data-word-length="4" aria-pressed="false">4</button>
         </div>
+        <button class="word-lookup-toggle" id="toggleWordLookup" type="button" aria-expanded="false" aria-controls="wordLookupForm">I can't draw my word</button>
         <div class="word-cells" id="wordCells" aria-label="Kanji in this word"></div>
         <p class="word-builder-help" id="activeCellLabel">Draw kanji 1 of 1 below, then choose the matching result.</p>
+        <form class="word-lookup-form" id="wordLookupForm" hidden>
+          <label for="wordLookupInput">Type the word in English or Russian</label>
+          <div><input id="wordLookupInput" type="search" required autocomplete="off" placeholder="For example: school or школа" /><button type="submit">Find kanji</button></div>
+          <p id="wordLookupStatus" aria-live="polite"></p>
+          <div class="word-lookup-results" id="wordLookupResults"></div>
+        </form>
       </section>
       <div class="kanji-layout">
         <section class="recognizer-card">
@@ -179,7 +186,7 @@
 
     <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a><span class="footer-support"><a href="mailto:maksim.timchenko313@gmail.com?subject=Japanese%20Copybook%20feedback">Feedback</a></span></footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="i18n.js?v=23"></script>
+    <script src="i18n.js?v=24"></script>
     <script src="progress-sync.js?v=16"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
     <script src="kanjivg-directions.js?v=1"></script>
@@ -189,7 +196,7 @@
     <script src="recognizer-fixes.js?v=1"></script>
     <script src="srs.js?v=3"></script>
     <script src="anki-export.js?v=3"></script>
-    <script src="kanji-app.js?v=32"></script>
+    <script src="kanji-app.js?v=34"></script>
     <script src="onboarding.js?v=5"></script>
   </body>
 </html>
