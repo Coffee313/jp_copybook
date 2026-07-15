@@ -378,6 +378,25 @@ function kanjiInWord(word) {
   return [...String(word || '')].filter(character => /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/u.test(character));
 }
 
+function localVocabularyEntry(word) {
+  return window.JMDICT_COMMON?.entries?.[word] || null;
+}
+
+function searchLocalVocabulary(query, limit = 12) {
+  const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
+  if (!term || !window.JMDICT_COMMON?.entries) return [];
+  const matches = [];
+  Object.entries(window.JMDICT_COMMON.entries).forEach(([word, entry]) => {
+    const meanings = entry.m.map(value => value.toLocaleLowerCase());
+    let score = meanings.includes(term) ? 0 : meanings.some(value => value.startsWith(term)) ? 1 : meanings.some(value => value.includes(term)) ? 2 : -1;
+    if (score === -1) return;
+    matches.push({ word, entry, score });
+  });
+  return matches
+    .sort((a, b) => a.score - b.score || kanjiInWord(a.word).length - kanjiInWord(b.word).length || a.word.localeCompare(b.word, 'ja'))
+    .slice(0, limit);
+}
+
 function selectedMeanings() {
   return document.querySelector('#translationInput').value
     .split(',')
@@ -481,13 +500,19 @@ async function loadWordDetails(word) {
   info.textContent = '';
   let meanings = [];
   let readings = [];
-  try {
-    const targetLanguage = document.documentElement.lang === 'ru' ? 'ru' : 'en';
-    const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=ja|${targetLanguage}`);
-    meanings = [...new Set([result.responseData?.translatedText, ...(result.matches || []).map(match => match.translation)]
-      .map(value => String(value || '').trim())
-      .filter(Boolean))];
-  } catch { /* Manual entry and the single-kanji fallback remain available. */ }
+  const localEntry = localVocabularyEntry(word);
+  if (localEntry) {
+    meanings = [...localEntry.m];
+    readings = localEntry.r.map(normalizeWordReading);
+  } else {
+    try {
+      const targetLanguage = document.documentElement.lang === 'ru' ? 'ru' : 'en';
+      const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=ja|${targetLanguage}`);
+      meanings = [...new Set([result.responseData?.translatedText, ...(result.matches || []).map(match => match.translation)]
+        .map(value => String(value || '').trim())
+        .filter(Boolean))];
+    } catch { /* Manual entry and the single-kanji fallback remain available. */ }
+  }
   if (word.length === 1 && (!meanings.length || !readings.length)) {
     const cache = readJson(MEANING_CACHE_KEY, {});
     let data = cache[word];
@@ -574,15 +599,26 @@ wordLookupForm.addEventListener('submit', async event => {
   wordLookupStatus.textContent = 'Looking for Japanese words…';
   try {
     const sourceLanguage = /[А-Яа-яЁё]/u.test(originalQuery) ? 'ru' : 'en';
-    const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=${sourceLanguage}|ja`);
+    let lookupQuery = originalQuery;
+    if (sourceLanguage === 'ru') {
+      const translation = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=ru|en`);
+      lookupQuery = translation.responseData?.translatedText?.trim() || originalQuery;
+    }
     const suggestions = new Map();
-    const translations = [result.responseData?.translatedText, ...(result.matches || []).map(match => match.translation)];
-    translations.forEach(value => {
-      const word = String(value || '').trim();
+    searchLocalVocabulary(lookupQuery).forEach(({ word, entry }) => {
       const characters = kanjiInWord(word);
-      if (!word || !characters.length || characters.length > 4 || suggestions.has(word)) return;
-      suggestions.set(word, { word, characters });
+      suggestions.set(word, { word, characters, reading: normalizeWordReading(entry.r[0]), meanings: entry.m });
     });
+    if (!suggestions.size) {
+      const fallback = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=${sourceLanguage}|ja`);
+      [fallback.responseData?.translatedText, ...(fallback.matches || []).map(match => match.translation)].forEach(value => {
+        const word = String(value || '').trim();
+        const characters = kanjiInWord(word);
+        if (!word || !characters.length || characters.length > 4 || suggestions.has(word)) return;
+        const entry = localVocabularyEntry(word);
+        suggestions.set(word, { word, characters, reading: normalizeWordReading(entry?.r?.[0]), meanings: entry?.m || [] });
+      });
+    }
     [...suggestions.values()].slice(0, 12).forEach(suggestion => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -590,7 +626,7 @@ wordLookupForm.addEventListener('submit', async event => {
       word.lang = 'ja';
       word.textContent = suggestion.word;
       const details = document.createElement('span');
-      details.textContent = originalQuery;
+      details.textContent = [suggestion.reading, suggestion.meanings.slice(0, 2).join(', ')].filter(Boolean).join(' — ') || originalQuery;
       button.append(word, details);
       button.addEventListener('click', () => {
         resetWordBuilder(suggestion.characters.length);
@@ -606,7 +642,7 @@ wordLookupForm.addEventListener('submit', async event => {
       wordLookupResults.append(button);
     });
     wordLookupStatus.textContent = suggestions.size
-      ? 'Choose the word you meant.'
+      ? (lookupQuery.toLocaleLowerCase() === originalQuery.toLocaleLowerCase() ? 'Choose the word you meant.' : `Translated as “${lookupQuery}”. Choose the word you meant.`)
       : 'No kanji words were found. Try a simpler meaning.';
   } catch {
     wordLookupStatus.textContent = 'Word lookup is unavailable right now. Please try again.';
