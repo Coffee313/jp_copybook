@@ -876,8 +876,10 @@ function updateReviewSummary(items = getDictionary()) {
   document.querySelector('#dueCount').textContent = due.length;
   startButton.disabled = due.length === 0;
   selfTestButton.disabled = practiceCards.length === 0;
-  document.querySelector('#reviewEmpty').textContent = practiceCards.length
-    ? (due.length ? `${due.length} ${due.length === 1 ? 'card is' : 'cards are'} ready for review.` : 'All reviews are complete for today. Come back later.')
+  const empty = document.querySelector('#reviewEmpty');
+  empty.hidden = due.length > 0;
+  empty.textContent = practiceCards.length
+    ? (due.length ? '' : 'All reviews are complete for today. Come back later.')
     : 'Add cards to your dictionary and vocabulary words will appear here immediately.';
   renderReviewPracticeIcons(due);
 }
@@ -961,9 +963,11 @@ function leaveReviewTest(message = 'Test exited. Your unfinished card was not re
   document.querySelector('#reviewCard').hidden = true;
   document.querySelector('#reviewPracticeIcons').hidden = true;
   const empty = document.querySelector('#reviewEmpty');
-  empty.hidden = false;
   updateReviewSummary();
-  if (message) empty.textContent = message;
+  if (message) {
+    empty.hidden = false;
+    empty.textContent = message;
+  }
   erase();
 }
 
