@@ -75,6 +75,17 @@
         return Math.min(distance, directionNames.length - distance) <= 1;
       })
     );
+    const signatureByDirection = {
+      E: 'H', W: 'H',
+      S: 'V', N: 'V',
+      SE: '2', NW: '2',
+      SW: '3', NE: '3'
+    };
+    const canonicalSignature = expectedDirections
+      ? expectedDirections.map(direction => signatureByDirection[direction] || '?').join('')
+      : '';
+    const canonicalGuideMatch = canonicalSignature === strokeSignature && directionsMatch;
+    if (canonicalGuideMatch) return 'good';
     if (exact.length && directionsMatch) return 'good';
     if (exact.length) return 'hard';
 
