@@ -136,6 +136,7 @@
     'Choose the word you meant.': 'Выберите нужное слово.',
     'No kanji words were found. Try a simpler meaning.': 'Слова с кандзи не найдены. Попробуйте более простое значение.',
     'Word lookup is unavailable right now. Please try again.': 'Поиск слов сейчас недоступен. Попробуйте ещё раз.',
+    'The Japanese dictionary could not be loaded. Please refresh and try again.': 'Не удалось загрузить японский словарь. Обновите страницу и попробуйте ещё раз.',
     'My dictionary': 'Мой словарь',
     'Search vocabulary': 'Поиск по словарю',
     'Search by word, reading, meaning, or note': 'Поиск по слову, чтению, значению или заметке',

@@ -419,7 +419,7 @@ function loadExtendedVocabulary() {
   if (extendedVocabularyPromise) return extendedVocabularyPromise;
   extendedVocabularyPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = 'assets/jmdict-extended.js?v=1';
+    script.src = 'assets/jmdict-extended.js?v=2';
     script.onload = () => window.JMDICT_EXTENDED?.entries
       ? resolve(window.JMDICT_EXTENDED.entries)
       : reject(new Error('Extended vocabulary did not load'));
@@ -629,10 +629,10 @@ wordLookupForm.addEventListener('submit', async event => {
   if (!originalQuery) return;
   wordLookupResults.innerHTML = '';
   wordLookupStatus.textContent = 'Looking for Japanese words…';
+  const sourceLanguage = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/u.test(originalQuery)
+    ? 'ja'
+    : /[А-Яа-яЁё]/u.test(originalQuery) ? 'ru' : 'en';
   try {
-    const sourceLanguage = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/u.test(originalQuery)
-      ? 'ja'
-      : /[А-Яа-яЁё]/u.test(originalQuery) ? 'ru' : 'en';
     let lookupQuery = originalQuery;
     if (sourceLanguage === 'ru') {
       const translation = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=ru|en`);
@@ -688,7 +688,9 @@ wordLookupForm.addEventListener('submit', async event => {
       ? (lookupQuery.toLocaleLowerCase() === originalQuery.toLocaleLowerCase() ? 'Choose the word you meant.' : `Translated as “${lookupQuery}”. Choose the word you meant.`)
       : 'No kanji words were found. Try a simpler meaning.';
   } catch {
-    wordLookupStatus.textContent = 'Word lookup is unavailable right now. Please try again.';
+    wordLookupStatus.textContent = sourceLanguage === 'ja'
+      ? 'The Japanese dictionary could not be loaded. Please refresh and try again.'
+      : 'Word lookup is unavailable right now. Please try again.';
   }
 });
 
@@ -877,6 +879,7 @@ function updateReviewSummary(items = getDictionary()) {
   document.querySelector('#reviewEmpty').textContent = practiceCards.length
     ? (due.length ? `${due.length} ${due.length === 1 ? 'card is' : 'cards are'} ready for review.` : 'All reviews are complete for today. Come back later.')
     : 'Add cards to your dictionary and vocabulary words will appear here immediately.';
+  renderReviewPracticeIcons(due);
 }
 
 function combineReviewRating(current, next) {
@@ -917,22 +920,21 @@ function renderReviewWordCells(targets) {
   });
 }
 
-function renderReviewPracticeIcons() {
+function renderReviewPracticeIcons(cards) {
   const container = document.querySelector('#reviewPracticeIcons');
   const list = document.querySelector('#reviewPracticeIconList');
   list.replaceChildren();
-  reviewQueue.forEach((card, index) => {
+  cards.forEach((card, index) => {
     const icon = document.createElement('span');
     icon.className = 'review-practice-icon';
-    icon.dataset.state = index < reviewIndex ? 'complete' : index === reviewIndex ? 'current' : 'pending';
-    icon.setAttribute('aria-label', `Practice word ${index + 1} of ${reviewQueue.length}`);
+    icon.setAttribute('aria-label', `Practice word ${index + 1} of ${cards.length}`);
     const word = document.createElement('span');
     word.lang = 'ja';
     word.textContent = card.character;
     icon.append(word);
     list.append(icon);
   });
-  container.hidden = !reviewActive || !reviewQueue.length;
+  container.hidden = reviewActive || !cards.length;
 }
 
 function leaveReviewTest(message = 'Test exited. Your unfinished card was not reviewed.') {
@@ -982,7 +984,7 @@ function showReviewCard() {
   reviewActive = true;
   empty.hidden = true;
   reviewCard.hidden = false;
-  renderReviewPracticeIcons();
+  document.querySelector('#reviewPracticeIcons').hidden = true;
   document.querySelector('#reviewProgress').textContent = targets.length > 1
     ? `Word ${reviewIndex + 1} of ${reviewQueue.length} · Kanji ${reviewCharacterIndex + 1} of ${targets.length}`
     : `Word ${reviewIndex + 1} of ${reviewQueue.length}`;
