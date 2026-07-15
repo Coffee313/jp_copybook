@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const AnkiExport = require('../anki-export.js');
 
-test('buildDeck creates Anki metadata and one row per kanji', () => {
+test('buildDeck creates Anki metadata and one row per vocabulary entry', () => {
   const deck = AnkiExport.buildDeck([
     { character: '水', translation: 'water', note: 'みず' },
     { character: '火', translation: 'fire', note: '' }
@@ -20,7 +20,8 @@ test('buildDeck safely encodes notes for Anki HTML fields', () => {
   assert.doesNotMatch(deck, /<b>example<\/b>/);
 });
 
-test('buildDeck includes hiragana reading and pitch accent when available', () => {
+test('buildDeck includes the whole-word hiragana reading without pitch accent', () => {
   const deck = AnkiExport.buildDeck([{ character: '水', translation: 'water', reading: 'みず', pitchAccent: 1, note: '' }]);
-  assert.match(deck, /<div>みず<\/div><div>water<\/div><div>Pitch accent: 1<\/div>/);
+  assert.match(deck, /<div>みず<\/div><div>water<\/div>/);
+  assert.doesNotMatch(deck, /Pitch accent/);
 });

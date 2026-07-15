@@ -24,12 +24,11 @@
     const cards = items.map(item => {
       const meaning = `<div>${escapeHtml(item.translation)}</div>`;
       const reading = item.reading ? `<div>${escapeHtml(item.reading)}</div>` : '';
-      const pitch = Number.isInteger(item.pitchAccent) ? `<div>Pitch accent: ${item.pitchAccent}</div>` : '';
       const note = item.note ? `<div><br>${escapeHtml(item.note)}</div>` : '';
       return [
         deckName.replace(/[\t\r\n]/g, ' '),
         escapeHtml(item.character),
-        `${reading}${meaning}${pitch}${note}`,
+        `${reading}${meaning}${note}`,
         'Japanese_Copybook Kanji'
       ].join('\t');
     });

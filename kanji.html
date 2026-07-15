@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
     <link rel="stylesheet" href="styles.css?v=66" />
-    <link rel="stylesheet" href="kanji.css?v=16" />
+    <link rel="stylesheet" href="kanji.css?v=17" />
   </head>
   <body class="kanji-page">
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -22,7 +22,6 @@
         <a href="index.html">Kana</a>
         <a class="active" href="kanji.html">Kanji</a>
       </nav>
-      <button class="header-mode-button top-donate-link" id="openDonation" type="button"><span aria-hidden="true">♥</span><span>Donate</span></button>
       <button class="header-mode-button" id="mobileModeToggle" type="button" aria-label="Mobile version" aria-pressed="false"><span aria-hidden="true">📱</span><span>Mobile version</span></button>
       <button class="header-mode-button" id="concentrationEnter" type="button" aria-label="Enter concentration mode"><span aria-hidden="true">⛶</span><span>Concentration mode</span></button>
       <button class="header-mode-button" id="startProductTour" type="button" aria-label="Start tutorial"><span aria-hidden="true">?</span><span>Tutorial</span></button>
@@ -92,6 +91,17 @@
 
     <main class="kanji-main">
       <div class="kanji-page-actions"><button id="openDictionary" type="button"><span>My dictionary</span><strong id="dictionaryLauncherCount">0</strong></button></div>
+      <section class="word-builder" aria-labelledby="wordBuilderTitle">
+        <div><p class="eyebrow">Build a vocabulary word</p><h1 id="wordBuilderTitle">How many kanji are in the word?</h1></div>
+        <div class="word-length-options" id="wordLengthOptions" role="group" aria-label="Number of kanji">
+          <button class="active" type="button" data-word-length="1" aria-pressed="true">1</button>
+          <button type="button" data-word-length="2" aria-pressed="false">2</button>
+          <button type="button" data-word-length="3" aria-pressed="false">3</button>
+          <button type="button" data-word-length="4" aria-pressed="false">4</button>
+        </div>
+        <div class="word-cells" id="wordCells" aria-label="Kanji in this word"></div>
+        <p class="word-builder-help" id="activeCellLabel">Draw kanji 1 of 1 below, then choose the matching result.</p>
+      </section>
       <div class="kanji-layout">
         <section class="recognizer-card">
           <div class="draw-panel">
@@ -124,13 +134,11 @@
           <div id="selectionEmpty" class="selection-empty"><span>字</span><h2>Choose a kanji</h2><p>Confirm a candidate to see its meanings and add a card to your dictionary.</p></div>
           <form id="kanjiForm" hidden>
             <div class="selected-kanji" id="selectedKanji">字</div>
-            <div class="add-stroke-example" id="addStrokeExample" hidden></div>
+            <div class="word-stroke-examples" id="wordStrokeExamples" hidden></div>
             <label>Meaning<input id="translationInput" required autocomplete="off" placeholder="For example: water" /></label>
             <div class="meaning-suggestions" id="meaningSuggestions"></div>
-            <label>Hiragana reading<input id="readingInput" autocomplete="off" lang="ja" placeholder="For example: みず" /></label>
+            <label>Main whole-word reading<input id="readingInput" autocomplete="off" lang="ja" placeholder="For example: みず" /></label>
             <div class="reading-suggestions" id="readingSuggestions"></div>
-            <label>Pitch accent drop<input id="pitchAccentInput" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
-            <p class="pitch-help">Optional: 0 is flat; 1 drops after the first mora; 2+ drops after that mora.</p>
             <label>Note<textarea id="noteInput" rows="3" placeholder="Reading, association, or example"></textarea></label>
             <div class="reading-info" id="readingInfo"></div>
             <button class="save-kanji" type="submit">Add to dictionary</button>
@@ -165,21 +173,13 @@
     <dialog class="vocabulary-dialog" id="dictionaryDialog" aria-labelledby="dictionaryTitle">
       <button class="dialog-close" id="closeDictionary" type="button" aria-label="Close">×</button>
       <div class="dictionary-heading"><div><p class="eyebrow" id="dictionaryStorageStatus">Stored on this device</p><h2 id="dictionaryTitle">My dictionary</h2></div><div class="dictionary-heading-actions"><span id="dictionaryCount">0 cards</span><button id="exportAnki" type="button" disabled>Export to Anki</button></div></div>
-      <label class="vocabulary-search"><span>Search vocabulary</span><input id="dictionarySearch" type="search" autocomplete="off" placeholder="Search by kanji, meaning, or note" /></label>
+      <label class="vocabulary-search"><span>Search vocabulary</span><input id="dictionarySearch" type="search" autocomplete="off" placeholder="Search by word, reading, meaning, or note" /></label>
       <div class="dictionary-list" id="dictionaryList"></div>
-    </dialog>
-
-    <dialog class="account-dialog donation-dialog" id="donationDialog" aria-labelledby="donationTitle">
-      <button class="dialog-close" id="closeDonation" type="button" aria-label="Close">×</button>
-      <p class="eyebrow">Support the project</p>
-      <h2 id="donationTitle">Make a donation</h2>
-      <p>Your support helps keep the copybook free and improve handwriting lessons.</p>
-      <a class="donation-checkout-link" href="https://widget.lava.top/93bda391-1340-4de3-ab1c-48cc92e83754" target="_blank" rel="noopener noreferrer">Continue to secure payment</a>
     </dialog>
 
     <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a><span class="footer-support"><a href="mailto:maksim.timchenko313@gmail.com?subject=Japanese%20Copybook%20feedback">Feedback</a></span></footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="i18n.js?v=22"></script>
+    <script src="i18n.js?v=23"></script>
     <script src="progress-sync.js?v=16"></script>
     <script src="vendor/jlect-jhr/jlect-jhr.js"></script>
     <script src="kanjivg-directions.js?v=1"></script>
@@ -188,9 +188,8 @@
     <script src="recognizer-geometry.js?v=1"></script>
     <script src="recognizer-fixes.js?v=1"></script>
     <script src="srs.js?v=3"></script>
-    <script src="anki-export.js?v=2"></script>
-    <script src="kanji-app.js?v=31"></script>
+    <script src="anki-export.js?v=3"></script>
+    <script src="kanji-app.js?v=32"></script>
     <script src="onboarding.js?v=5"></script>
-    <script src="support.js?v=2"></script>
   </body>
 </html>

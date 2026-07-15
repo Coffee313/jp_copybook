@@ -5,6 +5,9 @@ const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
 const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed-v2';
 const MOBILE_SCREEN_QUERY = '(max-width: 760px), (max-height: 600px) and (pointer: coarse)';
 let selectedCharacter = '';
+let wordLength = 1;
+let wordCharacters = [''];
+let activeWordIndex = 0;
 let reviewQueue = [];
 let reviewIndex = 0;
 let reviewActive = false;
@@ -295,12 +298,31 @@ const ENGLISH_MEANINGS = {
   '何':['what'], '名':['name'], '気':['spirit','mood'], '雨':['rain'], '空':['sky','empty']
 };
 
+const WHOLE_WORD_READINGS = {
+  '一':'いち', '二':'に', '三':'さん', '四':'よん', '五':'ご',
+  '六':'ろく', '七':'なな', '八':'はち', '九':'きゅう', '十':'じゅう',
+  '日':'ひ', '月':'つき', '火':'ひ', '水':'みず', '木':'き', '金':'かね',
+  '土':'つち', '山':'やま', '川':'かわ', '田':'た', '人':'ひと', '子':'こ',
+  '女':'おんな', '男':'おとこ', '父':'ちち', '母':'はは', '友':'とも',
+  '私':'わたし', '先':'さき', '生':'せい', '学':'がく', '校':'こう',
+  '本':'ほん', '語':'ご', '年':'とし', '時':'とき', '分':'ふん', '今':'いま',
+  '上':'うえ', '下':'した', '中':'なか', '大':'だい', '小':'しょう',
+  '長':'ちょう', '高':'こう', '新':'しん', '古':'こ', '白':'しろ',
+  '黒':'くろ', '赤':'あか', '青':'あお', '行':'こう', '来':'らい',
+  '見':'みる', '聞':'きく', '話':'はなす', '読':'よむ', '書':'かく',
+  '食':'たべる', '飲':'のむ', '買':'かう', '車':'くるま', '電':'でん',
+  '国':'くに', '家':'いえ', '店':'みせ', '駅':'えき', '道':'みち',
+  '何':'なに', '名':'な', '気':'き', '雨':'あめ', '空':'そら'
+};
+
 const readJson = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key)) || fallback; }
   catch { return fallback; }
 };
 
-function getDictionary() { return readJson(STORAGE_KEY, []); }
+function getDictionary() {
+  return readJson(STORAGE_KEY, []).map(({ pitchAccent, ...item }) => item);
+}
 function saveDictionary(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   window.ProgressSync?.flushSave();
@@ -321,99 +343,125 @@ function toHiragana(value) {
   return String(value || '').replace(/[ァ-ヶ]/g, character => String.fromCharCode(character.charCodeAt(0) - 0x60));
 }
 
-function readingMorae(reading) {
-  const combinedKana = /[ぁぃぅぇぉゃゅょゎゕゖ]/;
-  return [...String(reading || '').replace(/[.・\s]/g, '')].reduce((morae, character) => {
-    if (combinedKana.test(character) && morae.length) morae[morae.length - 1] += character;
-    else morae.push(character);
-    return morae;
-  }, []);
-}
-
-function pitchLevels(reading, accentValue) {
-  const morae = readingMorae(reading);
-  if (accentValue === null || accentValue === undefined || accentValue === '') return null;
-  const accent = Number(accentValue);
-  if (!morae.length || !Number.isInteger(accent) || accent < 0 || accent > morae.length) return null;
-  return morae.map((_, index) => {
-    if (accent === 0) return index === 0 ? 'low' : 'high';
-    if (accent === 1) return index === 0 ? 'high' : 'low';
-    return index === 0 || index >= accent ? 'low' : 'high';
-  });
-}
-
-function createPitchDiagram(reading, accent) {
-  const levels = pitchLevels(reading, accent);
-  if (!levels) return null;
-  const namespace = 'http://www.w3.org/2000/svg';
-  const width = Math.max(36, levels.length * 18);
-  const svg = document.createElementNS(namespace, 'svg');
-  svg.classList.add('pitch-diagram');
-  svg.setAttribute('viewBox', `0 0 ${width} 24`);
-  svg.setAttribute('width', String(width));
-  svg.setAttribute('height', '24');
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', `Pitch accent ${accent}`);
-  const points = levels.map((level, index) => `${9 + index * 18},${level === 'high' ? 6 : 18}`);
-  const line = document.createElementNS(namespace, 'polyline');
-  line.setAttribute('points', points.join(' '));
-  svg.append(line);
-  points.forEach(point => {
-    const [cx, cy] = point.split(',');
-    const circle = document.createElementNS(namespace, 'circle');
-    circle.setAttribute('cx', cx);
-    circle.setAttribute('cy', cy);
-    circle.setAttribute('r', '3');
-    svg.append(circle);
-  });
-  return svg;
+function normalizeWordReading(value) {
+  return toHiragana(value).replace(/[.・-]/g, '').trim();
 }
 
 function filterDictionaryItems(items, query) {
   const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
   if (!term) return [...items];
-  return items.filter(item => [item.character, item.translation, item.reading, item.note, item.pitchAccent]
+  return items.filter(item => [item.character, item.translation, item.reading, item.note]
     .map(value => String(value || '').normalize('NFKC').toLocaleLowerCase())
     .some(value => value.includes(term)));
 }
 
-function selectKanji(character, source) {
-  selectedCharacter = character;
-  const existing = getDictionary().find(item => item.character === character);
-  document.querySelectorAll('.kmatch').forEach(item => item.classList.toggle('selected', item.textContent.trim() === character));
+function renderWordCells() {
+  const cells = document.querySelector('#wordCells');
+  cells.innerHTML = '';
+  wordCharacters.forEach((character, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'word-cell';
+    button.classList.toggle('active', index === activeWordIndex);
+    button.classList.toggle('complete', Boolean(character));
+    button.textContent = character || String(index + 1);
+    button.setAttribute('aria-label', character ? `Kanji ${index + 1}: ${character}` : `Draw kanji ${index + 1}`);
+    button.addEventListener('click', () => {
+      activeWordIndex = index;
+      renderWordCells();
+      clearRecognizerDrawing();
+    });
+    cells.append(button);
+  });
+  const label = `Draw kanji ${activeWordIndex + 1} of ${wordLength} below, then choose the matching result.`;
+  document.querySelector('#activeCellLabel').textContent = label;
+}
+
+function clearRecognizerDrawing() {
+  if (typeof erase === 'function' && typeof ctx !== 'undefined' && ctx) erase();
+}
+
+function resetWordBuilder(length) {
+  wordLength = length;
+  wordCharacters = Array(length).fill('');
+  activeWordIndex = 0;
+  selectedCharacter = '';
+  document.querySelector('#kanjiForm').reset();
+  document.querySelector('#kanjiForm').hidden = true;
+  document.querySelector('#selectionEmpty').hidden = false;
+  document.querySelectorAll('#wordLengthOptions button').forEach(button => {
+    const active = Number(button.dataset.wordLength) === length;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  renderWordCells();
+  clearRecognizerDrawing();
+}
+
+function selectWord(word, source) {
+  selectedCharacter = word;
+  const existing = getDictionary().find(item => item.character === word);
   document.querySelector('#selectionEmpty').hidden = true;
   document.querySelector('#kanjiForm').hidden = false;
-  document.querySelector('#selectedKanji').textContent = character;
-  renderStrokeGuide(document.querySelector('#addStrokeExample'), character);
+  document.querySelector('#selectedKanji').textContent = word;
+  const examples = document.querySelector('#wordStrokeExamples');
+  examples.innerHTML = '';
+  [...word].forEach((character, index) => {
+    const example = document.createElement('div');
+    example.className = 'word-stroke-example';
+    const label = document.createElement('span');
+    label.textContent = `${index + 1}. ${character}`;
+    const guide = document.createElement('div');
+    guide.className = 'add-stroke-example';
+    renderStrokeGuide(guide, character);
+    example.append(label, guide);
+    examples.append(example);
+  });
+  examples.hidden = false;
   document.querySelector('#translationInput').value = existing?.translation || '';
   document.querySelector('#readingInput').value = existing?.reading || '';
-  document.querySelector('#pitchAccentInput').value = Number.isInteger(existing?.pitchAccent) ? existing.pitchAccent : '';
   document.querySelector('#noteInput').value = existing?.note || '';
-  loadMeanings(character);
+  loadWordDetails(word);
   source?.scrollIntoView({ block: 'nearest' });
 }
 
-async function loadMeanings(character) {
+async function loadWordDetails(word) {
   const suggestions = document.querySelector('#meaningSuggestions');
   const readingSuggestions = document.querySelector('#readingSuggestions');
   const info = document.querySelector('#readingInfo');
-  const cache = readJson(MEANING_CACHE_KEY, {});
   suggestions.innerHTML = '<span>Looking up meanings…</span>';
   readingSuggestions.innerHTML = '';
   info.textContent = '';
-  let data = cache[character];
-  if (!data) {
+  let meanings = [];
+  let readings = [];
+  try {
+    const result = await fetchJson(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
+    const entries = result.data || [];
+    const entry = entries.find(item => item.japanese?.some(form => form.word === word)) || entries[0];
+    if (entry) {
+      meanings = [...new Set((entry.senses || []).flatMap(sense => sense.english_definitions || []))];
+      readings = [...new Set((entry.japanese || [])
+        .filter(form => !form.word || form.word === word)
+        .map(form => normalizeWordReading(form.reading))
+        .filter(Boolean))];
+    }
+  } catch { /* Manual entry and the single-kanji fallback remain available. */ }
+  if (word.length === 1 && (!meanings.length || !readings.length)) {
+    const cache = readJson(MEANING_CACHE_KEY, {});
+    let data = cache[word];
     try {
-      data = await fetchJson(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(character)}`);
-    } catch {
-      data = {};
+      if (!data) data = await fetchJson(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(word)}`);
+    } catch { data = {}; }
+    cache[word] = data;
+    localStorage.setItem(MEANING_CACHE_KEY, JSON.stringify(cache));
+    if (!meanings.length) meanings = ENGLISH_MEANINGS[word] || data.meanings || [];
+    if (!readings.length) {
+      readings = [...new Set([WHOLE_WORD_READINGS[word], ...(data.kun_readings || []), ...(data.on_readings || [])]
+        .map(normalizeWordReading)
+        .filter(Boolean))];
     }
   }
-  if (selectedCharacter !== character) return;
-  const meanings = ENGLISH_MEANINGS[character] || data.meanings || [];
-  if (selectedCharacter !== character) return;
-  cache[character] = data;
-  localStorage.setItem(MEANING_CACHE_KEY, JSON.stringify(cache));
+  if (selectedCharacter !== word) return;
   suggestions.innerHTML = '';
   meanings.slice(0, 8).forEach(meaning => {
     const button = document.createElement('button');
@@ -423,11 +471,8 @@ async function loadMeanings(character) {
     suggestions.append(button);
   });
   if (!meanings.length) {
-    suggestions.innerHTML = '<span>No suggested meanings are available for this kanji. Enter one manually.</span>';
+    suggestions.innerHTML = '<span>No suggested meaning was found for this word. Enter one manually.</span>';
   }
-  const readings = [...new Set([...(data.kun_readings || []), ...(data.on_readings || [])]
-    .map(reading => toHiragana(reading))
-    .filter(Boolean))];
   readings.slice(0, 10).forEach(reading => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -437,16 +482,24 @@ async function loadMeanings(character) {
   });
   const readingInput = document.querySelector('#readingInput');
   if (!readingInput.value && readings.length) readingInput.value = readings[0];
-  const on = data.on_readings?.length ? `On: ${data.on_readings.join('、')}` : '';
-  const kun = data.kun_readings?.length ? `Kun: ${data.kun_readings.join('、')}` : '';
-  info.textContent = [on, kun, data.stroke_count ? `Strokes: ${data.stroke_count}` : ''].filter(Boolean).join(' · ');
+  info.textContent = 'The reading applies to the complete word. Stroke order is shown above for each kanji.';
 }
 
 document.addEventListener('click', event => {
   const candidate = event.target.closest('.kmatch');
   if (!candidate || reviewActive) return;
   event.preventDefault();
-  selectKanji(candidate.textContent.trim(), candidate);
+  wordCharacters[activeWordIndex] = candidate.textContent.trim();
+  const nextEmpty = wordCharacters.findIndex((character, index) => !character && index > activeWordIndex);
+  if (nextEmpty !== -1) activeWordIndex = nextEmpty;
+  renderWordCells();
+  clearRecognizerDrawing();
+  if (wordCharacters.every(Boolean)) selectWord(wordCharacters.join(''), candidate);
+});
+
+document.querySelector('#wordLengthOptions').addEventListener('click', event => {
+  const button = event.target.closest('[data-word-length]');
+  if (button) resetWordBuilder(Number(button.dataset.wordLength));
 });
 
 const candidateObserver = new MutationObserver(() => {
@@ -458,25 +511,14 @@ document.querySelectorAll('.candidate-list').forEach(list => candidateObserver.o
 document.querySelector('#kanjiForm').addEventListener('submit', event => {
   event.preventDefault();
   const translation = document.querySelector('#translationInput').value.trim();
-  const reading = toHiragana(document.querySelector('#readingInput').value.trim());
-  const pitchInput = document.querySelector('#pitchAccentInput');
-  const pitchValue = pitchInput.value;
-  const pitchAccent = pitchValue === '' ? null : Number(pitchValue);
-  pitchInput.setCustomValidity('');
+  const reading = normalizeWordReading(document.querySelector('#readingInput').value);
   if (!selectedCharacter || !translation) return;
-  if (pitchAccent !== null && !pitchLevels(reading, pitchAccent)) {
-    const message = 'Pitch accent must be between 0 and the number of morae.';
-    pitchInput.setCustomValidity(window.I18n?.translate?.(message) || message);
-    pitchInput.reportValidity();
-    return;
-  }
   const items = getDictionary();
   const existing = items.find(item => item.character === selectedCharacter);
   const card = {
     character: selectedCharacter,
     translation,
     reading,
-    pitchAccent,
     note: document.querySelector('#noteInput').value.trim(),
     createdAt: existing?.createdAt || new Date().toISOString(),
     nextReview: new Date().toISOString(),
@@ -491,10 +533,8 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
   document.querySelector('#kanjiForm').hidden = true;
   document.querySelector('#selectionEmpty').hidden = false;
   selectedCharacter = '';
+  resetWordBuilder(wordLength);
 });
-
-document.querySelector('#pitchAccentInput').addEventListener('input', event => event.currentTarget.setCustomValidity(''));
-document.querySelector('#readingInput').addEventListener('input', () => document.querySelector('#pitchAccentInput').setCustomValidity(''));
 
 function renderDictionary() {
   const list = document.querySelector('#dictionaryList');
@@ -510,25 +550,25 @@ function renderDictionary() {
     empty.className = 'dictionary-empty';
     empty.textContent = allItems.length
       ? 'No vocabulary matches your search.'
-      : 'Your dictionary is empty. Draw your first kanji and add a meaning.';
+      : 'Your dictionary is empty. Build your first word and add its meaning.';
     list.append(empty);
     return;
   }
   items.forEach(item => {
-    const card = document.createElement('article');
+    const card = document.createElement('details');
     card.className = 'dictionary-item';
-    const character = document.createElement('span');
+    const character = document.createElement('summary');
     character.className = 'character';
+    character.classList.toggle('single-character', [...item.character].length === 1);
     character.textContent = item.character;
     const details = document.createElement('div');
+    details.className = 'dictionary-popover';
     if (item.reading) {
       const reading = document.createElement('span');
       reading.className = 'dictionary-reading';
       reading.lang = 'ja';
       reading.textContent = toHiragana(item.reading);
       details.append(reading);
-      const diagram = createPitchDiagram(item.reading, item.pitchAccent);
-      if (diagram) details.append(diagram);
     }
     const meaning = document.createElement('strong');
     meaning.textContent = item.translation;
@@ -536,14 +576,18 @@ function renderDictionary() {
     note.textContent = item.note || 'Ready for the first review';
     details.append(meaning, note);
     const remove = document.createElement('button');
+    remove.className = 'dictionary-remove';
     remove.type = 'button';
     remove.setAttribute('aria-label', `Delete ${item.character}`);
     remove.textContent = '×';
-    remove.addEventListener('click', () => {
+    remove.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
       saveDictionary(getDictionary().filter(entry => entry.character !== item.character));
       renderDictionary();
     });
-    card.append(character, details, remove);
+    details.append(remove);
+    card.append(character, details);
     list.append(card);
   });
 }
@@ -576,15 +620,16 @@ document.querySelector('#exportAnki').addEventListener('click', () => {
 });
 
 function updateReviewSummary(items = getDictionary()) {
-  const due = items.filter(item => SRS.isDue(item));
+  const kanjiCards = items.filter(item => [...item.character].length === 1);
+  const due = kanjiCards.filter(item => SRS.isDue(item));
   const startButton = document.querySelector('#startReview');
   const selfTestButton = document.querySelector('#testKanjiMyself');
   document.querySelector('#dueCount').textContent = due.length;
   startButton.disabled = due.length === 0;
-  selfTestButton.disabled = items.length === 0;
-  document.querySelector('#reviewEmpty').textContent = items.length
+  selfTestButton.disabled = kanjiCards.length === 0;
+  document.querySelector('#reviewEmpty').textContent = kanjiCards.length
     ? (due.length ? `${due.length} ${due.length === 1 ? 'card is' : 'cards are'} ready for review.` : 'All reviews are complete for today. Come back later.')
-    : 'Add cards to your dictionary and new kanji will appear here immediately.';
+    : (items.length ? 'Whole words are saved in vocabulary. Add a one-kanji card to use drawing review.' : 'Add cards to your dictionary and new kanji will appear here immediately.');
 }
 
 function showReviewCard() {
@@ -646,12 +691,12 @@ function startReviewTest(items, selfTest = false) {
 
 document.querySelector('#startReview').addEventListener('click', () => {
   startReviewTest(getDictionary()
-    .filter(item => SRS.isDue(item))
+    .filter(item => [...item.character].length === 1 && SRS.isDue(item))
     .sort((a, b) => Date.parse(a.nextReview || 0) - Date.parse(b.nextReview || 0)));
 });
 
 document.querySelector('#testKanjiMyself').addEventListener('click', () => {
-  startReviewTest([...getDictionary()].sort(() => Math.random() - .5), true);
+  startReviewTest(getDictionary().filter(item => [...item.character].length === 1).sort(() => Math.random() - .5), true);
 });
 
 document.querySelector('#forgotKanji').addEventListener('click', () => {
@@ -716,6 +761,7 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
   }, 1200);
 });
 
+renderWordCells();
 renderDictionary();
 ProgressSync.initialize({
   getLocalProgress: () => ({ dictionary: getDictionary() }),
