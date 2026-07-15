@@ -12,6 +12,8 @@
 }
 
 * { box-sizing: border-box; }
+body { -webkit-user-select: none; user-select: none; }
+input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
 [hidden] { display: none !important; }
 
 html { background: var(--canvas); }
