@@ -455,16 +455,11 @@ async function loadWordDetails(word) {
   let meanings = [];
   let readings = [];
   try {
-    const result = await fetchJson(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
-    const entries = result.data || [];
-    const entry = entries.find(item => item.japanese?.some(form => form.word === word)) || entries[0];
-    if (entry) {
-      meanings = [...new Set((entry.senses || []).flatMap(sense => sense.english_definitions || []))];
-      readings = [...new Set((entry.japanese || [])
-        .filter(form => !form.word || form.word === word)
-        .map(form => normalizeWordReading(form.reading))
-        .filter(Boolean))];
-    }
+    const targetLanguage = document.documentElement.lang === 'ru' ? 'ru' : 'en';
+    const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=ja|${targetLanguage}`);
+    meanings = [...new Set([result.responseData?.translatedText, ...(result.matches || []).map(match => match.translation)]
+      .map(value => String(value || '').trim())
+      .filter(Boolean))];
   } catch { /* Manual entry and the single-kanji fallback remain available. */ }
   if (word.length === 1 && (!meanings.length || !readings.length)) {
     const cache = readJson(MEANING_CACHE_KEY, {});
@@ -544,13 +539,6 @@ toggleWordLookup.addEventListener('click', () => {
   if (opening) requestAnimationFrame(() => wordLookupInput.focus());
 });
 
-async function englishLookupQuery(query) {
-  if (!/[А-Яа-яЁё]/u.test(query)) return query;
-  wordLookupStatus.textContent = 'Translating the Russian word for lookup…';
-  const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=ru|en`);
-  return result.responseData?.translatedText?.trim() || query;
-}
-
 wordLookupForm.addEventListener('submit', async event => {
   event.preventDefault();
   const originalQuery = wordLookupInput.value.trim();
@@ -558,17 +546,15 @@ wordLookupForm.addEventListener('submit', async event => {
   wordLookupResults.innerHTML = '';
   wordLookupStatus.textContent = 'Looking for Japanese words…';
   try {
-    const query = await englishLookupQuery(originalQuery);
-    const result = await fetchJson(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(query)}`);
+    const sourceLanguage = /[А-Яа-яЁё]/u.test(originalQuery) ? 'ru' : 'en';
+    const result = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=${sourceLanguage}|ja`);
     const suggestions = new Map();
-    (result.data || []).forEach(entry => {
-      const definitions = [...new Set((entry.senses || []).flatMap(sense => sense.english_definitions || []))].slice(0, 3);
-      (entry.japanese || []).forEach(form => {
-        const word = form.word || '';
-        const characters = kanjiInWord(word);
-        if (!word || !characters.length || characters.length > 4 || suggestions.has(word)) return;
-        suggestions.set(word, { word, characters, reading: normalizeWordReading(form.reading), definitions });
-      });
+    const translations = [result.responseData?.translatedText, ...(result.matches || []).map(match => match.translation)];
+    translations.forEach(value => {
+      const word = String(value || '').trim();
+      const characters = kanjiInWord(word);
+      if (!word || !characters.length || characters.length > 4 || suggestions.has(word)) return;
+      suggestions.set(word, { word, characters });
     });
     [...suggestions.values()].slice(0, 12).forEach(suggestion => {
       const button = document.createElement('button');
@@ -577,7 +563,7 @@ wordLookupForm.addEventListener('submit', async event => {
       word.lang = 'ja';
       word.textContent = suggestion.word;
       const details = document.createElement('span');
-      details.textContent = [suggestion.reading, suggestion.definitions.join(', ')].filter(Boolean).join(' — ');
+      details.textContent = originalQuery;
       button.append(word, details);
       button.addEventListener('click', () => {
         resetWordBuilder(suggestion.characters.length);
@@ -585,13 +571,15 @@ wordLookupForm.addEventListener('submit', async event => {
         activeWordIndex = 0;
         renderWordCells();
         selectWord(suggestion.word, button);
+        document.querySelector('#translationInput').value = originalQuery;
+        syncMeaningSuggestionState();
         wordLookupForm.hidden = true;
         toggleWordLookup.setAttribute('aria-expanded', 'false');
       });
       wordLookupResults.append(button);
     });
     wordLookupStatus.textContent = suggestions.size
-      ? (query.toLocaleLowerCase() === originalQuery.toLocaleLowerCase() ? 'Choose the word you meant.' : `Translated as “${query}”. Choose the word you meant.`)
+      ? 'Choose the word you meant.'
       : 'No kanji words were found. Try a simpler meaning.';
   } catch {
     wordLookupStatus.textContent = 'Word lookup is unavailable right now. Please try again.';
@@ -660,6 +648,7 @@ function renderDictionary() {
       list.querySelectorAll('.dictionary-item[open]').forEach(other => {
         if (other !== card) other.removeAttribute('open');
       });
+      requestAnimationFrame(() => positionDictionaryPopover(card));
     });
     card.addEventListener('pointerleave', () => {
       if (window.matchMedia('(hover: hover)').matches) card.removeAttribute('open');
@@ -701,12 +690,27 @@ function renderDictionary() {
 
 const dictionaryDialog = document.querySelector('#dictionaryDialog');
 const dictionarySearch = document.querySelector('#dictionarySearch');
+
+function positionDictionaryPopover(card) {
+  const popover = card.querySelector('.dictionary-popover');
+  if (!popover) return;
+  popover.style.setProperty('--popover-shift', '0px');
+  const dialogBounds = dictionaryDialog.getBoundingClientRect();
+  const popoverBounds = popover.getBoundingClientRect();
+  const inset = 10;
+  let shift = 0;
+  if (popoverBounds.left < dialogBounds.left + inset) shift += dialogBounds.left + inset - popoverBounds.left;
+  if (popoverBounds.right + shift > dialogBounds.right - inset) shift -= popoverBounds.right + shift - dialogBounds.right + inset;
+  popover.style.setProperty('--popover-shift', `${Math.round(shift)}px`);
+}
+
 document.querySelector('#dictionaryList').addEventListener('pointerover', event => {
   const hovered = event.target.closest('.dictionary-item');
   if (!hovered) return;
   document.querySelectorAll('.dictionary-item[open]').forEach(item => {
     if (item !== hovered) item.removeAttribute('open');
   });
+  requestAnimationFrame(() => positionDictionaryPopover(hovered));
 });
 document.addEventListener('click', event => {
   if (event.target.closest('.dictionary-item')) return;

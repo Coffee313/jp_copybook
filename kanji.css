@@ -116,7 +116,7 @@
 .dictionary-item .character.single-character { font-size: 34px; }
 .dictionary-item .character::-webkit-details-marker { display: none; }
 .dictionary-item:hover .character, .dictionary-item[open] .character, .dictionary-item:focus-within .character { border-color: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); }
-.dictionary-popover { position: absolute; top: calc(100% + 7px); left: 50%; z-index: 5; display: none; width: max-content; min-width: 190px; max-width: min(270px, calc(100vw - 42px)); transform: translateX(-50%); border: 1px solid #ddd5ca; border-radius: 13px; padding: 13px 38px 13px 13px; background: var(--paper); box-shadow: 0 14px 35px rgba(30,25,18,.18); }
+.dictionary-popover { position: absolute; top: calc(100% + 7px); left: 50%; z-index: 5; display: none; width: max-content; min-width: 190px; max-width: min(270px, calc(100vw - 42px)); transform: translateX(calc(-50% + var(--popover-shift, 0px))); border: 1px solid #ddd5ca; border-radius: 13px; padding: 13px 38px 13px 13px; background: var(--paper); box-shadow: 0 14px 35px rgba(30,25,18,.18); }
 .dictionary-item:hover .dictionary-popover, .dictionary-item[open] .dictionary-popover, .dictionary-item:focus-within .dictionary-popover { display: block; }
 .dictionary-reading { display: inline-block; margin: 0 8px 3px 0; color: #a94534; font: 500 13px/1.4 'Noto Sans JP', sans-serif; }
 .dictionary-item strong { display: block; overflow-wrap: anywhere; font-size: 13px; line-height: 1.45; }
