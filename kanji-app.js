@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'kana-kanji-dictionary-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
+const INPUT_MODE_STORAGE_KEY = 'japanese-copybook-input-mode-v1';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
 const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed-v2';
 const MOBILE_SCREEN_QUERY = '(max-width: 760px), (max-height: 600px) and (pointer: coarse)';
@@ -30,12 +31,17 @@ function initializeDrawingControls() {
       y: (event.clientY - rect.top) * canvas.height / rect.height
     };
   };
-  let lastPenEventAt = 0;
   const stylusOnly = () => penOnlyToggle.checked;
-  penOnlyToggle.checked = cookieValue(INPUT_MODE_COOKIE) === 'stylus';
+  penOnlyToggle.checked = (localStorage.getItem(INPUT_MODE_STORAGE_KEY) || cookieValue(INPUT_MODE_COOKIE)) === 'stylus';
   penOnlyToggle.addEventListener('change', () => {
     const mode = penOnlyToggle.checked ? 'stylus' : 'finger';
     document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
+    localStorage.setItem(INPUT_MODE_STORAGE_KEY, mode);
+  });
+  window.addEventListener('storage', event => {
+    if (event.key === INPUT_MODE_STORAGE_KEY && (event.newValue === 'stylus' || event.newValue === 'finger')) {
+      penOnlyToggle.checked = event.newValue === 'stylus';
+    }
   });
 
   const mobileModeToggle = document.querySelector('#mobileModeToggle');
@@ -94,15 +100,36 @@ function initializeDrawingControls() {
   });
   window.addEventListener('resize', updateMobileSuggestion);
 
-  ['pointerdown', 'pointermove', 'pointerup'].forEach(type => {
+  let activeStylusPointer = null;
+  const dispatchStylusMouse = (type, event) => {
+    const synthetic = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      buttons: type === 'mouseup' || type === 'mouseout' ? 0 : 1
+    });
+    Object.defineProperty(synthetic, 'stylusInput', { value: true });
+    canvas.dispatchEvent(synthetic);
+  };
+  ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(type => {
     canvas.addEventListener(type, event => {
-      if (event.pointerType === 'pen') {
-        lastPenEventAt = Date.now();
-        return;
-      }
       if (!stylusOnly()) return;
       event.preventDefault();
       event.stopImmediatePropagation();
+      if (event.pointerType !== 'pen') return;
+      if (type === 'pointerdown') {
+        if (activeStylusPointer !== null) return;
+        activeStylusPointer = event.pointerId;
+        try { canvas.setPointerCapture(event.pointerId); } catch { /* Capture is optional on older Safari. */ }
+        dispatchStylusMouse('mousedown', event);
+      } else if (event.pointerId === activeStylusPointer && type === 'pointermove') {
+        dispatchStylusMouse('mousemove', event);
+      } else if (event.pointerId === activeStylusPointer) {
+        dispatchStylusMouse(type === 'pointerup' ? 'mouseup' : 'mouseout', event);
+        try { canvas.releasePointerCapture(event.pointerId); } catch { /* Capture may already be gone. */ }
+        activeStylusPointer = null;
+      }
     }, { capture: true, passive: false });
   });
   ['touchstart', 'touchmove', 'touchend'].forEach(type => {
@@ -114,7 +141,7 @@ function initializeDrawingControls() {
   });
   ['mousedown', 'mousemove', 'mouseup'].forEach(type => {
     canvas.addEventListener(type, event => {
-      if (!stylusOnly() || Date.now() - lastPenEventAt < 1000) return;
+      if (!stylusOnly() || event.stylusInput) return;
       event.preventDefault();
       event.stopImmediatePropagation();
     }, { capture: true });

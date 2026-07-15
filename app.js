@@ -78,6 +78,7 @@ const MASTERY_KEY = 'kana-mastery-v1';
 const LEARNED_KEY = 'kana-learned-v1';
 const MASTERY_RESETS_KEY = 'kana-mastery-resets-v1';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
+const INPUT_MODE_STORAGE_KEY = 'japanese-copybook-input-mode-v1';
 const PLACEMENT_KEY = 'kana-placement-v1';
 const MOBILE_MODE_KEY = 'japanese-copybook-mobile-version-v1';
 const MOBILE_SUGGESTION_SESSION_KEY = 'japanese-copybook-mobile-suggestion-dismissed-v2';
@@ -396,6 +397,7 @@ function makeSheet(preserve = false) {
 function setupCanvas(canvas, savedState = null) {
   let baseWidth = 2.5;
   let drawing = false;
+  let activePointerId = null;
   let currentStroke = null;
   let drawingRect = null;
   let gradeTimer;
@@ -450,10 +452,11 @@ function setupCanvas(canvas, savedState = null) {
   canvas.addEventListener('gesturestart', preventCanvasGesture, { capture: true, passive: false });
   canvas.addEventListener('gesturechange', preventCanvasGesture, { capture: true, passive: false });
   canvas.addEventListener('pointerdown', event => {
-    if (penOnlyToggle.checked && event.pointerType === 'touch') return;
+    if (drawing || (penOnlyToggle.checked && event.pointerType !== 'pen')) return;
     event.preventDefault();
     clearGrade();
     drawing = true;
+    activePointerId = event.pointerId;
     drawingRect = canvas.getBoundingClientRect();
     lockDrawingViewport(canvas);
     try { canvas.setPointerCapture(event.pointerId); }
@@ -469,7 +472,7 @@ function setupCanvas(canvas, savedState = null) {
     ctx.stroke();
   });
   canvas.addEventListener('pointermove', event => {
-    if (!drawing) return;
+    if (!drawing || event.pointerId !== activePointerId) return;
     event.preventDefault();
     const [x, y] = point(event);
     const rect = drawingRect;
@@ -480,8 +483,9 @@ function setupCanvas(canvas, savedState = null) {
     ctx.stroke();
   });
   canvas.addEventListener('pointerup', event => {
-    if (!drawing) return;
+    if (!drawing || event.pointerId !== activePointerId) return;
     drawing = false;
+    activePointerId = null;
     if (currentStroke?.length === 1) currentStroke.push(currentStroke[0]);
     if (currentStroke) canvas.__strokes.push(currentStroke);
     currentStroke = null;
@@ -491,8 +495,10 @@ function setupCanvas(canvas, savedState = null) {
     unlockDrawingViewport(canvas);
     gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
   });
-  canvas.addEventListener('pointercancel', () => {
+  canvas.addEventListener('pointercancel', event => {
+    if (event.pointerId !== activePointerId) return;
     drawing = false;
+    activePointerId = null;
     currentStroke = null;
     drawingRect = null;
     unlockDrawingViewport(canvas);
@@ -1359,12 +1365,16 @@ function setInputMode(mode, persist = true) {
   const stylusMode = mode === 'stylus';
   penOnlyToggle.checked = stylusMode;
   updateInputModeTip();
-  if (persist) document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  if (persist) {
+    document.cookie = `${encodeURIComponent(INPUT_MODE_COOKIE)}=${mode}; Max-Age=31536000; Path=/; SameSite=Lax`;
+    localStorage.setItem(INPUT_MODE_STORAGE_KEY, mode);
+  }
 }
 
 function initializeInputMode() {
-  const savedMode = KanaProgress.cookieValue(document.cookie, INPUT_MODE_COOKIE);
+  const savedMode = localStorage.getItem(INPUT_MODE_STORAGE_KEY) || KanaProgress.cookieValue(document.cookie, INPUT_MODE_COOKIE);
   if (savedMode === 'stylus' || savedMode === 'finger') {
+    localStorage.setItem(INPUT_MODE_STORAGE_KEY, savedMode);
     setInputMode(savedMode, false);
     return true;
   }
@@ -1403,6 +1413,11 @@ function markProductTourReady() {
 }
 
 penOnlyToggle.addEventListener('change', () => setInputMode(penOnlyToggle.checked ? 'stylus' : 'finger'));
+window.addEventListener('storage', event => {
+  if (event.key === INPUT_MODE_STORAGE_KEY && (event.newValue === 'stylus' || event.newValue === 'finger')) {
+    setInputMode(event.newValue, false);
+  }
+});
 document.querySelector('#inputModeDialog').addEventListener('cancel', event => event.preventDefault());
 document.querySelectorAll('[data-input-mode]').forEach(button => {
   button.addEventListener('click', () => {
