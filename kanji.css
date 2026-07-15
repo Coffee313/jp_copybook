@@ -130,6 +130,7 @@
 .review-actions { display: flex; gap: 8px; }
 .review-actions button, .check-drawing { border: 0; border-radius: 12px; padding: 11px 16px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .review-actions #testKanjiMyself { border: 1px solid var(--green); color: var(--green); background: transparent; }
+.review-actions #exitReview { border: 1px solid #a94534; color: #a94534; background: transparent; }
 .review-actions button:disabled { opacity: .45; cursor: default; }
 #dueCount { display: inline-grid; min-width: 22px; height: 22px; place-items: center; margin-left: 5px; border-radius: 999px; background: rgba(255,255,255,.2); }
 .review-empty { margin-top: 18px; padding: 22px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; text-align: center; }
@@ -147,6 +148,17 @@
 .review-feedback[data-result="good"] { color: var(--green); background: #edf5ef; }
 .review-feedback[data-result="hard"] { color: #8a651f; background: #fff6df; }
 .review-feedback[data-result="again"] { color: #a94534; background: #fff0ed; }
+.kanji-test-active { overflow: auto; }
+.kanji-test-active .topbar,
+.kanji-test-active .kanji-page-actions,
+.kanji-test-active .word-builder,
+.kanji-test-active .kanji-layout,
+.kanji-test-active footer { display: none; }
+.kanji-test-active .kanji-main { width: min(720px, calc(100% - 24px)); margin: 0 auto; padding: 12px 0; }
+.kanji-test-active .review-section { min-height: calc(100dvh - 24px); display: flex; flex-direction: column; justify-content: flex-start; margin: 0; }
+.kanji-test-active #testKanjiMyself,
+.kanji-test-active #startReview { display: none; }
+.kanji-test-active .review-card { width: 100%; margin: auto; }
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
 @media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }

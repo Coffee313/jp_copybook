@@ -14,6 +14,9 @@ let reviewIndex = 0;
 let reviewActive = false;
 let reviewMode = 'test';
 let reviewSelfTest = false;
+let reviewCharacterIndex = 0;
+let reviewCardRating = 'good';
+let reviewAdvanceTimer;
 
 function cookieValue(name) {
   const prefix = `${encodeURIComponent(name)}=`;
@@ -382,12 +385,12 @@ function localVocabularyEntry(word) {
   return window.JMDICT_COMMON?.entries?.[word] || null;
 }
 
-function searchLocalVocabulary(query, limit = 12) {
+function searchVocabularyEntries(query, entries, limit = 12) {
   const term = String(query || '').normalize('NFKC').trim().toLocaleLowerCase();
-  if (!term || !window.JMDICT_COMMON?.entries) return [];
+  if (!term || !entries) return [];
   const readingTerm = normalizeWordReading(term);
   const matches = [];
-  Object.entries(window.JMDICT_COMMON.entries).forEach(([word, entry]) => {
+  Object.entries(entries).forEach(([word, entry]) => {
     const characters = kanjiInWord(word);
     if (!characters.length || characters.length > 4) return;
     const normalizedWord = word.normalize('NFKC').toLocaleLowerCase();
@@ -403,6 +406,26 @@ function searchLocalVocabulary(query, limit = 12) {
   return matches
     .sort((a, b) => a.score - b.score || kanjiInWord(a.word).length - kanjiInWord(b.word).length || a.word.localeCompare(b.word, 'ja'))
     .slice(0, limit);
+}
+
+function searchLocalVocabulary(query, limit = 12) {
+  return searchVocabularyEntries(query, window.JMDICT_COMMON?.entries, limit);
+}
+
+let extendedVocabularyPromise;
+function loadExtendedVocabulary() {
+  if (window.JMDICT_EXTENDED?.entries) return Promise.resolve(window.JMDICT_EXTENDED.entries);
+  if (extendedVocabularyPromise) return extendedVocabularyPromise;
+  extendedVocabularyPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'assets/jmdict-extended.js?v=1';
+    script.onload = () => window.JMDICT_EXTENDED?.entries
+      ? resolve(window.JMDICT_EXTENDED.entries)
+      : reject(new Error('Extended vocabulary did not load'));
+    script.onerror = () => reject(new Error('Extended vocabulary is unavailable'));
+    document.head.append(script);
+  });
+  return extendedVocabularyPromise;
 }
 
 function selectedMeanings() {
@@ -619,6 +642,13 @@ wordLookupForm.addEventListener('submit', async event => {
       const characters = kanjiInWord(word);
       suggestions.set(word, { word, characters, reading: normalizeWordReading(entry.r[0]), meanings: entry.m });
     });
+    if (!suggestions.size && sourceLanguage === 'ja') {
+      const extendedEntries = await loadExtendedVocabulary();
+      searchVocabularyEntries(originalQuery, extendedEntries).forEach(({ word, entry }) => {
+        const characters = kanjiInWord(word);
+        suggestions.set(word, { word, characters, reading: normalizeWordReading(entry.r[0]), meanings: entry.m });
+      });
+    }
     if (!suggestions.size && sourceLanguage !== 'ja') {
       const fallback = await fetchJson(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalQuery)}&langpair=${sourceLanguage}|ja`);
       [fallback.responseData?.translatedText, ...(fallback.matches || []).map(match => match.translation)].forEach(value => {
@@ -718,6 +748,7 @@ function renderDictionary() {
   items.forEach(item => {
     const card = document.createElement('details');
     card.className = 'dictionary-item';
+    let hoverCloseTimer;
     card.addEventListener('toggle', () => {
       if (!card.open) return;
       list.querySelectorAll('.dictionary-item[open]').forEach(other => {
@@ -725,13 +756,27 @@ function renderDictionary() {
       });
       requestAnimationFrame(() => positionDictionaryPopover(card));
     });
+    card.addEventListener('pointerenter', () => {
+      if (!window.matchMedia('(hover: hover)').matches) return;
+      clearTimeout(hoverCloseTimer);
+      card.setAttribute('open', '');
+    });
     card.addEventListener('pointerleave', () => {
-      if (window.matchMedia('(hover: hover)').matches) card.removeAttribute('open');
+      if (!window.matchMedia('(hover: hover)').matches) return;
+      clearTimeout(hoverCloseTimer);
+      hoverCloseTimer = setTimeout(() => {
+        if (!card.matches(':hover') && !card.matches(':focus-within')) card.removeAttribute('open');
+      }, 150);
     });
     const character = document.createElement('summary');
     character.className = 'character';
     character.classList.toggle('single-character', [...item.character].length === 1);
     character.textContent = item.character;
+    character.addEventListener('click', event => {
+      if (!window.matchMedia('(hover: hover)').matches) return;
+      event.preventDefault();
+      card.setAttribute('open', '');
+    });
     const details = document.createElement('div');
     details.className = 'dictionary-popover';
     if (item.reading) {
@@ -816,17 +861,49 @@ document.querySelector('#exportAnki').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
+function reviewableCards(items, dueOnly = false) {
+  return items.filter(item => kanjiInWord(item.character).length && (!dueOnly || SRS.isDue(item)));
+}
+
 function updateReviewSummary(items = getDictionary()) {
-  const kanjiCards = items.filter(item => [...item.character].length === 1);
-  const due = kanjiCards.filter(item => SRS.isDue(item));
+  const practiceCards = reviewableCards(items);
+  const due = reviewableCards(items, true);
   const startButton = document.querySelector('#startReview');
   const selfTestButton = document.querySelector('#testKanjiMyself');
   document.querySelector('#dueCount').textContent = due.length;
   startButton.disabled = due.length === 0;
-  selfTestButton.disabled = kanjiCards.length === 0;
-  document.querySelector('#reviewEmpty').textContent = kanjiCards.length
+  selfTestButton.disabled = practiceCards.length === 0;
+  document.querySelector('#reviewEmpty').textContent = practiceCards.length
     ? (due.length ? `${due.length} ${due.length === 1 ? 'card is' : 'cards are'} ready for review.` : 'All reviews are complete for today. Come back later.')
-    : (items.length ? 'Whole words are saved in vocabulary. Add a one-kanji card to use drawing review.' : 'Add cards to your dictionary and new kanji will appear here immediately.');
+    : 'Add cards to your dictionary and vocabulary words will appear here immediately.';
+}
+
+function combineReviewRating(current, next) {
+  const weight = { good: 0, hard: 1, again: 2 };
+  return weight[next] > weight[current] ? next : current;
+}
+
+function leaveReviewTest(message = 'Test exited. Your unfinished card was not reviewed.') {
+  clearTimeout(reviewAdvanceTimer);
+  reviewActive = false;
+  reviewSelfTest = false;
+  reviewMode = 'test';
+  reviewCharacterIndex = 0;
+  reviewCardRating = 'good';
+  document.body.classList.remove('kanji-test-active');
+  document.querySelector('#exitReview').hidden = true;
+  const recognizer = document.querySelector('.recognizer-card');
+  const drawPanel = document.querySelector('.draw-panel');
+  const candidatePanel = document.querySelector('.candidate-panel');
+  if (drawPanel.parentElement !== recognizer) recognizer.insertBefore(drawPanel, candidatePanel);
+  recognizer.hidden = false;
+  candidatePanel.hidden = false;
+  document.querySelector('#reviewCard').hidden = true;
+  const empty = document.querySelector('#reviewEmpty');
+  empty.hidden = false;
+  updateReviewSummary();
+  if (message) empty.textContent = message;
+  erase();
 }
 
 function showReviewCard() {
@@ -834,39 +911,34 @@ function showReviewCard() {
   const empty = document.querySelector('#reviewEmpty');
   if (reviewIndex >= reviewQueue.length) {
     const completedSelfTest = reviewSelfTest;
-    reviewActive = false;
-    reviewSelfTest = false;
-    const recognizer = document.querySelector('.recognizer-card');
-    const drawPanel = document.querySelector('.draw-panel');
-    const candidatePanel = document.querySelector('.candidate-panel');
-    recognizer.insertBefore(drawPanel, candidatePanel);
-    recognizer.hidden = false;
-    candidatePanel.hidden = false;
-    reviewCard.hidden = true;
-    empty.hidden = false;
-    updateReviewSummary();
-    empty.textContent = completedSelfTest
+    leaveReviewTest(completedSelfTest
       ? 'Self-test complete. Your review schedule was not changed.'
-      : 'Review complete. Your next review schedule has been saved.';
+      : 'Review complete. Your next review schedule has been saved.');
     return;
   }
 
   const card = reviewQueue[reviewIndex];
+  const targets = kanjiInWord(card.character);
+  const target = targets[reviewCharacterIndex];
   reviewActive = true;
   empty.hidden = true;
   reviewCard.hidden = false;
-  document.querySelector('#reviewProgress').textContent = `Card ${reviewIndex + 1} of ${reviewQueue.length}`;
+  document.querySelector('#reviewProgress').textContent = targets.length > 1
+    ? `Word ${reviewIndex + 1} of ${reviewQueue.length} · Kanji ${reviewCharacterIndex + 1} of ${targets.length}`
+    : `Word ${reviewIndex + 1} of ${reviewQueue.length}`;
   document.querySelector('#reviewTranslation').textContent = card.translation;
   const prompt = document.querySelector('.review-prompt');
   const guide = document.querySelector('#reviewStrokeGuide');
-  renderStrokeGuide(guide, card.character);
-  guide.hidden = reviewMode !== 'guided' || !KANJIVG_STROKES[card.character];
+  renderStrokeGuide(guide, target);
+  guide.hidden = reviewMode !== 'guided' || !KANJIVG_STROKES[target];
   document.querySelector('#forgotKanji').hidden = reviewMode === 'guided';
   prompt.textContent = reviewMode === 'guided'
     ? 'Trace the kanji using the guide. After a correct attempt, you will write it once more without help.'
     : reviewMode === 'confirm'
       ? 'Now write the same kanji once more without the guide.'
-      : 'Draw the kanji for this meaning. Follow the correct stroke order and direction.';
+      : targets.length > 1
+        ? `Draw kanji ${reviewCharacterIndex + 1} of ${targets.length} for this word. Follow the correct stroke order and direction.`
+        : 'Draw the kanji for this meaning. Follow the correct stroke order and direction.';
   const feedback = document.querySelector('#reviewFeedback');
   feedback.hidden = true;
   feedback.removeAttribute('data-result');
@@ -878,7 +950,11 @@ function startReviewTest(items, selfTest = false) {
   reviewQueue = items;
   reviewSelfTest = selfTest;
   reviewIndex = 0;
+  reviewCharacterIndex = 0;
+  reviewCardRating = 'good';
   reviewMode = 'test';
+  document.body.classList.add('kanji-test-active');
+  document.querySelector('#exitReview').hidden = false;
   document.querySelector('#reviewCanvasHost').append(document.querySelector('.draw-panel'));
   document.querySelector('.recognizer-card').hidden = true;
   document.querySelector('.candidate-panel').hidden = true;
@@ -887,29 +963,25 @@ function startReviewTest(items, selfTest = false) {
 }
 
 document.querySelector('#startReview').addEventListener('click', () => {
-  startReviewTest(getDictionary()
-    .filter(item => [...item.character].length === 1 && SRS.isDue(item))
+  startReviewTest(reviewableCards(getDictionary(), true)
     .sort((a, b) => Date.parse(a.nextReview || 0) - Date.parse(b.nextReview || 0)));
 });
 
 document.querySelector('#testKanjiMyself').addEventListener('click', () => {
-  startReviewTest(getDictionary().filter(item => [...item.character].length === 1).sort(() => Math.random() - .5), true);
+  startReviewTest(reviewableCards(getDictionary()).sort(() => Math.random() - .5), true);
 });
+
+document.querySelector('#exitReview').addEventListener('click', () => leaveReviewTest());
 
 document.querySelector('#forgotKanji').addEventListener('click', () => {
   if (!reviewActive || reviewMode === 'guided') return;
   const reviewed = reviewQueue[reviewIndex];
-  if (!reviewSelfTest) {
-    const items = getDictionary();
-    const storedIndex = items.findIndex(item => item.character === reviewed.character);
-    if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], 'again');
-    saveDictionary(items);
-    renderDictionary();
-  }
+  const target = kanjiInWord(reviewed.character)[reviewCharacterIndex];
+  reviewCardRating = combineReviewRating(reviewCardRating, 'again');
   reviewMode = 'guided';
   showReviewCard();
   const feedback = document.querySelector('#reviewFeedback');
-  feedback.textContent = `The correct kanji is ${reviewed.character}. Trace it using the guide.`;
+  feedback.textContent = `The correct kanji is ${target}. Trace it using the guide.`;
   feedback.dataset.result = 'again';
   feedback.hidden = false;
 });
@@ -923,33 +995,42 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
     return;
   }
   const reviewed = reviewQueue[reviewIndex];
+  const targets = kanjiInWord(reviewed.character);
+  const target = targets[reviewCharacterIndex];
   const candidates = [...document.querySelectorAll('.candidate-list .kmatch')]
     .map(candidate => candidate.textContent.trim());
-  const rating = SRS.classifyDrawing(reviewed.character, testk, getStrokeDirections(), kanji, candidates, KANJIVG_DIRECTIONS);
+  const rating = SRS.classifyDrawing(target, testk, getStrokeDirections(), kanji, candidates, KANJIVG_DIRECTIONS);
   const attemptMode = reviewMode;
   const nextMode = SRS.nextReviewMode(attemptMode, rating);
   const messages = {
-    good: `Correct: ${reviewed.character}. The stroke order and direction are right.`,
-    hard: `This is ${reviewed.character}, but the stroke order or direction needs more practice.`,
-    again: `Incorrect. The correct kanji is ${reviewed.character}.`
+    good: `Correct: ${target}. The stroke order and direction are right.`,
+    hard: `This is ${target}, but the stroke order or direction needs more practice.`,
+    again: `Incorrect. The correct kanji is ${target}.`
   };
   feedback.textContent = rating === 'good' && attemptMode === 'guided'
-    ? `Correct: ${reviewed.character}. Now repeat it without the guide.`
+    ? `Correct: ${target}. Now repeat it without the guide.`
     : messages[rating];
   feedback.dataset.result = rating;
   feedback.hidden = false;
   checkButton.disabled = true;
 
-  if (attemptMode !== 'guided' && !reviewSelfTest) {
-    const items = getDictionary();
-    const storedIndex = items.findIndex(item => item.character === reviewed.character);
-    if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], rating);
-    saveDictionary(items);
-    renderDictionary();
-  }
-  setTimeout(() => {
+  if (attemptMode !== 'guided') reviewCardRating = combineReviewRating(reviewCardRating, rating);
+  reviewAdvanceTimer = setTimeout(() => {
     if (nextMode === 'complete') {
-      reviewIndex += 1;
+      if (reviewCharacterIndex < targets.length - 1) {
+        reviewCharacterIndex += 1;
+      } else {
+        if (!reviewSelfTest) {
+          const items = getDictionary();
+          const storedIndex = items.findIndex(item => item.character === reviewed.character);
+          if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], reviewCardRating);
+          saveDictionary(items);
+          renderDictionary();
+        }
+        reviewIndex += 1;
+        reviewCharacterIndex = 0;
+        reviewCardRating = 'good';
+      }
       reviewMode = 'test';
     } else {
       reviewMode = nextMode;
