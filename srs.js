@@ -64,9 +64,16 @@
     const targetReferences = references.filter(reference => reference[0] === character);
     const exact = targetReferences.filter(reference => reference[1] === strokeSignature);
     const expectedDirections = directionReferences[character];
+    const directionNames = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
     const directionsMatch = !expectedDirections || (
       expectedDirections.length === strokeDirections.length &&
-      expectedDirections.every((direction, index) => direction === strokeDirections[index])
+      expectedDirections.every((direction, index) => {
+        const expectedIndex = directionNames.indexOf(direction);
+        const actualIndex = directionNames.indexOf(strokeDirections[index]);
+        if (expectedIndex === -1 || actualIndex === -1) return direction === strokeDirections[index];
+        const distance = Math.abs(expectedIndex - actualIndex);
+        return Math.min(distance, directionNames.length - distance) <= 1;
+      })
     );
     if (exact.length && directionsMatch) return 'good';
     if (exact.length) return 'hard';

@@ -140,6 +140,15 @@
 .review-prompt { color: var(--muted); font-size: 13px; }
 #reviewCanvasHost .draw-panel { padding: 14px 0; border: 0; background: transparent; }
 #reviewCanvasHost #can { width: min(100%, 320px); }
+.review-word-cells { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px auto 4px; }
+.review-word-cells[data-count="1"] { max-width: 320px; grid-template-columns: 1fr; }
+.review-word-cell { position: relative; display: grid; aspect-ratio: 1; place-items: center; overflow: hidden; border: 1.5px dashed #cfc8bd; border-radius: 14px; background: #fffefa; }
+.review-word-cell[data-state="active"] { border-style: solid; border-color: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); }
+.review-word-cell[data-state="complete"] { border-style: solid; border-color: #a9c0b2; background: #f3f8f4; }
+.review-word-cell .canvas-wrap, .review-word-cell #can { width: 100%; max-width: none; }
+.review-word-cell img { width: 100%; height: 100%; object-fit: contain; }
+.review-cell-number { position: absolute; z-index: 3; top: 6px; left: 8px; display: grid; width: 20px; height: 20px; place-items: center; border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.9); font-size: 10px; font-weight: 700; }
+#reviewCanvasHost .draw-actions { margin-inline: auto; }
 .check-drawing { min-width: 200px; margin-top: 10px; }
 .review-submit-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 10px; }
 .review-submit-actions .check-drawing { margin-top: 0; }

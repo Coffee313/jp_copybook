@@ -17,6 +17,7 @@ let reviewSelfTest = false;
 let reviewCharacterIndex = 0;
 let reviewCardRating = 'good';
 let reviewAdvanceTimer;
+let reviewCellImages = [];
 
 function cookieValue(name) {
   const prefix = `${encodeURIComponent(name)}=`;
@@ -883,6 +884,39 @@ function combineReviewRating(current, next) {
   return weight[next] > weight[current] ? next : current;
 }
 
+function renderReviewWordCells(targets) {
+  const cells = document.querySelector('#reviewWordCells');
+  const drawPanel = document.querySelector('.draw-panel');
+  const canvasWrap = document.querySelector('.canvas-wrap');
+  const drawActions = drawPanel.querySelector('.draw-actions');
+  if (canvasWrap.parentElement !== drawPanel) drawPanel.insertBefore(canvasWrap, drawActions);
+  cells.replaceChildren();
+  cells.dataset.count = targets.length;
+  targets.forEach((target, index) => {
+    const cell = document.createElement('div');
+    cell.className = 'review-word-cell';
+    const number = document.createElement('span');
+    number.className = 'review-cell-number';
+    number.textContent = index + 1;
+    cell.append(number);
+    if (reviewCellImages[index]) {
+      const image = document.createElement('img');
+      image.src = reviewCellImages[index];
+      image.alt = `Completed kanji ${index + 1}`;
+      cell.dataset.state = 'complete';
+      cell.append(image);
+    } else if (index === reviewCharacterIndex) {
+      cell.dataset.state = 'active';
+      cell.setAttribute('aria-label', `Draw kanji ${index + 1} of ${targets.length}`);
+      cell.append(canvasWrap);
+    } else {
+      cell.dataset.state = 'pending';
+      cell.setAttribute('aria-label', `Kanji ${index + 1} of ${targets.length}, waiting`);
+    }
+    cells.append(cell);
+  });
+}
+
 function leaveReviewTest(message = 'Test exited. Your unfinished card was not reviewed.') {
   clearTimeout(reviewAdvanceTimer);
   reviewActive = false;
@@ -890,11 +924,17 @@ function leaveReviewTest(message = 'Test exited. Your unfinished card was not re
   reviewMode = 'test';
   reviewCharacterIndex = 0;
   reviewCardRating = 'good';
+  reviewCellImages = [];
   document.body.classList.remove('kanji-test-active');
   document.querySelector('#exitReview').hidden = true;
   const recognizer = document.querySelector('.recognizer-card');
   const drawPanel = document.querySelector('.draw-panel');
   const candidatePanel = document.querySelector('.candidate-panel');
+  const wordCells = document.querySelector('#reviewWordCells');
+  const canvasWrap = document.querySelector('.canvas-wrap');
+  drawPanel.insertBefore(canvasWrap, drawPanel.querySelector('.draw-actions'));
+  wordCells.hidden = true;
+  document.querySelector('#reviewCanvasHost').before(wordCells);
   if (drawPanel.parentElement !== recognizer) recognizer.insertBefore(drawPanel, candidatePanel);
   recognizer.hidden = false;
   candidatePanel.hidden = false;
@@ -929,6 +969,7 @@ function showReviewCard() {
   document.querySelector('#reviewTranslation').textContent = card.translation;
   const prompt = document.querySelector('.review-prompt');
   const guide = document.querySelector('#reviewStrokeGuide');
+  renderReviewWordCells(targets);
   renderStrokeGuide(guide, target);
   guide.hidden = reviewMode !== 'guided' || !KANJIVG_STROKES[target];
   document.querySelector('#forgotKanji').hidden = reviewMode === 'guided';
@@ -952,10 +993,15 @@ function startReviewTest(items, selfTest = false) {
   reviewIndex = 0;
   reviewCharacterIndex = 0;
   reviewCardRating = 'good';
+  reviewCellImages = [];
   reviewMode = 'test';
   document.body.classList.add('kanji-test-active');
   document.querySelector('#exitReview').hidden = false;
-  document.querySelector('#reviewCanvasHost').append(document.querySelector('.draw-panel'));
+  const drawPanel = document.querySelector('.draw-panel');
+  const wordCells = document.querySelector('#reviewWordCells');
+  wordCells.hidden = false;
+  drawPanel.prepend(wordCells);
+  document.querySelector('#reviewCanvasHost').append(drawPanel);
   document.querySelector('.recognizer-card').hidden = true;
   document.querySelector('.candidate-panel').hidden = true;
   showReviewCard();
@@ -1017,6 +1063,7 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
   if (attemptMode !== 'guided') reviewCardRating = combineReviewRating(reviewCardRating, rating);
   reviewAdvanceTimer = setTimeout(() => {
     if (nextMode === 'complete') {
+      reviewCellImages[reviewCharacterIndex] = document.querySelector('#can').toDataURL('image/png', 1);
       if (reviewCharacterIndex < targets.length - 1) {
         reviewCharacterIndex += 1;
       } else {
@@ -1030,6 +1077,7 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
         reviewIndex += 1;
         reviewCharacterIndex = 0;
         reviewCardRating = 'good';
+        reviewCellImages = [];
       }
       reviewMode = 'test';
     } else {
