@@ -715,7 +715,7 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
     reading,
     note: document.querySelector('#noteInput').value.trim(),
     createdAt: existing?.createdAt || new Date().toISOString(),
-    nextReview: new Date().toISOString(),
+    nextReview: existing?.nextReview || null,
     interval: existing?.interval || 0,
     ease: existing?.ease || 2.5,
     repetitions: existing?.repetitions || 0
@@ -864,8 +864,13 @@ document.querySelector('#exportAnki').addEventListener('click', () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
+function isCardDueForReview(card) {
+  const neverReviewed = !card.lastReviewed && (Number(card.repetitions) || 0) === 0;
+  return neverReviewed || SRS.isDue(card);
+}
+
 function reviewableCards(items, dueOnly = false) {
-  return items.filter(item => kanjiInWord(item.character).length && (!dueOnly || SRS.isDue(item)));
+  return items.filter(item => kanjiInWord(item.character).length && (!dueOnly || isCardDueForReview(item)));
 }
 
 function updateReviewSummary(items = getDictionary()) {
