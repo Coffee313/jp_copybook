@@ -151,6 +151,7 @@
     'Spaced repetition': 'Интервальное повторение',
     'Start test': 'Начать тест',
     'Exit test': 'Выйти из теста',
+    'Words to practice': 'Слова для повторения',
     'Check writing': 'Проверить написание',
     'Draw the kanji for this meaning. Follow the correct stroke order and direction.': 'Напишите кандзи с этим значением, соблюдая порядок и направление черт.',
     'Recognition runs locally.': 'Распознавание работает на устройстве.',

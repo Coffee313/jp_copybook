@@ -157,6 +157,13 @@
 .review-feedback[data-result="good"] { color: var(--green); background: #edf5ef; }
 .review-feedback[data-result="hard"] { color: #8a651f; background: #fff6df; }
 .review-feedback[data-result="again"] { color: #a94534; background: #fff0ed; }
+.review-practice-icons { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
+.review-practice-icons > p { margin: 0 0 9px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.review-practice-icon-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.review-practice-icon { width: 40px; height: 40px; display: grid; place-items: center; overflow: hidden; border: 1px solid #ded8cf; border-radius: 10px; color: var(--green); background: #faf8f4; }
+.review-practice-icon > span { max-width: 100%; filter: blur(2.4px); opacity: .68; white-space: nowrap; font: 500 15px/1 'Noto Sans JP', sans-serif; transform: scale(.92); }
+.review-practice-icon[data-state="current"] { border-color: var(--green); box-shadow: 0 0 0 2px rgba(61,92,81,.12); }
+.review-practice-icon[data-state="complete"] { opacity: .42; }
 .kanji-test-active { overflow: auto; }
 .kanji-test-active .topbar,
 .kanji-test-active .kanji-page-actions,

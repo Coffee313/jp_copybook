@@ -917,6 +917,24 @@ function renderReviewWordCells(targets) {
   });
 }
 
+function renderReviewPracticeIcons() {
+  const container = document.querySelector('#reviewPracticeIcons');
+  const list = document.querySelector('#reviewPracticeIconList');
+  list.replaceChildren();
+  reviewQueue.forEach((card, index) => {
+    const icon = document.createElement('span');
+    icon.className = 'review-practice-icon';
+    icon.dataset.state = index < reviewIndex ? 'complete' : index === reviewIndex ? 'current' : 'pending';
+    icon.setAttribute('aria-label', `Practice word ${index + 1} of ${reviewQueue.length}`);
+    const word = document.createElement('span');
+    word.lang = 'ja';
+    word.textContent = card.character;
+    icon.append(word);
+    list.append(icon);
+  });
+  container.hidden = !reviewActive || !reviewQueue.length;
+}
+
 function leaveReviewTest(message = 'Test exited. Your unfinished card was not reviewed.') {
   clearTimeout(reviewAdvanceTimer);
   reviewActive = false;
@@ -939,6 +957,7 @@ function leaveReviewTest(message = 'Test exited. Your unfinished card was not re
   recognizer.hidden = false;
   candidatePanel.hidden = false;
   document.querySelector('#reviewCard').hidden = true;
+  document.querySelector('#reviewPracticeIcons').hidden = true;
   const empty = document.querySelector('#reviewEmpty');
   empty.hidden = false;
   updateReviewSummary();
@@ -963,6 +982,7 @@ function showReviewCard() {
   reviewActive = true;
   empty.hidden = true;
   reviewCard.hidden = false;
+  renderReviewPracticeIcons();
   document.querySelector('#reviewProgress').textContent = targets.length > 1
     ? `Word ${reviewIndex + 1} of ${reviewQueue.length} · Kanji ${reviewCharacterIndex + 1} of ${targets.length}`
     : `Word ${reviewIndex + 1} of ${reviewQueue.length}`;
