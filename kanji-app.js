@@ -988,13 +988,156 @@ let kanjiCopybookItem = null;
 let kanjiCopybookCharacterIndex = 0;
 let kanjiCopybookMobileLayout = null;
 
-function setupCopybookCanvas(canvas) {
+function copybookDilate(mask, size, radius) {
+  const result = new Uint8Array(mask.length);
+  for (let y = 0; y < size; y += 1) for (let x = 0; x < size; x += 1) {
+    if (!mask[y * size + x]) continue;
+    for (let dy = -radius; dy <= radius; dy += 1) for (let dx = -radius; dx <= radius; dx += 1) {
+      if (dx * dx + dy * dy > radius * radius) continue;
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx >= 0 && nx < size && ny >= 0 && ny < size) result[ny * size + nx] = 1;
+    }
+  }
+  return result;
+}
+
+function copybookMask(context, size) {
+  const pixels = context.getImageData(0, 0, size, size).data;
+  return Uint8Array.from({ length: size * size }, (_, index) => pixels[index * 4 + 3] > 35 ? 1 : 0);
+}
+
+function copybookMaskSimilarity(first, second, size) {
+  const firstWide = copybookDilate(first, size, 5);
+  const secondWide = copybookDilate(second, size, 5);
+  let firstPixels = 0, secondPixels = 0, firstHits = 0, secondHits = 0;
+  first.forEach((value, index) => {
+    if (value) { firstPixels += 1; if (secondWide[index]) firstHits += 1; }
+    if (second[index]) { secondPixels += 1; if (firstWide[index]) secondHits += 1; }
+  });
+  return firstPixels && secondPixels ? (firstHits / firstPixels) * .55 + (secondHits / secondPixels) * .45 : 0;
+}
+
+function copybookStrokeMask(stroke, size) {
+  const layer = document.createElement('canvas');
+  layer.width = layer.height = size;
+  const context = layer.getContext('2d');
+  context.strokeStyle = '#000';
+  context.lineWidth = 6;
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.beginPath();
+  stroke.forEach(([x, y], index) => index ? context.lineTo(x * size, y * size) : context.moveTo(x * size, y * size));
+  context.stroke();
+  return copybookMask(context, size);
+}
+
+function copybookReferenceMask(path, size) {
+  const layer = document.createElement('canvas');
+  layer.width = layer.height = size;
+  const context = layer.getContext('2d');
+  context.setTransform((size - 8) / 109, 0, 0, (size - 8) / 109, 4, 4);
+  context.strokeStyle = '#000';
+  context.lineWidth = 4;
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.stroke(new Path2D(path));
+  return copybookMask(context, size);
+}
+
+function copybookResample(points, count = 14) {
+  const lengths = [0];
+  for (let index = 1; index < points.length; index += 1) lengths.push(lengths[index - 1] + Math.hypot(points[index][0] - points[index - 1][0], points[index][1] - points[index - 1][1]));
+  const total = lengths[lengths.length - 1] || 1;
+  return Array.from({ length: count }, (_, sampleIndex) => {
+    const target = total * sampleIndex / (count - 1);
+    let segment = 1;
+    while (segment < lengths.length - 1 && lengths[segment] < target) segment += 1;
+    const segmentLength = (lengths[segment] || total) - (lengths[segment - 1] || 0) || 1;
+    const ratio = (target - (lengths[segment - 1] || 0)) / segmentLength;
+    const start = points[segment - 1] || points[0];
+    const end = points[segment] || start;
+    return [start[0] + (end[0] - start[0]) * ratio, start[1] + (end[1] - start[1]) * ratio];
+  });
+}
+
+function copybookReferencePoints(pathData, size, count = 14) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathData);
+  const total = path.getTotalLength();
+  return Array.from({ length: count }, (_, index) => {
+    const point = path.getPointAtLength(total * index / (count - 1));
+    return [(4 + point.x * (size - 8) / 109) / size, (4 + point.y * (size - 8) / 109) / size];
+  });
+}
+
+function gradeKanjiCopybookCanvas(canvas, character) {
+  if (!canvas.isConnected) return;
+  const paths = window.KANJIVG_STROKES?.[character];
+  if (!paths?.length || !(canvas.__strokes || []).length) return;
+  const size = 96;
+  const userLayer = document.createElement('canvas');
+  userLayer.width = userLayer.height = size;
+  userLayer.getContext('2d').drawImage(canvas, 0, 0, size, size);
+  const targetLayer = document.createElement('canvas');
+  targetLayer.width = targetLayer.height = size;
+  const targetContext = targetLayer.getContext('2d');
+  targetContext.setTransform((size - 8) / 109, 0, 0, (size - 8) / 109, 4, 4);
+  targetContext.strokeStyle = '#000';
+  targetContext.lineWidth = 4;
+  targetContext.lineCap = 'round';
+  targetContext.lineJoin = 'round';
+  paths.forEach(path => targetContext.stroke(new Path2D(path)));
+  const user = copybookMask(userLayer.getContext('2d'), size);
+  const target = copybookMask(targetLayer.getContext('2d'), size);
+  const userWide = copybookDilate(user, size, 3);
+  const targetWide = copybookDilate(target, size, 4);
+  let userPixels = 0, targetPixels = 0, userHits = 0, targetHits = 0;
+  user.forEach((value, index) => {
+    if (value) { userPixels += 1; if (targetWide[index]) userHits += 1; }
+    if (target[index]) { targetPixels += 1; if (userWide[index]) targetHits += 1; }
+  });
+  if (userPixels < 35) return;
+  const precision = userHits / userPixels;
+  const coverage = targetHits / targetPixels;
+  const rawScore = precision * .58 + coverage * .42;
+  const shapeGood = precision > .68 && coverage > .55 && rawScore > .65;
+  let order = false;
+  let direction = false;
+  const strokes = canvas.__strokes || [];
+  if (strokes.length === paths.length) {
+    const userStrokes = strokes.map(stroke => copybookStrokeMask(stroke, size));
+    const references = paths.map(path => copybookReferenceMask(path, size));
+    const matrix = userStrokes.map(stroke => references.map(reference => copybookMaskSimilarity(stroke, reference, size)));
+    const direct = matrix.reduce((sum, row, index) => sum + row[index], 0);
+    const best = matrix.reduce((sum, row) => sum + Math.max(...row), 0);
+    order = matrix.every((row, index) => row[index] >= .28 && row[index] >= Math.max(...row) * .82) && direct / Math.max(best, .001) >= .82;
+    if (order) direction = strokes.every((stroke, index) => {
+      const sampled = copybookResample(stroke);
+      const reference = copybookReferencePoints(paths[index], size);
+      const error = points => sampled.reduce((sum, point, pointIndex) => sum + Math.hypot(point[0] - points[pointIndex][0], point[1] - points[pointIndex][1]), 0);
+      return error(reference) <= error([...reference].reverse()) * .94;
+    });
+  }
+  const result = !shapeGood ? 'retry' : !order ? 'order' : !direction ? 'direction' : 'good';
+  const score = precision >= .985 && coverage >= .985 ? 100 : Math.min(99, Math.round(Math.pow(rawScore, 1.45) * 100));
+  const cell = canvas.parentElement;
+  cell.classList.add(`grade-${result}`);
+  const badge = document.createElement('span');
+  badge.className = 'grade-badge';
+  badge.textContent = result === 'good' ? `Good · ${score}%` : result === 'order' ? `Wrong order · ${score}%` : result === 'direction' ? `Wrong direction · ${score}%` : `Try again · ${score}%`;
+  cell.append(badge);
+}
+
+function setupCopybookCanvas(canvas, character) {
   const context = canvas.getContext('2d');
   let drawing = false;
   let pointerId = null;
+  let currentStroke = null;
+  let gradeTimer;
   const point = event => {
     const rect = canvas.getBoundingClientRect();
-    return [(event.clientX - rect.left) * canvas.width / rect.width, (event.clientY - rect.top) * canvas.height / rect.height];
+    return [(event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height];
   };
   const resize = () => {
     const rect = canvas.getBoundingClientRect();
@@ -1006,22 +1149,33 @@ function setupCopybookCanvas(canvas) {
     context.lineJoin = 'round';
     context.strokeStyle = '#2f2d29';
     context.lineWidth = Math.max(3, canvas.width / 110);
+    (canvas.__strokes || []).forEach(stroke => {
+      context.beginPath();
+      stroke.forEach(([x, y], index) => index ? context.lineTo(x * canvas.width, y * canvas.height) : context.moveTo(x * canvas.width, y * canvas.height));
+      context.stroke();
+    });
   };
+  canvas.__strokes = [];
   canvas.addEventListener('pointerdown', event => {
     const stylusOnly = localStorage.getItem(INPUT_MODE_STORAGE_KEY) === 'stylus';
     if (stylusOnly && event.pointerType !== 'pen') return;
     drawing = true;
     pointerId = event.pointerId;
+    clearTimeout(gradeTimer);
+    canvas.parentElement.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
+    canvas.parentElement.querySelector('.grade-badge')?.remove();
     canvas.setPointerCapture?.(pointerId);
     const [x, y] = point(event);
+    currentStroke = [[x, y]];
     context.beginPath();
-    context.moveTo(x, y);
+    context.moveTo(x * canvas.width, y * canvas.height);
     event.preventDefault();
   });
   canvas.addEventListener('pointermove', event => {
     if (!drawing || event.pointerId !== pointerId) return;
     const [x, y] = point(event);
-    context.lineTo(x, y);
+    currentStroke.push([x, y]);
+    context.lineTo(x * canvas.width, y * canvas.height);
     context.stroke();
     event.preventDefault();
   });
@@ -1029,6 +1183,10 @@ function setupCopybookCanvas(canvas) {
     if (!drawing || event.pointerId !== pointerId) return;
     drawing = false;
     pointerId = null;
+    if (currentStroke?.length === 1) currentStroke.push(currentStroke[0]);
+    if (currentStroke) canvas.__strokes.push(currentStroke);
+    currentStroke = null;
+    gradeTimer = setTimeout(() => gradeKanjiCopybookCanvas(canvas, character), 1400);
   };
   canvas.addEventListener('pointerup', finish);
   canvas.addEventListener('pointercancel', finish);
@@ -1038,14 +1196,14 @@ function setupCopybookCanvas(canvas) {
 function makeCopybookDrawingCell(character, index, mobile) {
   const cell = document.createElement('div');
   cell.className = 'kanji-copybook-cell';
-  const guide = document.createElement('span');
+  const guide = document.createElement('div');
   guide.className = 'kanji-copybook-ghost';
-  guide.lang = 'ja';
-  guide.textContent = character;
+  renderStrokeGuide(guide, character);
+  guide.querySelectorAll('text').forEach(label => label.remove());
   const canvas = document.createElement('canvas');
   canvas.setAttribute('aria-label', `Practise ${character}${mobile ? '' : `, cell ${index}`}`);
   cell.append(guide, canvas);
-  setupCopybookCanvas(canvas);
+  setupCopybookCanvas(canvas, character);
   return cell;
 }
 

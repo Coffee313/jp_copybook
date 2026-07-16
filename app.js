@@ -688,7 +688,7 @@ function showGrade(cell, result, score) {
       : `Shape needs work · ${score}%`;
   cell.append(badge);
   if (testActive && result === 'good') revealTestComparison(cell);
-  if (!testActive && result !== 'good' && !mobileMode) {
+  if (!testActive && result !== 'good' && !mobileMode && !copybookMode) {
     const canvas = cell.querySelector('canvas');
     if (canvas) {
       canvas.__autoClearPending = true;
@@ -703,7 +703,7 @@ function showGrade(cell, result, score) {
     }
   }
   if (testActive) handleTestResult(result);
-  else if (mobileMode) handleMobilePracticeResult(result, cell);
+  else if (mobileMode && !copybookMode) handleMobilePracticeResult(result, cell);
   else if (result === 'good' && !copybookMode) recordLearningSuccess();
 }
 

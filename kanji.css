@@ -170,7 +170,13 @@ body.concentration-mode .concentration-copybook { display: block; border: 0; bor
 .kanji-copybook-sheet { min-height: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; place-content: center; width: min(100%, calc((100dvh - 145px) * 5 / 3)); margin: 0 auto; }
 .kanji-copybook-cell { position: relative; min-width: 0; aspect-ratio: 1; overflow: hidden; border: 1.5px solid #d4cec4; border-radius: 13px; background-color: #fffefa; background-image: linear-gradient(to right, transparent calc(50% - .5px), #eee8df calc(50% - .5px), #eee8df calc(50% + .5px), transparent calc(50% + .5px)), linear-gradient(to bottom, transparent calc(50% - .5px), #eee8df calc(50% - .5px), #eee8df calc(50% + .5px), transparent calc(50% + .5px)); }
 .kanji-copybook-cell canvas { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
-.kanji-copybook-ghost { position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; color: rgba(61,92,81,.13); pointer-events: none; font: 400 clamp(48px, 8vw, 112px)/1 'Noto Sans JP', sans-serif; }
+.kanji-copybook-ghost { position: absolute; z-index: 1; inset: 6%; pointer-events: none; opacity: .14; }
+.kanji-copybook-ghost svg { width: 100%; height: 100%; }
+.kanji-copybook-ghost path { fill: none; stroke: var(--green); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.kanji-copybook-cell.grade-good { border-color: #2f9367; box-shadow: inset 0 0 0 3px rgba(47,147,103,.16); }
+.kanji-copybook-cell.grade-order { border-color: #d49332; box-shadow: inset 0 0 0 3px rgba(212,147,50,.16); }
+.kanji-copybook-cell.grade-direction { border-color: #c17a32; box-shadow: inset 0 0 0 3px rgba(193,122,50,.16); }
+.kanji-copybook-cell.grade-retry { border-color: #d85c58; box-shadow: inset 0 0 0 3px rgba(216,92,88,.14); }
 .kanji-copybook-example { border-color: var(--accent-soft); }
 .kanji-copybook-stroke-guide { position: absolute; inset: 6%; }
 .kanji-copybook-stroke-guide svg { width: 100%; height: 100%; }
@@ -284,7 +290,6 @@ body.concentration-mode .concentration-copybook { display: block; border: 0; bor
   .kanji-copybook-word-info strong { font-size: 27px; }
   .kanji-copybook-character-tabs button { width: 40px; height: 40px; font-size: 21px; }
   .kanji-copybook-sheet { width: min(100%, calc(100dvh - 205px)); grid-template-columns: minmax(0, 1fr); }
-  .kanji-copybook-ghost { font-size: min(55vw, 190px); }
   body.concentration-mode .concentration-copybook { padding: 7px 8px; font-size: 10px; }
   .kanji-test-active .kanji-main { width: calc(100% - 8px); padding-block: 4px; }
   .kanji-test-active .review-section { height: calc(100dvh - 8px); padding: 7px; border-radius: 16px; }
