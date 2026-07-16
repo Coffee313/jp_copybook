@@ -1127,6 +1127,17 @@ function gradeKanjiCopybookCanvas(canvas, character) {
   badge.className = 'grade-badge';
   badge.textContent = result === 'good' ? `Good · ${score}%` : result === 'order' ? `Wrong order · ${score}%` : result === 'direction' ? `Wrong direction · ${score}%` : `Try again · ${score}%`;
   cell.append(badge);
+  if (result !== 'good') {
+    canvas.style.pointerEvents = 'none';
+    setTimeout(() => {
+      if (!canvas.isConnected) return;
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      canvas.__strokes = [];
+      cell.classList.remove('grade-order', 'grade-direction', 'grade-retry');
+      cell.querySelector('.grade-badge')?.remove();
+      canvas.style.pointerEvents = '';
+    }, 900);
+  }
 }
 
 function setupCopybookCanvas(canvas, character) {
@@ -1135,6 +1146,11 @@ function setupCopybookCanvas(canvas, character) {
   let pointerId = null;
   let currentStroke = null;
   let gradeTimer;
+  const scheduleGrade = () => {
+    const expectedStrokes = window.KANJIVG_STROKES?.[character]?.length || 0;
+    if (!expectedStrokes || canvas.__strokes.length < expectedStrokes) return;
+    gradeTimer = setTimeout(() => gradeKanjiCopybookCanvas(canvas, character), 1400);
+  };
   const point = event => {
     const rect = canvas.getBoundingClientRect();
     return [(event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height];
@@ -1186,7 +1202,7 @@ function setupCopybookCanvas(canvas, character) {
     if (currentStroke?.length === 1) currentStroke.push(currentStroke[0]);
     if (currentStroke) canvas.__strokes.push(currentStroke);
     currentStroke = null;
-    gradeTimer = setTimeout(() => gradeKanjiCopybookCanvas(canvas, character), 1400);
+    scheduleGrade();
   };
   canvas.addEventListener('pointerup', finish);
   canvas.addEventListener('pointercancel', finish);

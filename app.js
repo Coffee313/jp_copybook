@@ -434,6 +434,12 @@ function setupCanvas(canvas, savedState = null) {
   }
   const cell = canvas.parentElement;
 
+  const scheduleGrade = () => {
+    const expectedStrokes = window.kanaGuidePaths?.[selected[0]]?.length || 0;
+    if (!expectedStrokes || canvas.__strokes.length < expectedStrokes) return;
+    gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
+  };
+
   const clearGrade = () => {
     clearTimeout(gradeTimer);
     cell.classList.remove('grade-good', 'grade-order', 'grade-direction', 'grade-retry');
@@ -493,7 +499,7 @@ function setupCanvas(canvas, savedState = null) {
     try { canvas.releasePointerCapture(event.pointerId); }
     catch { /* Capture may already have been released by Safari. */ }
     unlockDrawingViewport(canvas);
-    gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
+    scheduleGrade();
   });
   canvas.addEventListener('pointercancel', event => {
     if (event.pointerId !== activePointerId) return;
@@ -503,7 +509,7 @@ function setupCanvas(canvas, savedState = null) {
     drawingRect = null;
     unlockDrawingViewport(canvas);
   });
-  if (canvas.__strokes.length && !savedState?.grade) gradeTimer = setTimeout(() => gradeCanvas(canvas), 1400);
+  if (canvas.__strokes.length && !savedState?.grade) scheduleGrade();
 }
 
 function dilate(mask, size, radius) {
@@ -688,7 +694,7 @@ function showGrade(cell, result, score) {
       : `Shape needs work · ${score}%`;
   cell.append(badge);
   if (testActive && result === 'good') revealTestComparison(cell);
-  if (!testActive && result !== 'good' && !mobileMode && !copybookMode) {
+  if (!testActive && result !== 'good' && (!mobileMode || copybookMode)) {
     const canvas = cell.querySelector('canvas');
     if (canvas) {
       canvas.__autoClearPending = true;

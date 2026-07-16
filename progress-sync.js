@@ -37,6 +37,7 @@
   let replaceLocalProgress = () => {};
   let saveTimer = null;
   let saveInFlight = false;
+  let applyingRemote = false;
   let cloudProgress = {};
   let recoveryMode = false;
   let lastCloudRefresh = 0;
@@ -148,9 +149,13 @@
     cloudProgress = remote;
     if (replaceLocal) {
       replaceStoredProgress(remote);
-      await replaceLocalProgress(remote);
+      applyingRemote = true;
+      try { await replaceLocalProgress(remote); }
+      finally { applyingRemote = false; }
     } else {
-      await applyRemoteProgress(remote);
+      applyingRemote = true;
+      try { await applyRemoteProgress(remote); }
+      finally { applyingRemote = false; }
     }
     storeProgressOwner(userId);
     renderAccount();
@@ -167,7 +172,9 @@
         if (session?.user?.id !== userId) return;
         const latestRemote = rows?.[0]?.progress || {};
         cloudProgress = latestRemote;
-        await applyRemoteProgress(latestRemote);
+        applyingRemote = true;
+        try { await applyRemoteProgress(latestRemote); }
+        finally { applyingRemote = false; }
       }
       await progressRequest('user_progress?on_conflict=user_id', {
         method: 'POST',
@@ -183,6 +190,7 @@
   }
 
   function queueSave() {
+    if (applyingRemote) return;
     renderAccount();
     if (!session) return;
     clearTimeout(saveTimer);
