@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 git add -u
-git add push-main.cmd
+git add push-main.cmd pitch-accent.js
 
 git diff --cached --quiet
 if %errorlevel%==0 (
