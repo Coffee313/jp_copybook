@@ -1038,22 +1038,40 @@ function combineReviewRating(current, next) {
 
 function renderPassedPitchAccent(card) {
   const container = document.querySelector('#reviewPassedDetails');
-  container.replaceChildren();
+  const word = document.querySelector('#reviewPassedWord');
+  const pitch = document.querySelector('#reviewPassedPitch');
   container.hidden = true;
+  pitch.replaceChildren();
   document.querySelector('#reviewCard').removeAttribute('data-passed');
-  if (!card?.reading || card.pitchAccent === null || card.pitchAccent === undefined || !window.PitchAccent) return false;
+  word.textContent = card?.character || '';
+  let pitchShown = false;
 
-  const heading = document.createElement('div');
-  heading.className = 'review-pitch-heading';
-  heading.textContent = `${toHiragana(card.reading)} · Pitch accent type ${card.pitchAccent}`;
-  const diagram = document.createElement('div');
-  diagram.className = 'review-pitch-diagram pitch-accent-preview';
-  window.PitchAccent.render(diagram, card.reading, card.pitchAccent);
-  if (diagram.hidden) return false;
-  container.append(heading, diagram);
+  if (card?.reading && card.pitchAccent !== null && card.pitchAccent !== undefined && window.PitchAccent) {
+    const heading = document.createElement('div');
+    heading.className = 'review-pitch-heading';
+    heading.textContent = `${toHiragana(card.reading)} · Pitch accent type ${card.pitchAccent}`;
+    const diagram = document.createElement('div');
+    diagram.className = 'review-pitch-diagram pitch-accent-preview';
+    window.PitchAccent.render(diagram, card.reading, card.pitchAccent);
+    if (!diagram.hidden) {
+      pitch.append(heading, diagram);
+      pitchShown = true;
+    }
+  }
   container.hidden = false;
   document.querySelector('#reviewCard').dataset.passed = 'true';
-  return true;
+  document.querySelector('#reviewWordCells').hidden = true;
+  return pitchShown;
+}
+
+function advancePassedReview() {
+  if (document.querySelector('#reviewCard').dataset.passed !== 'true') return;
+  reviewIndex += 1;
+  reviewCharacterIndex = 0;
+  reviewCardRating = 'good';
+  reviewCellImages = [];
+  reviewMode = 'test';
+  showReviewCard();
 }
 
 function renderReviewWordCells(targets) {
@@ -1061,7 +1079,7 @@ function renderReviewWordCells(targets) {
   const drawPanel = document.querySelector('.draw-panel');
   const canvasWrap = document.querySelector('.canvas-wrap');
   const drawActions = document.querySelector('.draw-actions');
-  if (canvasWrap.parentElement !== drawPanel || drawActions.parentElement !== drawPanel) drawPanel.append(canvasWrap, drawActions);
+  if (canvasWrap.parentElement !== drawPanel) drawPanel.insertBefore(canvasWrap, drawActions);
   cells.replaceChildren();
   cells.dataset.count = targets.length;
   targets.forEach((target, index) => {
@@ -1080,7 +1098,7 @@ function renderReviewWordCells(targets) {
     } else if (index === reviewCharacterIndex) {
       cell.dataset.state = 'active';
       cell.setAttribute('aria-label', `Draw kanji ${index + 1} of ${targets.length}`);
-      cell.append(canvasWrap, drawActions);
+      cell.append(canvasWrap);
     } else {
       cell.dataset.state = 'pending';
       cell.setAttribute('aria-label', `Kanji ${index + 1} of ${targets.length}, waiting`);
@@ -1168,6 +1186,7 @@ function showReviewCard() {
   reviewCard.hidden = false;
   reviewCard.removeAttribute('data-passed');
   document.querySelector('#reviewPassedDetails').hidden = true;
+  document.querySelector('#reviewWordCells').hidden = false;
   document.querySelector('#reviewPracticeIcons').hidden = true;
   document.querySelector('#reviewProgress').textContent = targets.length > 1
     ? `Word ${reviewIndex + 1} of ${reviewQueue.length} · Kanji ${reviewCharacterIndex + 1} of ${targets.length}`
@@ -1224,6 +1243,7 @@ document.querySelector('#testKanjiMyself').addEventListener('click', () => {
 });
 
 document.querySelector('#exitReview').addEventListener('click', () => leaveReviewTest());
+document.querySelector('#reviewNext').addEventListener('click', advancePassedReview);
 
 document.querySelector('#forgotKanji').addEventListener('click', () => {
   if (!reviewActive || reviewMode === 'guided') return;
@@ -1286,15 +1306,8 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
           ? 'Word passed. Review its reading and pitch accent.'
           : 'Word passed.';
         feedback.dataset.result = 'good';
-        feedback.hidden = false;
-        reviewAdvanceTimer = setTimeout(() => {
-          reviewIndex += 1;
-          reviewCharacterIndex = 0;
-          reviewCardRating = 'good';
-          reviewCellImages = [];
-          reviewMode = 'test';
-          showReviewCard();
-        }, pitchShown ? 2200 : 900);
+        feedback.hidden = true;
+        reviewMode = 'test';
         return;
       }
       reviewMode = 'test';
