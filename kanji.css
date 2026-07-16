@@ -151,26 +151,31 @@
 .review-actions button:disabled { opacity: .45; cursor: default; }
 #dueCount { display: inline-grid; min-width: 22px; height: 22px; place-items: center; margin-left: 5px; border-radius: 999px; background: rgba(255,255,255,.2); }
 .review-empty { margin-top: 18px; padding: 22px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; text-align: center; }
-.review-card { max-width: 580px; margin: 22px auto 2px; text-align: center; }
-.review-card > p:first-child { color: var(--muted); font-size: 12px; }
+.review-card { width: 100%; max-width: 920px; margin: 12px auto 2px; text-align: center; }
+.review-card > p:first-child { margin: 0; color: var(--muted); font-size: 12px; }
 .review-translation { margin: 22px 0 12px; color: var(--green); font-size: 28px; font-weight: 700; }
 .review-prompt { color: var(--muted); font-size: 13px; }
 #reviewCanvasHost .draw-panel { padding: 14px 0; border: 0; background: transparent; }
 #reviewCanvasHost #can { width: min(100%, 320px); }
-.review-word-cells { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px auto 4px; }
-.review-word-cells[data-count="1"] { max-width: 320px; grid-template-columns: 1fr; }
+.review-word-cells { width: 100%; display: grid; gap: 8px; margin: 8px auto 4px; }
+.review-word-cells[data-count="1"] { max-width: min(440px, calc(100dvh - 245px)); grid-template-columns: 1fr; }
+.review-word-cells[data-count="2"] { max-width: min(820px, calc(200dvh - 490px)); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.review-word-cells[data-count="3"] { max-width: min(900px, calc(300dvh - 735px)); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.review-word-cells[data-count="4"] { max-width: min(920px, calc(400dvh - 980px)); grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .review-word-cell { position: relative; display: grid; aspect-ratio: 1; place-items: center; overflow: hidden; border: 1.5px dashed #cfc8bd; border-radius: 14px; background: #fffefa; }
 .review-word-cell[data-state="active"] { border-style: solid; border-color: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); }
 .review-word-cell[data-state="complete"] { border-style: solid; border-color: #a9c0b2; background: #f3f8f4; }
 .review-word-cell .canvas-wrap, .review-word-cell #can { width: 100%; max-width: none; }
+.kanji-test-active .review-word-cell .draw-actions { position: absolute; z-index: 4; right: 5px; bottom: 5px; left: 5px; width: auto; margin: 0; gap: 4px; }
+.review-word-cell .draw-actions button { border-color: rgba(216,210,199,.86); padding: 5px; background: rgba(255,254,250,.9); font-size: 10px; backdrop-filter: blur(3px); }
 .review-word-cell img { width: 100%; height: 100%; object-fit: contain; }
 .review-cell-number { position: absolute; z-index: 3; top: 6px; left: 8px; display: grid; width: 20px; height: 20px; place-items: center; border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.9); font-size: 10px; font-weight: 700; }
 #reviewCanvasHost .draw-actions { margin-inline: auto; }
 .check-drawing { min-width: 200px; margin-top: 10px; }
-.review-submit-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 10px; }
+.review-submit-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 6px; }
 .review-submit-actions .check-drawing { margin-top: 0; }
 .review-submit-actions .forgot-answer { min-width: 140px; }
-.review-feedback { margin-top: 14px; padding: 12px; border-radius: 12px; background: #f5f2eb; font-size: 13px; line-height: 1.5; }
+.review-feedback { margin-top: 6px; padding: 7px 10px; border-radius: 10px; background: #f5f2eb; font-size: 12px; line-height: 1.35; }
 .review-feedback[data-result="good"] { color: var(--green); background: #edf5ef; }
 .review-feedback[data-result="hard"] { color: #8a651f; background: #fff6df; }
 .review-feedback[data-result="again"] { color: #a94534; background: #fff0ed; }
@@ -181,18 +186,31 @@
 .review-practice-icon > span { max-width: 100%; filter: blur(1.15px); opacity: .76; white-space: nowrap; font: 500 15px/1 'Noto Sans JP', sans-serif; transform: scale(.92); }
 .review-practice-icon[data-state="current"] { border-color: var(--green); box-shadow: 0 0 0 2px rgba(61,92,81,.12); }
 .review-practice-icon[data-state="complete"] { opacity: .42; }
-.kanji-test-active { overflow: auto; }
+.review-passed-details { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 5px auto; }
+.review-pitch-heading { color: var(--green); font: 500 13px/1.35 'Noto Sans JP', sans-serif; }
+.review-pitch-diagram { flex: none; margin: 0; padding: 2px 6px 0; }
+.review-pitch-diagram svg { height: 50px; }
+.review-card[data-passed="true"] .review-prompt, .review-card[data-passed="true"] .review-submit-actions { display: none; }
+.kanji-test-active { overflow: hidden; }
 .kanji-test-active .topbar,
 .kanji-test-active .kanji-page-actions,
 .kanji-test-active .word-builder,
 .kanji-test-active .kanji-layout,
 .kanji-test-active footer { display: none; }
-.kanji-test-active .kanji-main { display: block; width: min(720px, calc(100% - 24px)); margin: 0 auto; padding: 12px 0; }
-.kanji-test-active .review-section { min-height: calc(100dvh - 24px); display: flex; flex-direction: column; justify-content: flex-start; margin: 0; }
+.kanji-test-active .kanji-main { display: block; width: min(960px, calc(100% - 16px)); height: 100dvh; margin: 0 auto; padding: 8px 0; }
+.kanji-test-active .review-section { height: calc(100dvh - 16px); min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; overflow: hidden; margin: 0; padding: 10px 14px; }
+.kanji-test-active .review-heading .eyebrow { display: none; }
+.kanji-test-active .review-heading h2 { margin: 0; font-size: 18px; }
+.kanji-test-active .review-actions button { padding: 7px 11px; font-size: 11px; }
+.kanji-test-active .review-card { min-height: 0; display: flex; flex: 1; flex-direction: column; justify-content: flex-start; margin: 5px auto 0; }
+.kanji-test-active .review-translation { margin: 3px 0; font-size: clamp(20px, 4dvh, 28px); }
+.kanji-test-active .review-prompt { margin: 3px 0; font-size: 11px; }
+.kanji-test-active #reviewCanvasHost { min-height: 0; }
+.kanji-test-active #reviewCanvasHost .draw-panel { min-height: 0; padding: 0; }
 .kanji-test-active #testKanjiMyself,
 .kanji-test-active #startReview { display: none; }
 .kanji-test-active .review-practice-icons { display: none; }
-.kanji-test-active .review-card { width: 100%; margin: auto; }
+.kanji-test-active .review-card { width: 100%; }
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
 @media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }
@@ -211,4 +229,25 @@
   body.mobile-version .review-actions { flex-wrap: wrap; justify-content: flex-end; }
   body.mobile-version .review-actions button { white-space: normal; overflow-wrap: anywhere; }
   html[lang="ru"] body.mobile-version .draw-actions button { padding-inline: 5px; font-size: 11px; }
+}
+
+@media (max-width: 680px) {
+  .kanji-test-active .kanji-main { width: calc(100% - 8px); padding-block: 4px; }
+  .kanji-test-active .review-section { height: calc(100dvh - 8px); padding: 7px; border-radius: 16px; }
+  .kanji-test-active .review-heading { gap: 8px; }
+  .kanji-test-active .review-heading h2 { font-size: 16px; }
+  .kanji-test-active .review-word-cells[data-count="3"], .kanji-test-active .review-word-cells[data-count="4"] { width: min(100%, calc(100dvh - 245px)); max-width: 620px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .review-passed-details { gap: 6px; }
+  .review-pitch-heading { font-size: 11px; }
+}
+
+@media (max-height: 560px) {
+  .kanji-test-active .review-section { padding-block: 5px; }
+  .kanji-test-active .review-card { margin-top: 2px; }
+  .kanji-test-active .review-word-cells { margin-top: 3px; gap: 5px; }
+  .kanji-test-active .review-feedback { margin-top: 3px; padding-block: 4px; }
+  .kanji-test-active .review-word-cells[data-count="1"] { max-width: min(330px, calc(100dvh - 205px)); }
+  .kanji-test-active .review-word-cells[data-count="2"] { max-width: min(660px, calc(200dvh - 410px)); }
+  .kanji-test-active .review-word-cells[data-count="3"] { max-width: min(780px, calc(300dvh - 615px)); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kanji-test-active .review-word-cells[data-count="4"] { max-width: min(900px, calc(400dvh - 820px)); grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }

@@ -1036,12 +1036,32 @@ function combineReviewRating(current, next) {
   return weight[next] > weight[current] ? next : current;
 }
 
+function renderPassedPitchAccent(card) {
+  const container = document.querySelector('#reviewPassedDetails');
+  container.replaceChildren();
+  container.hidden = true;
+  document.querySelector('#reviewCard').removeAttribute('data-passed');
+  if (!card?.reading || card.pitchAccent === null || card.pitchAccent === undefined || !window.PitchAccent) return false;
+
+  const heading = document.createElement('div');
+  heading.className = 'review-pitch-heading';
+  heading.textContent = `${toHiragana(card.reading)} · Pitch accent type ${card.pitchAccent}`;
+  const diagram = document.createElement('div');
+  diagram.className = 'review-pitch-diagram pitch-accent-preview';
+  window.PitchAccent.render(diagram, card.reading, card.pitchAccent);
+  if (diagram.hidden) return false;
+  container.append(heading, diagram);
+  container.hidden = false;
+  document.querySelector('#reviewCard').dataset.passed = 'true';
+  return true;
+}
+
 function renderReviewWordCells(targets) {
   const cells = document.querySelector('#reviewWordCells');
   const drawPanel = document.querySelector('.draw-panel');
   const canvasWrap = document.querySelector('.canvas-wrap');
-  const drawActions = drawPanel.querySelector('.draw-actions');
-  if (canvasWrap.parentElement !== drawPanel) drawPanel.insertBefore(canvasWrap, drawActions);
+  const drawActions = document.querySelector('.draw-actions');
+  if (canvasWrap.parentElement !== drawPanel || drawActions.parentElement !== drawPanel) drawPanel.append(canvasWrap, drawActions);
   cells.replaceChildren();
   cells.dataset.count = targets.length;
   targets.forEach((target, index) => {
@@ -1060,7 +1080,7 @@ function renderReviewWordCells(targets) {
     } else if (index === reviewCharacterIndex) {
       cell.dataset.state = 'active';
       cell.setAttribute('aria-label', `Draw kanji ${index + 1} of ${targets.length}`);
-      cell.append(canvasWrap);
+      cell.append(canvasWrap, drawActions);
     } else {
       cell.dataset.state = 'pending';
       cell.setAttribute('aria-label', `Kanji ${index + 1} of ${targets.length}, waiting`);
@@ -1109,13 +1129,16 @@ function leaveReviewTest(message = 'Test exited. Your unfinished card was not re
   const candidatePanel = document.querySelector('.candidate-panel');
   const wordCells = document.querySelector('#reviewWordCells');
   const canvasWrap = document.querySelector('.canvas-wrap');
-  drawPanel.insertBefore(canvasWrap, drawPanel.querySelector('.draw-actions'));
+  const drawActions = document.querySelector('.draw-actions');
+  drawPanel.append(canvasWrap, drawActions);
   wordCells.hidden = true;
   document.querySelector('#reviewCanvasHost').before(wordCells);
   if (drawPanel.parentElement !== recognizer) recognizer.insertBefore(drawPanel, candidatePanel);
   recognizer.hidden = false;
   candidatePanel.hidden = false;
   document.querySelector('#reviewCard').hidden = true;
+  document.querySelector('#reviewCard').removeAttribute('data-passed');
+  document.querySelector('#reviewPassedDetails').hidden = true;
   document.querySelector('#reviewPracticeIcons').hidden = true;
   const empty = document.querySelector('#reviewEmpty');
   updateReviewSummary();
@@ -1143,6 +1166,8 @@ function showReviewCard() {
   reviewActive = true;
   empty.hidden = true;
   reviewCard.hidden = false;
+  reviewCard.removeAttribute('data-passed');
+  document.querySelector('#reviewPassedDetails').hidden = true;
   document.querySelector('#reviewPracticeIcons').hidden = true;
   document.querySelector('#reviewProgress').textContent = targets.length > 1
     ? `Word ${reviewIndex + 1} of ${reviewQueue.length} · Kanji ${reviewCharacterIndex + 1} of ${targets.length}`
@@ -1255,10 +1280,22 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
           saveDictionary(items);
           renderDictionary();
         }
-        reviewIndex += 1;
-        reviewCharacterIndex = 0;
-        reviewCardRating = 'good';
-        reviewCellImages = [];
+        renderReviewWordCells(targets);
+        const pitchShown = renderPassedPitchAccent(reviewed);
+        feedback.textContent = pitchShown
+          ? 'Word passed. Review its reading and pitch accent.'
+          : 'Word passed.';
+        feedback.dataset.result = 'good';
+        feedback.hidden = false;
+        reviewAdvanceTimer = setTimeout(() => {
+          reviewIndex += 1;
+          reviewCharacterIndex = 0;
+          reviewCardRating = 'good';
+          reviewCellImages = [];
+          reviewMode = 'test';
+          showReviewCard();
+        }, pitchShown ? 2200 : 900);
+        return;
       }
       reviewMode = 'test';
     } else {
