@@ -383,6 +383,12 @@ function updatePitchAccentPreview() {
   const input = document.querySelector('#pitchAccentInput');
   const help = document.querySelector('#pitchAccentHelp');
   const preview = document.querySelector('#pitchAccentPreview');
+  if (!window.PitchAccent) {
+    input.setCustomValidity('');
+    preview.hidden = true;
+    help.textContent = 'Pitch preview is unavailable, but you can still save the word.';
+    return;
+  }
   const moras = window.PitchAccent.getMoras(reading);
   const value = input.value.trim();
   const type = value === '' ? null : Number(value);
@@ -508,6 +514,7 @@ function resetWordBuilder(length) {
   activeWordIndex = 0;
   selectedCharacter = '';
   document.querySelector('#kanjiForm').reset();
+  document.querySelector('.save-kanji').textContent = 'Add to dictionary';
   document.querySelector('#kanjiForm').hidden = true;
   document.querySelector('#selectionEmpty').hidden = false;
   document.querySelectorAll('#wordLengthOptions button').forEach(button => {
@@ -543,9 +550,33 @@ function selectWord(word, source) {
   document.querySelector('#readingInput').value = existing?.reading || '';
   document.querySelector('#pitchAccentInput').value = existing?.pitchAccent ?? '';
   document.querySelector('#noteInput').value = existing?.note || '';
+  document.querySelector('.save-kanji').textContent = existing ? 'Save changes' : 'Add to dictionary';
+  loadWordDetails(word).catch(() => {
+    if (selectedCharacter !== word) return;
+    document.querySelector('#meaningSuggestions').innerHTML = '<span>Suggestions are unavailable. Enter a meaning manually.</span>';
+    document.querySelector('#readingInfo').textContent = 'Reading suggestions are unavailable. Enter the whole-word reading manually.';
+  });
   updatePitchAccentPreview();
-  loadWordDetails(word);
   source?.scrollIntoView({ block: 'nearest' });
+}
+
+function editDictionaryWord(item) {
+  const characters = kanjiInWord(item.character);
+  if (!characters.length) return;
+  dictionaryDialog.close();
+  wordLength = Math.min(4, characters.length);
+  wordCharacters = characters.slice(0, wordLength);
+  activeWordIndex = 0;
+  document.querySelectorAll('#wordLengthOptions button').forEach(button => {
+    const active = Number(button.dataset.wordLength) === wordLength;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  renderWordCells();
+  clearRecognizerDrawing();
+  selectWord(item.character);
+  document.querySelector('.dictionary-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  requestAnimationFrame(() => document.querySelector('#translationInput').focus());
 }
 
 async function loadWordDetails(word) {
@@ -835,6 +866,19 @@ function renderDictionary() {
     const note = document.createElement('small');
     note.textContent = item.note || 'Ready for the first review';
     details.append(meaning, note);
+    const actions = document.createElement('div');
+    actions.className = 'dictionary-item-actions';
+    const edit = document.createElement('button');
+    edit.className = 'dictionary-edit';
+    edit.type = 'button';
+    edit.setAttribute('aria-label', `Edit ${item.character}`);
+    edit.setAttribute('title', 'Edit word');
+    edit.textContent = '✎';
+    edit.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      editDictionaryWord(item);
+    });
     const remove = document.createElement('button');
     remove.className = 'dictionary-remove';
     remove.type = 'button';
@@ -846,7 +890,8 @@ function renderDictionary() {
       saveDictionary(getDictionary().filter(entry => entry.character !== item.character));
       renderDictionary();
     });
-    details.append(remove);
+    actions.append(edit, remove);
+    details.append(actions);
     card.append(character, details);
     list.append(card);
   });
