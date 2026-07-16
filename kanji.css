@@ -96,6 +96,14 @@
 .meaning-suggestions button.selected { border-color: var(--accent); color: #fff; background: var(--accent); }
 .reading-suggestions button { font-family: 'Noto Sans JP', sans-serif; }
 .reading-info { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.pitch-accent-control small { display: block; margin-top: 6px; font-size: 10px; font-weight: 400; line-height: 1.45; }
+.pitch-accent-preview { width: fit-content; max-width: 100%; margin: -6px 0 4px; border: 1px solid #e4ddd3; border-radius: 11px; padding: 7px 9px 4px; background: #fffefa; }
+.pitch-accent-preview svg { display: block; width: auto; max-width: 100%; height: 62px; overflow: visible; }
+.pitch-accent-preview .pitch-line { fill: none; stroke: var(--green); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pitch-accent-preview .pitch-dot { fill: var(--paper); stroke: var(--green); stroke-width: 2.5; }
+.pitch-accent-preview .pitch-high { fill: var(--green); }
+.pitch-accent-preview .pitch-downstep { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 2 2; }
+.pitch-accent-preview text { fill: var(--ink); font: 12px 'Noto Sans JP', sans-serif; }
 .save-kanji { width: 100%; border: 0; border-radius: 12px; padding: 12px; color: white; background: var(--green); cursor: pointer; font-weight: 700; }
 .vocabulary-dialog { width: min(920px, calc(100% - 28px)); max-height: min(760px, calc(100dvh - 28px)); border: 1px solid var(--line); border-radius: 24px; padding: 24px; color: var(--ink); background: var(--paper); box-shadow: 0 25px 80px rgba(30,25,18,.28); }
 .vocabulary-dialog[open] { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
@@ -120,6 +128,8 @@
 .dictionary-popover { position: absolute; top: calc(100% + 7px); left: 50%; z-index: 5; display: none; width: max-content; min-width: 190px; max-width: min(270px, calc(100vw - 42px)); transform: translateX(calc(-50% + var(--popover-shift, 0px))); border: 1px solid #ddd5ca; border-radius: 13px; padding: 13px 38px 13px 13px; background: var(--paper); box-shadow: 0 14px 35px rgba(30,25,18,.18); }
 .dictionary-item:hover .dictionary-popover, .dictionary-item[open] .dictionary-popover, .dictionary-item:focus-within .dictionary-popover { display: block; }
 .dictionary-reading { display: inline-block; margin: 0 8px 3px 0; color: #a94534; font: 500 13px/1.4 'Noto Sans JP', sans-serif; }
+.dictionary-pitch-accent { margin: 4px 0 8px; padding: 4px 6px 1px; }
+.dictionary-pitch-accent svg { height: 52px; }
 .dictionary-item strong { display: block; overflow-wrap: anywhere; font-size: 13px; line-height: 1.45; }
 .dictionary-item small { display: -webkit-box; margin-top: 4px; overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .dictionary-item .dictionary-remove { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #aaa39a; cursor: pointer; font-size: 17px; }

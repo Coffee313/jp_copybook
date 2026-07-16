@@ -352,7 +352,7 @@ const readJson = (key, fallback) => {
 };
 
 function getDictionary() {
-  return readJson(STORAGE_KEY, []).map(({ pitchAccent, ...item }) => item);
+  return readJson(STORAGE_KEY, []);
 }
 function saveDictionary(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -376,6 +376,29 @@ function toHiragana(value) {
 
 function normalizeWordReading(value) {
   return toHiragana(value).replace(/[.・-]/g, '').trim();
+}
+
+function updatePitchAccentPreview() {
+  const reading = document.querySelector('#readingInput').value;
+  const input = document.querySelector('#pitchAccentInput');
+  const help = document.querySelector('#pitchAccentHelp');
+  const preview = document.querySelector('#pitchAccentPreview');
+  const moras = window.PitchAccent.getMoras(reading);
+  const value = input.value.trim();
+  const type = value === '' ? null : Number(value);
+  input.max = moras.length ? String(moras.length) : '';
+
+  if (!moras.length) {
+    input.setCustomValidity(value ? 'Enter the whole-word reading in kana first.' : '');
+    help.textContent = 'Enter the reading first; small combined kana count as part of the preceding mora.';
+  } else if (type !== null && (!Number.isInteger(type) || type < 0 || type > moras.length)) {
+    input.setCustomValidity(`Choose a pitch accent type from 0 to ${moras.length}.`);
+    help.textContent = `${moras.length} mora${moras.length === 1 ? '' : 's'}: valid types are 0–${moras.length}.`;
+  } else {
+    input.setCustomValidity('');
+    help.textContent = `${moras.length} mora${moras.length === 1 ? '' : 's'}: 0 is heiban; 1–${moras.length} mark the downstep.`;
+  }
+  window.PitchAccent.render(preview, reading, type);
 }
 
 function kanjiInWord(word) {
@@ -518,7 +541,9 @@ function selectWord(word, source) {
   examples.hidden = false;
   document.querySelector('#translationInput').value = existing?.translation || '';
   document.querySelector('#readingInput').value = existing?.reading || '';
+  document.querySelector('#pitchAccentInput').value = existing?.pitchAccent ?? '';
   document.querySelector('#noteInput').value = existing?.note || '';
+  updatePitchAccentPreview();
   loadWordDetails(word);
   source?.scrollIntoView({ block: 'nearest' });
 }
@@ -585,13 +610,20 @@ async function loadWordDetails(word) {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = reading;
-    button.addEventListener('click', () => { document.querySelector('#readingInput').value = reading; });
+    button.addEventListener('click', () => {
+      document.querySelector('#readingInput').value = reading;
+      updatePitchAccentPreview();
+    });
     readingSuggestions.append(button);
   });
   const readingInput = document.querySelector('#readingInput');
   if (!readingInput.value && readings.length) readingInput.value = readings[0];
+  updatePitchAccentPreview();
   info.textContent = 'The reading applies to the complete word. Stroke order is shown above for each kanji.';
 }
+
+document.querySelector('#readingInput').addEventListener('input', updatePitchAccentPreview);
+document.querySelector('#pitchAccentInput').addEventListener('input', updatePitchAccentPreview);
 
 document.addEventListener('click', event => {
   const candidate = event.target.closest('.kmatch');
@@ -706,6 +738,7 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
   event.preventDefault();
   const translation = document.querySelector('#translationInput').value.trim();
   const reading = normalizeWordReading(document.querySelector('#readingInput').value);
+  const pitchAccentValue = document.querySelector('#pitchAccentInput').value.trim();
   if (!selectedCharacter || !translation) return;
   const items = getDictionary();
   const existing = items.find(item => item.character === selectedCharacter);
@@ -713,6 +746,7 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
     character: selectedCharacter,
     translation,
     reading,
+    pitchAccent: pitchAccentValue === '' ? null : Number(pitchAccentValue),
     note: document.querySelector('#noteInput').value.trim(),
     createdAt: existing?.createdAt || new Date().toISOString(),
     nextReview: existing?.nextReview || null,
@@ -724,6 +758,7 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
   saveDictionary(items);
   renderDictionary();
   event.target.reset();
+  updatePitchAccentPreview();
   document.querySelector('#kanjiForm').hidden = true;
   document.querySelector('#selectionEmpty').hidden = false;
   selectedCharacter = '';
@@ -788,6 +823,12 @@ function renderDictionary() {
       reading.lang = 'ja';
       reading.textContent = toHiragana(item.reading);
       details.append(reading);
+    }
+    if (item.reading && item.pitchAccent !== null && item.pitchAccent !== undefined) {
+      const pitchAccent = document.createElement('div');
+      pitchAccent.className = 'dictionary-pitch-accent pitch-accent-preview';
+      window.PitchAccent.render(pitchAccent, item.reading, item.pitchAccent);
+      details.append(pitchAccent);
     }
     const meaning = document.createElement('strong');
     meaning.textContent = item.translation;
