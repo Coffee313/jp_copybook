@@ -800,11 +800,22 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
 });
 
 function appendDictionaryPitchAccent(details, item) {
-  if (!item.reading || item.pitchAccent === null || item.pitchAccent === undefined || !window.PitchAccent) return;
+  if (!item.reading || item.pitchAccent === null || item.pitchAccent === undefined) return;
+  const section = document.createElement('section');
+  section.className = 'dictionary-pitch-section';
+  const heading = document.createElement('div');
+  heading.className = 'dictionary-pitch-heading';
+  heading.textContent = `Pitch accent · Type ${item.pitchAccent}`;
   const pitchAccent = document.createElement('div');
   pitchAccent.className = 'dictionary-pitch-accent pitch-accent-preview';
-  window.PitchAccent.render(pitchAccent, item.reading, item.pitchAccent);
-  details.append(pitchAccent);
+  section.append(heading, pitchAccent);
+  details.append(section);
+  if (window.PitchAccent) {
+    window.PitchAccent.render(pitchAccent, item.reading, item.pitchAccent);
+  } else {
+    pitchAccent.hidden = false;
+    pitchAccent.textContent = 'Diagram unavailable. Refresh the page to load it.';
+  }
 }
 
 function renderDictionary() {
@@ -850,7 +861,7 @@ function renderDictionary() {
     });
     const character = document.createElement('summary');
     character.className = 'character';
-    character.classList.toggle('single-character', [...item.character].length === 1);
+    character.dataset.length = String(Math.min(4, [...item.character].length));
     character.textContent = item.character;
     character.addEventListener('click', event => {
       if (!window.matchMedia('(hover: hover)').matches) return;
