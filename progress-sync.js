@@ -28,7 +28,8 @@
     kanaLearned: ['kana-learned-v1', {}],
     kanaMasteryResets: ['kana-mastery-resets-v1', {}],
     kanaPlacement: ['kana-placement-v1', null],
-    dictionary: ['kana-kanji-dictionary-v1', []]
+    dictionary: ['kana-kanji-dictionary-v1', []],
+    dictionaryDeleted: ['kana-kanji-dictionary-deleted-v1', {}]
   };
   let session = null;
   let getLocalProgress = () => ({});
@@ -38,6 +39,7 @@
   let saveInFlight = false;
   let cloudProgress = {};
   let recoveryMode = false;
+  let lastCloudRefresh = 0;
 
   const readSession = () => {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
@@ -152,13 +154,21 @@
     }
     storeProgressOwner(userId);
     renderAccount();
-    await saveNow();
+    await saveNow({ skipRemoteMerge: true });
   }
 
-  async function saveNow({ keepalive = false } = {}) {
+  async function saveNow({ keepalive = false, skipRemoteMerge = false } = {}) {
     if (!session?.user?.id) return;
     saveInFlight = true;
     try {
+      const userId = session.user.id;
+      if (!keepalive && !skipRemoteMerge) {
+        const rows = await progressRequest(`user_progress?user_id=eq.${encodeURIComponent(userId)}&select=progress`);
+        if (session?.user?.id !== userId) return;
+        const latestRemote = rows?.[0]?.progress || {};
+        cloudProgress = latestRemote;
+        await applyRemoteProgress(latestRemote);
+      }
       await progressRequest('user_progress?on_conflict=user_id', {
         method: 'POST',
         keepalive,
@@ -198,6 +208,19 @@
     try { await saveNow(); }
     catch (error) { setSyncStatus(error.message, true); }
   }
+
+  function refreshCloudProgress() {
+    if (!session || saveInFlight || document.visibilityState === 'hidden') return;
+    const now = Date.now();
+    if (now - lastCloudRefresh < 5000) return;
+    lastCloudRefresh = now;
+    loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
+  }
+
+  window.addEventListener('focus', refreshCloudProgress);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshCloudProgress();
+  });
 
   function setSyncStatus(message, isError = false) {
     const element = document.querySelector('#syncStatus');
