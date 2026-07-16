@@ -7,9 +7,30 @@ const card = { character: '水', interval: 0, ease: 2.5, repetitions: 0 };
 
 test('new card rated good returns in one day', () => {
   const result = SRS.schedule(card, 'good', now);
+  const nextLocalMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   assert.equal(result.interval, 1);
   assert.equal(result.repetitions, 1);
-  assert.equal(result.nextReview, '2026-07-13T10:00:00.000Z');
+  assert.equal(result.nextReview, nextLocalMidnight.toISOString());
+});
+
+test('a one-day interval becomes due when the local calendar day changes', () => {
+  const reviewedAt = new Date(2026, 6, 12, 23, 55);
+  const result = SRS.schedule(card, 'good', reviewedAt);
+
+  assert.equal(SRS.isDue(result, new Date(2026, 6, 12, 23, 59, 59, 999)), false);
+  assert.equal(SRS.isDue(result, new Date(2026, 6, 13, 0, 0)), true);
+});
+
+test('legacy day intervals also become due at local midnight', () => {
+  const legacyCard = {
+    interval: 1,
+    repetitions: 1,
+    lastReviewed: new Date(2026, 6, 12, 18, 0).toISOString(),
+    nextReview: new Date(2026, 6, 13, 18, 0).toISOString()
+  };
+
+  assert.equal(SRS.isDue(legacyCard, new Date(2026, 6, 12, 23, 59)), false);
+  assert.equal(SRS.isDue(legacyCard, new Date(2026, 6, 13, 0, 0)), true);
 });
 
 test('second good review uses the six day learning step', () => {

@@ -889,6 +889,14 @@ function updateReviewSummary(items = getDictionary()) {
   renderReviewPracticeIcons(due);
 }
 
+function scheduleMidnightReviewRefresh(now = new Date()) {
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  setTimeout(() => {
+    updateReviewSummary();
+    scheduleMidnightReviewRefresh();
+  }, Math.max(0, nextMidnight.getTime() - now.getTime()) + 50);
+}
+
 function combineReviewRating(current, next) {
   const weight = { good: 0, hard: 1, again: 2 };
   return weight[next] > weight[current] ? next : current;
@@ -1128,6 +1136,7 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
 
 renderWordCells();
 renderDictionary();
+scheduleMidnightReviewRefresh();
 ProgressSync.initialize({
   getLocalProgress: () => ({ dictionary: getDictionary() }),
   replaceLocalProgress: remote => {

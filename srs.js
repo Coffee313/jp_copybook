@@ -6,6 +6,14 @@
   const DAY_MS = 24 * 60 * 60 * 1000;
   const MINUTE_MS = 60 * 1000;
 
+  function calendarDayDueAt(reviewedAt, interval) {
+    return new Date(
+      reviewedAt.getFullYear(),
+      reviewedAt.getMonth(),
+      reviewedAt.getDate() + interval
+    );
+  }
+
   function schedule(card, rating, now = new Date()) {
     const currentInterval = Number(card.interval) || 0;
     const currentEase = Number(card.ease) || 2.5;
@@ -13,24 +21,24 @@
     let interval;
     let ease = currentEase;
     let repetitions = currentRepetitions + 1;
-    let delay;
+    let nextReview;
 
     if (rating === 'again') {
       interval = 0;
       ease = Math.max(1.3, currentEase - 0.2);
       repetitions = 0;
-      delay = 10 * MINUTE_MS;
+      nextReview = new Date(now.getTime() + 10 * MINUTE_MS);
     } else if (rating === 'hard') {
       interval = Math.max(1, Math.round(currentInterval * 1.2));
       ease = Math.max(1.3, currentEase - 0.15);
-      delay = interval * DAY_MS;
+      nextReview = calendarDayDueAt(now, interval);
     } else if (rating === 'good') {
       interval = currentRepetitions === 0 ? 1 : currentRepetitions === 1 ? 6 : Math.max(1, Math.round(currentInterval * currentEase));
-      delay = interval * DAY_MS;
+      nextReview = calendarDayDueAt(now, interval);
     } else if (rating === 'easy') {
       ease = currentEase + 0.15;
       interval = currentRepetitions === 0 ? 4 : Math.max(2, Math.round(Math.max(1, currentInterval) * ease * 1.3));
-      delay = interval * DAY_MS;
+      nextReview = calendarDayDueAt(now, interval);
     } else {
       throw new Error(`Unknown SRS rating: ${rating}`);
     }
@@ -41,12 +49,19 @@
       ease: Number(ease.toFixed(2)),
       repetitions,
       lastReviewed: now.toISOString(),
-      nextReview: new Date(now.getTime() + delay).toISOString()
+      nextReview: nextReview.toISOString()
     };
   }
 
   function isDue(card, now = new Date()) {
-    const dueAt = Date.parse(card.nextReview || card.createdAt || 0);
+    const interval = Number(card.interval) || 0;
+    const lastReviewed = new Date(card.lastReviewed);
+    const calendarDueAt = interval > 0 && Number.isFinite(lastReviewed.getTime())
+      ? calendarDayDueAt(lastReviewed, interval).getTime()
+      : NaN;
+    const dueAt = Number.isFinite(calendarDueAt)
+      ? calendarDueAt
+      : Date.parse(card.nextReview || card.createdAt || 0);
     return !Number.isFinite(dueAt) || dueAt <= now.getTime();
   }
 
