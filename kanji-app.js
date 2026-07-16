@@ -982,6 +982,175 @@ document.querySelector('#openDictionary').addEventListener('click', () => {
 document.querySelector('#closeDictionary').addEventListener('click', () => dictionaryDialog.close());
 dictionarySearch.addEventListener('input', renderDictionary);
 
+const kanjiCopybookDialog = document.querySelector('#kanjiCopybookDialog');
+const kanjiCopybookSearch = document.querySelector('#kanjiCopybookSearch');
+let kanjiCopybookItem = null;
+let kanjiCopybookCharacterIndex = 0;
+let kanjiCopybookMobileLayout = null;
+
+function setupCopybookCanvas(canvas) {
+  const context = canvas.getContext('2d');
+  let drawing = false;
+  let pointerId = null;
+  const point = event => {
+    const rect = canvas.getBoundingClientRect();
+    return [(event.clientX - rect.left) * canvas.width / rect.width, (event.clientY - rect.top) * canvas.height / rect.height];
+  };
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = Math.round(rect.width * ratio);
+    canvas.height = Math.round(rect.height * ratio);
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.strokeStyle = '#2f2d29';
+    context.lineWidth = Math.max(3, canvas.width / 110);
+  };
+  canvas.addEventListener('pointerdown', event => {
+    const stylusOnly = localStorage.getItem(INPUT_MODE_STORAGE_KEY) === 'stylus';
+    if (stylusOnly && event.pointerType !== 'pen') return;
+    drawing = true;
+    pointerId = event.pointerId;
+    canvas.setPointerCapture?.(pointerId);
+    const [x, y] = point(event);
+    context.beginPath();
+    context.moveTo(x, y);
+    event.preventDefault();
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (!drawing || event.pointerId !== pointerId) return;
+    const [x, y] = point(event);
+    context.lineTo(x, y);
+    context.stroke();
+    event.preventDefault();
+  });
+  const finish = event => {
+    if (!drawing || event.pointerId !== pointerId) return;
+    drawing = false;
+    pointerId = null;
+  };
+  canvas.addEventListener('pointerup', finish);
+  canvas.addEventListener('pointercancel', finish);
+  requestAnimationFrame(resize);
+}
+
+function makeCopybookDrawingCell(character, index, mobile) {
+  const cell = document.createElement('div');
+  cell.className = 'kanji-copybook-cell';
+  const guide = document.createElement('span');
+  guide.className = 'kanji-copybook-ghost';
+  guide.lang = 'ja';
+  guide.textContent = character;
+  const canvas = document.createElement('canvas');
+  canvas.setAttribute('aria-label', `Practise ${character}${mobile ? '' : `, cell ${index}`}`);
+  cell.append(guide, canvas);
+  setupCopybookCanvas(canvas);
+  return cell;
+}
+
+function renderKanjiCopybookSheet() {
+  if (!kanjiCopybookItem) return;
+  const characters = kanjiInWord(kanjiCopybookItem.character);
+  const character = characters[kanjiCopybookCharacterIndex] || characters[0];
+  const tabs = document.querySelector('#kanjiCopybookCharacterTabs');
+  tabs.innerHTML = '';
+  characters.forEach((value, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = value;
+    button.classList.toggle('active', index === kanjiCopybookCharacterIndex);
+    button.setAttribute('aria-pressed', index === kanjiCopybookCharacterIndex ? 'true' : 'false');
+    button.addEventListener('click', () => {
+      kanjiCopybookCharacterIndex = index;
+      renderKanjiCopybookSheet();
+    });
+    tabs.append(button);
+  });
+  const sheet = document.querySelector('#kanjiCopybookSheet');
+  sheet.innerHTML = '';
+  const mobile = document.body.classList.contains('mobile-version') || window.matchMedia('(max-width: 680px)').matches;
+  kanjiCopybookMobileLayout = mobile;
+  if (!mobile) {
+    const example = document.createElement('div');
+    example.className = 'kanji-copybook-cell kanji-copybook-example';
+    const strokeGuide = document.createElement('div');
+    strokeGuide.className = 'kanji-copybook-stroke-guide';
+    renderStrokeGuide(strokeGuide, character);
+    example.append(strokeGuide);
+    sheet.append(example);
+  }
+  const count = mobile ? 1 : 14;
+  for (let index = 1; index <= count; index += 1) sheet.append(makeCopybookDrawingCell(character, index, mobile));
+}
+
+function openKanjiCopybookPractice(item) {
+  kanjiCopybookItem = item;
+  kanjiCopybookCharacterIndex = 0;
+  document.querySelector('#kanjiCopybookPicker').hidden = true;
+  document.querySelector('#kanjiCopybookPractice').hidden = false;
+  document.querySelector('#kanjiCopybookWord').textContent = item.character;
+  document.querySelector('#kanjiCopybookDetails').textContent = [item.reading ? toHiragana(item.reading) : '', item.translation].filter(Boolean).join(' · ');
+  renderKanjiCopybookSheet();
+}
+
+function showKanjiCopybookPicker() {
+  kanjiCopybookItem = null;
+  document.querySelector('#kanjiCopybookPractice').hidden = true;
+  document.querySelector('#kanjiCopybookPicker').hidden = false;
+  renderKanjiCopybookDictionary();
+  requestAnimationFrame(() => kanjiCopybookSearch.focus());
+}
+
+function renderKanjiCopybookDictionary() {
+  const allItems = getDictionary().filter(item => kanjiInWord(item.character).length);
+  const items = filterDictionaryItems(allItems, kanjiCopybookSearch.value);
+  const list = document.querySelector('#kanjiCopybookWords');
+  document.querySelector('#kanjiCopybookCount').textContent = `${allItems.length} ${allItems.length === 1 ? 'word' : 'words'}`;
+  list.innerHTML = '';
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'dictionary-empty';
+    empty.textContent = allItems.length ? 'No vocabulary matches your search.' : 'Add words to your dictionary before opening the copybook.';
+    list.append(empty);
+    return;
+  }
+  items.forEach(item => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'kanji-copybook-word';
+    const word = document.createElement('strong');
+    word.lang = 'ja';
+    word.textContent = item.character;
+    const reading = document.createElement('span');
+    reading.lang = 'ja';
+    reading.textContent = item.reading ? toHiragana(item.reading) : 'Reading not added';
+    const meaning = document.createElement('small');
+    meaning.textContent = item.translation;
+    button.append(word, reading, meaning);
+    button.addEventListener('click', () => openKanjiCopybookPractice(item));
+    list.append(button);
+  });
+}
+
+function openKanjiCopybook() {
+  kanjiCopybookSearch.value = '';
+  showKanjiCopybookPicker();
+  if (!kanjiCopybookDialog.open) kanjiCopybookDialog.showModal();
+}
+
+document.querySelector('#openKanjiCopybook').addEventListener('click', openKanjiCopybook);
+document.querySelector('#concentrationKanjiCopybook').addEventListener('click', openKanjiCopybook);
+document.querySelector('#kanjiCopybookBack').addEventListener('click', showKanjiCopybookPicker);
+document.querySelector('#clearKanjiCopybook').addEventListener('click', renderKanjiCopybookSheet);
+document.querySelector('#closeKanjiCopybook').addEventListener('click', () => kanjiCopybookDialog.close());
+document.querySelector('#closeKanjiCopybookPractice').addEventListener('click', () => kanjiCopybookDialog.close());
+kanjiCopybookSearch.addEventListener('input', renderKanjiCopybookDictionary);
+window.addEventListener('resize', () => {
+  const mobile = document.body.classList.contains('mobile-version') || window.matchMedia('(max-width: 680px)').matches;
+  if (kanjiCopybookDialog.open && kanjiCopybookItem && mobile !== kanjiCopybookMobileLayout) renderKanjiCopybookSheet();
+});
+
 document.querySelector('#exportAnki').addEventListener('click', () => {
   const items = getDictionary();
   if (!items.length || !window.AnkiExport) return;

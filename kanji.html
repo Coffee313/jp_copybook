@@ -7,22 +7,24 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
     <link rel="stylesheet" href="styles.css?v=69" />
-    <link rel="stylesheet" href="kanji.css?v=32" />
+    <link rel="stylesheet" href="kanji.css?v=33" />
   </head>
   <body class="kanji-page">
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
     <nav class="concentration-nav" aria-label="Sections">
       <a href="index.html">Kana</a>
       <a class="active" href="kanji.html">Kanji</a>
+      <button class="concentration-copybook" id="concentrationKanjiCopybook" type="button">Copybook</button>
     </nav>
     <header class="topbar">
       <a class="brand" href="index.html" data-language-static="en"><span class="brand-mark">字</span><span>My Japanese Copybook</span></a>
-      <span class="app-version" data-short-version="v16.10" title="App version v2026.07.16.10">v2026.07.16.10</span>
+      <span class="app-version" data-short-version="v16.11" title="App version v2026.07.16.11">v2026.07.16.11</span>
       <nav class="main-nav" aria-label="Sections">
         <a href="index.html">Kana</a>
         <a class="active" href="kanji.html">Kanji</a>
       </nav>
       <button class="header-mode-button" id="mobileModeToggle" type="button" aria-label="Mobile version" aria-pressed="false"><span aria-hidden="true">📱</span><span>Mobile version</span></button>
+      <button class="header-mode-button" id="openKanjiCopybook" type="button" aria-label="Open kanji copybook"><span aria-hidden="true">田</span><span>Copybook</span></button>
       <button class="header-mode-button" id="concentrationEnter" type="button" aria-label="Enter concentration mode"><span aria-hidden="true">⛶</span><span>Concentration mode</span></button>
       <button class="header-mode-button" id="startProductTour" type="button" aria-label="Start tutorial"><span aria-hidden="true">?</span><span>Tutorial</span></button>
       <div class="account-area">
@@ -196,6 +198,26 @@
       <div class="dictionary-list" id="dictionaryList"></div>
     </dialog>
 
+    <dialog class="kanji-copybook-dialog" id="kanjiCopybookDialog" aria-labelledby="kanjiCopybookTitle">
+      <section class="kanji-copybook-picker" id="kanjiCopybookPicker">
+        <button class="dialog-close" id="closeKanjiCopybook" type="button" aria-label="Close">×</button>
+        <div class="dictionary-heading"><div><p class="eyebrow">Writing practice</p><h2 id="kanjiCopybookTitle">Kanji copybook</h2></div><span id="kanjiCopybookCount">0 words</span></div>
+        <label class="vocabulary-search"><span>Search your dictionary</span><input id="kanjiCopybookSearch" type="search" autocomplete="off" placeholder="Search by word, reading, meaning, or note" /></label>
+        <p class="kanji-copybook-help">Choose a word, then practise each of its kanji.</p>
+        <div class="kanji-copybook-words" id="kanjiCopybookWords"></div>
+      </section>
+      <section class="kanji-copybook-practice" id="kanjiCopybookPractice" hidden>
+        <header class="kanji-copybook-toolbar">
+          <button class="kanji-copybook-back" id="kanjiCopybookBack" type="button">← Back to dictionary</button>
+          <div class="kanji-copybook-word-info"><strong id="kanjiCopybookWord" lang="ja"></strong><span id="kanjiCopybookDetails"></span></div>
+          <button class="kanji-copybook-clear" id="clearKanjiCopybook" type="button">Clear cells</button>
+          <button class="dialog-close" id="closeKanjiCopybookPractice" type="button" aria-label="Close">×</button>
+        </header>
+        <nav class="kanji-copybook-character-tabs" id="kanjiCopybookCharacterTabs" aria-label="Kanji in this word"></nav>
+        <div class="kanji-copybook-sheet" id="kanjiCopybookSheet"></div>
+      </section>
+    </dialog>
+
     <footer><small class="footer-sync-status" id="syncStatus">Progress is stored on this device</small><span>Recognition runs locally.</span><a href="https://github.com/ZacharyRead/jlect-jhr" target="_blank" rel="noreferrer">JLect JHR, CC BY-SA 3.0</a><a href="https://www.edrdg.org/jmdict/j_jmdict.html" target="_blank" rel="noreferrer">Vocabulary: JMdict, EDRDG</a><span class="footer-support"><a href="mailto:maksim.timchenko313@gmail.com?subject=Japanese%20Copybook%20feedback">Feedback</a></span></footer>
     <script src="supabase-config.js?v=1"></script>
     <script src="i18n.js?v=28"></script>
@@ -210,7 +232,7 @@
     <script src="pitch-accent.js?v=3"></script>
     <script src="anki-export.js?v=3"></script>
     <script src="assets/jmdict-common.js?v=2"></script>
-    <script src="kanji-app.js?v=58"></script>
+    <script src="kanji-app.js?v=59"></script>
     <script src="onboarding.js?v=5"></script>
   </body>
 </html>

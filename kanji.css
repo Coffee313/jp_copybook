@@ -141,6 +141,41 @@
 .dictionary-item .dictionary-edit:hover { color: var(--green); background: #e5efe8; }
 .dictionary-item .dictionary-remove:hover { color: #b94d43; background: #f8e5e1; }
 .dictionary-empty { grid-column: 1 / -1; width: 100%; margin: 0; padding: 28px 18px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; line-height: 1.6; text-align: center; }
+.concentration-copybook { display: none; }
+body.concentration-mode .concentration-copybook { display: block; border: 0; border-radius: 999px; padding: 7px 11px; color: #fff; background: rgba(255,255,255,.18); cursor: pointer; font: inherit; font-size: 11px; }
+.kanji-copybook-dialog { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border: 0; padding: 0; color: var(--ink); background: var(--canvas); }
+.kanji-copybook-dialog::backdrop { background: var(--canvas); }
+.kanji-copybook-dialog[open] { display: block; }
+.kanji-copybook-picker, .kanji-copybook-practice { box-sizing: border-box; width: min(1500px, 100%); height: 100%; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); }
+.kanji-copybook-picker { position: relative; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); }
+.kanji-copybook-picker .dictionary-heading > span { margin-right: 40px; color: var(--muted); font-size: 12px; }
+.kanji-copybook-help { margin: 11px 0 0; color: var(--muted); font-size: 12px; }
+.kanji-copybook-words { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; align-content: start; overflow: auto; margin-top: 14px; padding: 2px 3px 20px 2px; }
+.kanji-copybook-word { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; border: 1px solid #e4ddd3; border-radius: 16px; padding: 15px; color: var(--ink); background: var(--paper); cursor: pointer; text-align: left; box-shadow: 0 8px 24px rgba(55,46,32,.035); }
+.kanji-copybook-word:hover, .kanji-copybook-word:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); outline: 0; }
+.kanji-copybook-word strong { max-width: 100%; color: var(--green); white-space: nowrap; font: 500 27px/1.2 'Noto Sans JP', sans-serif; }
+.kanji-copybook-word span { margin-top: 7px; color: #a94534; font: 500 12px/1.3 'Noto Sans JP', sans-serif; }
+.kanji-copybook-word small { max-width: 100%; margin-top: 4px; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+.kanji-copybook-practice { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 10px; }
+.kanji-copybook-toolbar { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding-right: 42px; }
+.kanji-copybook-back, .kanji-copybook-clear { border: 1px solid var(--green); border-radius: 999px; padding: 9px 13px; color: var(--green); background: transparent; cursor: pointer; white-space: nowrap; font-weight: 700; }
+.kanji-copybook-clear { color: #fff; background: var(--green); }
+.kanji-copybook-word-info { min-width: 0; display: flex; align-items: baseline; justify-content: center; gap: 10px; text-align: center; }
+.kanji-copybook-word-info strong { color: var(--green); white-space: nowrap; font: 500 30px/1.2 'Noto Sans JP', sans-serif; }
+.kanji-copybook-word-info span { min-width: 0; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.kanji-copybook-toolbar .dialog-close { top: 50%; right: 0; transform: translateY(-50%); }
+.kanji-copybook-character-tabs { display: flex; justify-content: center; gap: 7px; }
+.kanji-copybook-character-tabs button { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 11px; color: var(--green); background: var(--paper); cursor: pointer; font: 500 23px/1 'Noto Sans JP', sans-serif; }
+.kanji-copybook-character-tabs button.active { border-color: var(--green); color: #fff; background: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); }
+.kanji-copybook-sheet { min-height: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; place-content: center; width: min(100%, calc((100dvh - 145px) * 5 / 3)); margin: 0 auto; }
+.kanji-copybook-cell { position: relative; min-width: 0; aspect-ratio: 1; overflow: hidden; border: 1.5px solid #d4cec4; border-radius: 13px; background-color: #fffefa; background-image: linear-gradient(to right, transparent calc(50% - .5px), #eee8df calc(50% - .5px), #eee8df calc(50% + .5px), transparent calc(50% + .5px)), linear-gradient(to bottom, transparent calc(50% - .5px), #eee8df calc(50% - .5px), #eee8df calc(50% + .5px), transparent calc(50% + .5px)); }
+.kanji-copybook-cell canvas { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.kanji-copybook-ghost { position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; color: rgba(61,92,81,.13); pointer-events: none; font: 400 clamp(48px, 8vw, 112px)/1 'Noto Sans JP', sans-serif; }
+.kanji-copybook-example { border-color: var(--accent-soft); }
+.kanji-copybook-stroke-guide { position: absolute; inset: 6%; }
+.kanji-copybook-stroke-guide svg { width: 100%; height: 100%; }
+.kanji-copybook-stroke-guide path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.kanji-copybook-stroke-guide text { fill: #a94534; font: 700 7px/1 sans-serif; paint-order: stroke; stroke: #fff; stroke-width: 2px; }
 .review-section { grid-column: 2; grid-row: 1; margin: 0; padding: 24px; }
 .review-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .review-heading h2 { margin: 4px 0 0; font-size: 25px; }
@@ -236,6 +271,21 @@
 }
 
 @media (max-width: 680px) {
+  .kanji-copybook-picker, .kanji-copybook-practice { padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  .kanji-copybook-picker .dictionary-heading h2 { font-size: 21px; }
+  .kanji-copybook-picker .vocabulary-search { margin-top: 12px; }
+  .kanji-copybook-words { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .kanji-copybook-word { padding: 12px; }
+  .kanji-copybook-word strong { font-size: 23px; }
+  .kanji-copybook-toolbar { grid-template-columns: 1fr auto; gap: 8px; padding-right: 38px; }
+  .kanji-copybook-back { justify-self: start; padding: 8px 10px; font-size: 11px; }
+  .kanji-copybook-clear { grid-column: 2; grid-row: 1; padding: 8px 10px; font-size: 11px; }
+  .kanji-copybook-word-info { grid-column: 1 / -1; grid-row: 2; flex-direction: column; gap: 1px; align-items: center; }
+  .kanji-copybook-word-info strong { font-size: 27px; }
+  .kanji-copybook-character-tabs button { width: 40px; height: 40px; font-size: 21px; }
+  .kanji-copybook-sheet { width: min(100%, calc(100dvh - 205px)); grid-template-columns: minmax(0, 1fr); }
+  .kanji-copybook-ghost { font-size: min(55vw, 190px); }
+  body.concentration-mode .concentration-copybook { padding: 7px 8px; font-size: 10px; }
   .kanji-test-active .kanji-main { width: calc(100% - 8px); padding-block: 4px; }
   .kanji-test-active .review-section { height: calc(100dvh - 8px); padding: 7px; border-radius: 16px; }
   .kanji-test-active .review-heading { gap: 8px; }
