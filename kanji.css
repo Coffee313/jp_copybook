@@ -256,6 +256,8 @@ body.concentration-mode .concentration-copybook { display: block; border: 0; bor
 .kanji-test-active #startReview { display: none; }
 .kanji-test-active .review-practice-icons { display: none; }
 .kanji-test-active .review-card { width: 100%; }
+body.concentration-mode.kanji-test-active .review-section { padding-bottom: 58px; }
+body.concentration-mode.kanji-test-active #exitReview { position: fixed; z-index: 52; right: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; min-width: 120px; border-color: #a94534; color: #fff; background: #a94534; box-shadow: 0 6px 20px rgba(82,38,29,.2); transform: translateX(-50%); }
 .jhr-internals { display: none; }
 @media (max-width: 900px) { .kanji-layout { grid-template-columns: 1fr; } .dictionary-card { min-height: auto; } }
 @media (min-width: 681px) and (max-width: 1180px) { .kanji-heading { margin-bottom: 12px; } .recognizer-card { grid-template-columns: minmax(280px, .9fr) minmax(260px, 1.1fr); } .draw-panel, .candidate-panel { padding: 18px; } }
