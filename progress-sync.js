@@ -75,7 +75,7 @@
         expires_at: Number(params.get('expires_at')) || payload.exp,
         expires_in: Number(params.get('expires_in')) || 3600,
         token_type: params.get('token_type') || 'bearer',
-        user: { id: payload.sub, email: payload.email }
+        user: { id: payload.sub, email: payload.email, user_metadata: payload.user_metadata || {} }
       };
     } catch {
       return null;
@@ -243,11 +243,11 @@
     if (!signedOut || !signedIn) return;
     signedOut.hidden = Boolean(session);
     signedIn.hidden = !session;
-    const email = session?.user?.email || '';
+    const nickname = session?.user?.user_metadata?.nickname || session?.user?.email || '';
     const accountButton = document.querySelector('#openAccount');
-    document.querySelector('#accountEmail').textContent = Array.from(email)[0]?.toUpperCase() || '?';
+    document.querySelector('#accountEmail').textContent = Array.from(nickname)[0]?.toUpperCase() || '?';
     accountButton.dataset.signedIn = session ? 'true' : 'false';
-    accountButton.setAttribute('aria-label', session ? `Open profile for ${email}` : 'Open profile');
+    accountButton.setAttribute('aria-label', session ? `Open profile for ${nickname}` : 'Open profile');
     document.querySelector('#accountForm').hidden = Boolean(session) || recoveryMode;
     document.querySelector('#recoveryForm').hidden = !recoveryMode;
     document.querySelector('#accountSummary').hidden = !session || recoveryMode;
@@ -255,7 +255,7 @@
     document.querySelector('#accountIntro').textContent = recoveryMode
       ? 'Choose a new password for your account.'
       : session
-        ? `Signed in as ${session.user?.email || 'your account'}. Your progress is synced across devices.`
+        ? `Signed in as ${nickname || 'your account'}. Your progress is synced across devices.`
         : 'Sign in or create an account to save your learning progress.';
     const dictionaryStorageStatus = document.querySelector('#dictionaryStorageStatus');
     if (dictionaryStorageStatus) dictionaryStorageStatus.textContent = session ? 'Cloud sync is on' : 'Stored on this device';
@@ -313,8 +313,27 @@
     return stats;
   }
 
-  async function signIn(email, password) {
+  function normalizedNickname(value) {
+    return String(value || '').normalize('NFKC').trim().toLocaleLowerCase();
+  }
+
+  function checkedNickname(value) {
+    const nickname = normalizedNickname(value);
+    if (nickname.length < 2 || nickname.length > 24) throw new Error('Nickname must be 2 to 24 characters.');
+    if (!/^[\p{L}\p{N}_.-]+$/u.test(nickname)) throw new Error('Use only letters, numbers, dots, underscores, or hyphens in your nickname.');
+    return nickname;
+  }
+
+  async function nicknameEmail(value) {
+    const nickname = checkedNickname(value);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nickname));
+    const token = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('').slice(0, 48);
+    return `${token}@users.jp-copybook.invalid`;
+  }
+
+  async function signIn(identity, password) {
     const previousOwner = readProgressOwner();
+    const email = identity.includes('@') ? identity.trim() : await nicknameEmail(identity);
     const data = await authRequest('token?grant_type=password', {
       method: 'POST', body: JSON.stringify({ email, password })
     });
@@ -325,11 +344,13 @@
       .catch(error => setSyncStatus(error.message, true));
   }
 
-  async function signUp(email, password) {
+  async function signUp(nicknameValue, password) {
+    const nickname = checkedNickname(nicknameValue);
+    const email = await nicknameEmail(nickname);
     const redirectTo = config.appUrl || new URL('./', window.location.href).href;
     const data = await authRequest(`signup?redirect_to=${encodeURIComponent(redirectTo)}`, {
       method: 'POST',
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, data: { nickname, auth_scheme: 'nickname-v1' } })
     });
     if (data.access_token) {
       clearTimeout(saveTimer);
@@ -338,15 +359,8 @@
       await loadAndMergeProgress().catch(error => setSyncStatus(error.message, true));
       return 'Account created.';
     }
-    return 'Check your email to confirm your account.';
-  }
-
-  async function requestPasswordReset(email) {
-    const redirectTo = config.appUrl || new URL('./', window.location.href).href;
-    await authRequest(`recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
-      method: 'POST',
-      body: JSON.stringify({ email })
-    });
+    if (Array.isArray(data.user?.identities) && data.user.identities.length === 0) throw new Error('This nickname is already taken.');
+    throw new Error('Nickname registration requires email confirmation to be disabled in Supabase Auth settings.');
   }
 
   async function updatePassword(password) {
@@ -392,20 +406,6 @@
     document.querySelectorAll('[data-profile-panel]').forEach(button => {
       button.addEventListener('click', () => showProfilePanel(button.dataset.profilePanel));
     });
-    document.querySelector('#requestPasswordReset').addEventListener('click', async () => {
-      const emailInput = document.querySelector('#accountEmailInput');
-      const status = document.querySelector('#accountStatus');
-      status.removeAttribute('data-error');
-      if (!emailInput.reportValidity()) return;
-      status.textContent = 'Sending password reset email…';
-      try {
-        await requestPasswordReset(emailInput.value.trim());
-        status.textContent = 'Check your email for a password reset link.';
-      } catch (error) {
-        status.textContent = error.message;
-        status.dataset.error = 'true';
-      }
-    });
     document.querySelector('#recoveryForm').addEventListener('submit', async event => {
       event.preventDefault();
       const status = document.querySelector('#recoveryStatus');
@@ -442,13 +442,13 @@
     document.querySelector('#accountForm').addEventListener('submit', async event => {
       event.preventDefault();
       const action = event.submitter?.value || 'signin';
-      const email = document.querySelector('#accountEmailInput').value.trim();
+      const identity = document.querySelector('#accountEmailInput').value.trim();
       const password = document.querySelector('#accountPassword').value;
       const status = document.querySelector('#accountStatus');
       status.removeAttribute('data-error');
       status.textContent = action === 'signup' ? 'Creating account…' : 'Signing in…';
       try {
-        const message = action === 'signup' ? await signUp(email, password) : (await signIn(email, password), 'Signed in.');
+        const message = action === 'signup' ? await signUp(identity, password) : (await signIn(identity, password), 'Signed in.');
         status.textContent = message;
         if (session && dialog.open) dialog.close();
       } catch (error) {

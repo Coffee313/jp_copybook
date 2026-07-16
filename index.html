@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f7f4ee" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
-    <link rel="stylesheet" href="styles.css?v=70" />
+    <link rel="stylesheet" href="styles.css?v=71" />
   </head>
   <body>
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -23,7 +23,7 @@
         <span class="brand-mark">あ</span>
         <span>My Japanese Copybook</span>
       </a>
-      <span class="app-version" data-short-version="v16.14" title="App version v2026.07.16.14">v2026.07.16.14</span>
+      <span class="app-version" data-short-version="v16.15" title="App version v2026.07.16.15">v2026.07.16.15</span>
       <nav class="main-nav" aria-label="Sections">
         <a class="active" href="index.html">Kana</a>
         <a href="kanji.html">Kanji</a>
@@ -56,9 +56,10 @@
       <p class="eyebrow">Cloud progress</p><h2 id="accountTitle">Your account</h2>
       <p id="accountIntro">Sign in or create an account to save your test results.</p>
       <form id="accountForm">
-        <label>Email<input id="accountEmailInput" type="email" required autocomplete="email" /></label>
+        <label>Nickname<input id="accountEmailInput" type="text" required autocomplete="username" autocapitalize="none" spellcheck="false" /></label>
         <label>Password<input id="accountPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
-        <div class="account-actions"><button type="submit" name="action" value="signin">Sign in</button><button type="submit" name="action" value="signup">Create account</button><button class="reset-password" id="requestPasswordReset" type="button">Reset password</button></div>
+        <p class="account-identity-help">Nicknames are case-insensitive. Keep your password safe; email recovery is unavailable.</p>
+        <div class="account-actions"><button type="submit" name="action" value="signin">Sign in</button><button type="submit" name="action" value="signup">Create account</button></div>
         <p id="accountStatus" aria-live="polite"></p>
       </form>
       <form id="recoveryForm" hidden>
@@ -73,7 +74,7 @@
             <button type="button" data-profile-panel="profileLanguage">Language</button>
             <button type="button" data-profile-panel="profileInputMode">Input mode</button>
             <button type="button" data-profile-panel="profileResetProgress">Reset progress</button>
-            <button type="button" data-profile-panel="profileResetPassword">Reset password</button>
+            <button type="button" data-profile-panel="profileResetPassword">Change password</button>
             <button class="profile-menu-danger" id="signOut" type="button">Logout</button>
           </nav>
           <div class="profile-panels">
@@ -81,7 +82,7 @@
             <section id="profileLanguage" data-profile-section hidden><h3>Language</h3><div class="language-settings"><button type="button" data-language-setting="en">English</button><button type="button" data-language-setting="ru">Русский</button></div></section>
             <section id="profileInputMode" data-profile-section hidden><h3>Input mode</h3><p>Choose which drawing input the copybook accepts.</p><label class="ghost-control profile-input-control"><input id="penOnlyToggle" type="checkbox" /><span class="toggle" aria-hidden="true"></span><span>Stylus only</span></label></section>
             <section id="profileResetProgress" data-profile-section hidden><h3>Reset progress</h3><p>Choose which kana learning path to restart. This cannot be undone.</p><div class="profile-reset-actions"><button type="button" data-reset-script="hiragana">Reset Hiragana</button><button type="button" data-reset-script="katakana">Reset Katakana</button></div></section>
-            <section id="profileResetPassword" data-profile-section hidden><h3>Reset password</h3><form id="profilePasswordForm"><label>New password<input id="profilePassword" type="password" required minlength="6" autocomplete="new-password" /></label><button class="recovery-submit" type="submit">Save new password</button><p id="profilePasswordStatus" aria-live="polite"></p></form></section>
+            <section id="profileResetPassword" data-profile-section hidden><h3>Change password</h3><form id="profilePasswordForm"><label>New password<input id="profilePassword" type="password" required minlength="6" autocomplete="new-password" /></label><button class="recovery-submit" type="submit">Save new password</button><p id="profilePasswordStatus" aria-live="polite"></p></form></section>
           </div>
         </div>
       </section>
@@ -187,8 +188,8 @@
       <span class="footer-support"><a href="mailto:maksim.timchenko313@gmail.com?subject=Japanese%20Copybook%20feedback">Feedback</a></span>
     </footer>
     <script src="supabase-config.js?v=1"></script>
-    <script src="i18n.js?v=28"></script>
-    <script src="progress-sync.js?v=18"></script>
+    <script src="i18n.js?v=29"></script>
+    <script src="progress-sync.js?v=19"></script>
     <script src="kana-progress.js?v=10"></script>
     <script src="kana-guides.js?v=4"></script>
     <script src="app.js?v=62"></script>

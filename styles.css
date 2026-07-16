@@ -119,6 +119,7 @@ body.mobile-suggestion-open { overflow: hidden; }
 .account-actions button, .sign-out { border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 .account-actions button[value="signup"] { color: var(--green); border: 1px solid var(--green); background: transparent; }
 .account-actions .reset-password { grid-column: 1 / -1; padding: 6px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 600; }
+.account-identity-help { margin: 10px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .recovery-submit { width: 100%; margin-top: 18px; border: 0; border-radius: 11px; padding: 11px; color: #fff; background: var(--green); cursor: pointer; font-weight: 700; }
 #recoveryStatus { min-height: 20px; margin-bottom: 0; color: var(--muted); font-size: 12px; }
 .input-mode-dialog { width: min(500px, calc(100% - 28px)); }
