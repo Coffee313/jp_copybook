@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'kana-kanji-dictionary-v1';
+const DELETED_STORAGE_KEY = 'kana-kanji-dictionary-deleted-v1';
 const MEANING_CACHE_KEY = 'kana-kanji-meanings-v2';
 const INPUT_MODE_COOKIE = 'kana-input-mode';
 const INPUT_MODE_STORAGE_KEY = 'japanese-copybook-input-mode-v1';
@@ -354,20 +355,49 @@ const readJson = (key, fallback) => {
 function getDictionary() {
   return readJson(STORAGE_KEY, []);
 }
+function getDictionaryDeletions() {
+  return readJson(DELETED_STORAGE_KEY, {});
+}
 function saveDictionary(items) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   window.ProgressSync?.flushSave();
 }
 
-function mergeDictionary(remoteItems = []) {
+function mergeDictionaryDeletions(remoteDeletions = {}) {
+  const merged = { ...remoteDeletions };
+  Object.entries(getDictionaryDeletions()).forEach(([character, deletedAt]) => {
+    if ((Date.parse(deletedAt) || 0) >= (Date.parse(merged[character]) || 0)) merged[character] = deletedAt;
+  });
+  return merged;
+}
+
+function dictionaryItemTimestamp(item) {
+  return Math.max(
+    Date.parse(item?.updatedAt || 0) || 0,
+    Date.parse(item?.lastReviewed || 0) || 0,
+    Date.parse(item?.createdAt || 0) || 0
+  );
+}
+
+function mergeDictionary(remoteItems = [], deletions = getDictionaryDeletions(), localItems = getDictionary()) {
   const merged = new Map(remoteItems.map(item => [item.character, item]));
-  getDictionary().forEach(localItem => {
+  localItems.forEach(localItem => {
     const remoteItem = merged.get(localItem.character);
-    const localDate = Date.parse(localItem.lastReviewed || localItem.createdAt || 0) || 0;
-    const remoteDate = Date.parse(remoteItem?.lastReviewed || remoteItem?.createdAt || 0) || 0;
+    const localDate = dictionaryItemTimestamp(localItem);
+    const remoteDate = dictionaryItemTimestamp(remoteItem);
     if (!remoteItem || localDate >= remoteDate) merged.set(localItem.character, localItem);
   });
-  return [...merged.values()];
+  return [...merged.values()].filter(item => {
+    const deletedAt = Date.parse(deletions[item.character]) || 0;
+    return !deletedAt || dictionaryItemTimestamp(item) > deletedAt;
+  });
+}
+
+function deleteDictionaryWord(character, now = new Date()) {
+  const deletions = getDictionaryDeletions();
+  deletions[character] = now.toISOString();
+  localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(deletions));
+  saveDictionary(getDictionary().filter(item => item.character !== character));
 }
 
 function toHiragana(value) {
@@ -782,6 +812,7 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
     reading,
     pitchAccent: pitchAccentValue === '' ? null : Number(pitchAccentValue),
     note: document.querySelector('#noteInput').value.trim(),
+    updatedAt: new Date().toISOString(),
     createdAt: existing?.createdAt || new Date().toISOString(),
     nextReview: existing?.nextReview || null,
     interval: existing?.interval || 0,
@@ -904,7 +935,7 @@ function renderDictionary() {
     remove.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
-      saveDictionary(getDictionary().filter(entry => entry.character !== item.character));
+      deleteDictionaryWord(item.character);
       renderDictionary();
     });
     actions.append(edit, remove);
@@ -1241,13 +1272,17 @@ renderWordCells();
 renderDictionary();
 scheduleMidnightReviewRefresh();
 ProgressSync.initialize({
-  getLocalProgress: () => ({ dictionary: getDictionary() }),
+  getLocalProgress: () => ({ dictionary: getDictionary(), dictionaryDeleted: getDictionaryDeletions() }),
   replaceLocalProgress: remote => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(remote.dictionary || []));
+    const deletions = remote.dictionaryDeleted || {};
+    localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(deletions));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary, deletions, [])));
     renderDictionary();
   },
   applyRemoteProgress: remote => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary)));
+    const deletions = mergeDictionaryDeletions(remote.dictionaryDeleted);
+    localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(deletions));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeDictionary(remote.dictionary, deletions)));
     renderDictionary();
   }
 }).finally(() => window.I18n.ready);
