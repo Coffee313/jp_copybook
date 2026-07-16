@@ -392,7 +392,10 @@ function updatePitchAccentPreview() {
   const moras = window.PitchAccent.getMoras(reading);
   const value = input.value.trim();
   const type = value === '' ? null : Number(value);
-  input.max = moras.length ? String(moras.length) : '';
+  input.querySelectorAll('[data-accent-type]').forEach(option => {
+    const optionType = Number(option.dataset.accentType);
+    option.disabled = optionType > 0 && (!moras.length || optionType > moras.length);
+  });
 
   if (!moras.length) {
     input.setCustomValidity(value ? 'Enter the whole-word reading in kana first.' : '');
@@ -654,7 +657,7 @@ async function loadWordDetails(word) {
 }
 
 document.querySelector('#readingInput').addEventListener('input', updatePitchAccentPreview);
-document.querySelector('#pitchAccentInput').addEventListener('input', updatePitchAccentPreview);
+document.querySelector('#pitchAccentInput').addEventListener('change', updatePitchAccentPreview);
 
 document.addEventListener('click', event => {
   const candidate = event.target.closest('.kmatch');
@@ -796,6 +799,14 @@ document.querySelector('#kanjiForm').addEventListener('submit', event => {
   resetWordBuilder(wordLength);
 });
 
+function appendDictionaryPitchAccent(details, item) {
+  if (!item.reading || item.pitchAccent === null || item.pitchAccent === undefined || !window.PitchAccent) return;
+  const pitchAccent = document.createElement('div');
+  pitchAccent.className = 'dictionary-pitch-accent pitch-accent-preview';
+  window.PitchAccent.render(pitchAccent, item.reading, item.pitchAccent);
+  details.append(pitchAccent);
+}
+
 function renderDictionary() {
   const list = document.querySelector('#dictionaryList');
   const allItems = getDictionary();
@@ -855,12 +866,7 @@ function renderDictionary() {
       reading.textContent = toHiragana(item.reading);
       details.append(reading);
     }
-    if (item.reading && item.pitchAccent !== null && item.pitchAccent !== undefined) {
-      const pitchAccent = document.createElement('div');
-      pitchAccent.className = 'dictionary-pitch-accent pitch-accent-preview';
-      window.PitchAccent.render(pitchAccent, item.reading, item.pitchAccent);
-      details.append(pitchAccent);
-    }
+    appendDictionaryPitchAccent(details, item);
     const meaning = document.createElement('strong');
     meaning.textContent = item.translation;
     const note = document.createElement('small');

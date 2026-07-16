@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23de5c43'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='serif' fill='white'%3E%E5%AD%97%3C/text%3E%3C/svg%3E" />
     <title>My Japanese Copybook</title>
     <link rel="stylesheet" href="styles.css?v=69" />
-    <link rel="stylesheet" href="kanji.css?v=26" />
+    <link rel="stylesheet" href="kanji.css?v=27" />
   </head>
   <body class="kanji-page">
     <button class="concentration-exit" id="concentrationExit" type="button" aria-label="Exit concentration mode">×</button>
@@ -17,7 +17,7 @@
     </nav>
     <header class="topbar">
       <a class="brand" href="index.html" data-language-static="en"><span class="brand-mark">字</span><span>My Japanese Copybook</span></a>
-      <span class="app-version" data-short-version="v16.2" title="App version v2026.07.16.2">v2026.07.16.2</span>
+      <span class="app-version" data-short-version="v16.3" title="App version v2026.07.16.3">v2026.07.16.3</span>
       <nav class="main-nav" aria-label="Sections">
         <a href="index.html">Kana</a>
         <a class="active" href="kanji.html">Kanji</a>
@@ -146,7 +146,7 @@
             <div class="meaning-suggestions" id="meaningSuggestions"></div>
             <label>Main whole-word reading<input id="readingInput" autocomplete="off" lang="ja" placeholder="For example: みず" /></label>
             <div class="reading-suggestions" id="readingSuggestions"></div>
-            <label class="pitch-accent-control">Pitch accent type<input id="pitchAccentInput" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /><small id="pitchAccentHelp">Enter 0 for heiban, or the mora after which the pitch drops.</small></label>
+            <label class="pitch-accent-control">Pitch accent type<select id="pitchAccentInput"><option value="">Select type…</option><option value="0" data-accent-type="0">0 — heiban</option><option value="1" data-accent-type="1">1</option><option value="2" data-accent-type="2">2</option><option value="3" data-accent-type="3">3</option><option value="4" data-accent-type="4">4</option><option value="5" data-accent-type="5">5</option><option value="6" data-accent-type="6">6</option></select><small id="pitchAccentHelp">Select 0 for heiban, or the mora after which the pitch drops.</small></label>
             <div class="pitch-accent-preview" id="pitchAccentPreview" hidden></div>
             <label>Note<textarea id="noteInput" rows="3" placeholder="Reading, association, or example"></textarea></label>
             <div class="reading-info" id="readingInfo"></div>
@@ -205,7 +205,7 @@
     <script src="pitch-accent.js?v=1"></script>
     <script src="anki-export.js?v=3"></script>
     <script src="assets/jmdict-common.js?v=2"></script>
-    <script src="kanji-app.js?v=52"></script>
+    <script src="kanji-app.js?v=53"></script>
     <script src="onboarding.js?v=5"></script>
   </body>
 </html>
