@@ -168,7 +168,10 @@ body.concentration-mode .concentration-copybook { display: block; border: 0; bor
 .kanji-copybook-character-tabs button { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 11px; color: var(--green); background: var(--paper); cursor: pointer; font: 500 23px/1 'Noto Sans JP', sans-serif; }
 .kanji-copybook-character-tabs button.active { border-color: var(--green); color: #fff; background: var(--green); box-shadow: 0 0 0 3px rgba(61,92,81,.1); }
 .kanji-copybook-sheet { min-height: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; place-content: center; width: min(100%, calc((100dvh - 145px) * 5 / 3)); margin: 0 auto; }
-.kanji-copybook-cell { position: relative; min-width: 0; aspect-ratio: 1; overflow: hidden; border: 1.5px solid #d4cec4; border-radius: 13px; background-color: #fffefa; background-image: linear-gradient(to right, transparent calc(50% - .5px), #eee8df calc(50% - .5px), #eee8df calc(50% + .5px), transparent calc(50% + .5px)), linear-gradient(to bottom, transparent calc(50% - .5px), #eee8df calc(50% - .5px), #eee8df calc(50% + .5px), transparent calc(50% + .5px)); }
+.kanji-copybook-cell { position: relative; min-width: 0; aspect-ratio: 1; overflow: hidden; border: 1.5px solid #d4cec4; border-radius: 13px; background: #fffefa; }
+.kanji-copybook-cell::before, .kanji-copybook-cell::after { position: absolute; z-index: 0; content: ''; pointer-events: none; }
+.kanji-copybook-cell::before { left: 50%; top: 0; height: 100%; border-left: 1px dashed #dcd6cb; }
+.kanji-copybook-cell::after { top: 50%; left: 0; width: 100%; border-top: 1px dashed #dcd6cb; }
 .kanji-copybook-cell canvas { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
 .kanji-copybook-ghost { position: absolute; z-index: 1; inset: 6%; pointer-events: none; opacity: .14; }
 .kanji-copybook-ghost svg { width: 100%; height: 100%; }
