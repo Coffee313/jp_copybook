@@ -984,6 +984,7 @@ dictionarySearch.addEventListener('input', renderDictionary);
 
 const kanjiCopybookDialog = document.querySelector('#kanjiCopybookDialog');
 const kanjiCopybookSearch = document.querySelector('#kanjiCopybookSearch');
+const kanjiCopybookGuideToggle = document.querySelector('#kanjiCopybookGuideToggle');
 let kanjiCopybookItem = null;
 let kanjiCopybookCharacterIndex = 0;
 let kanjiCopybookMobileLayout = null;
@@ -1216,6 +1217,7 @@ function makeCopybookDrawingCell(character, index, mobile) {
   guide.className = 'kanji-copybook-ghost';
   renderStrokeGuide(guide, character);
   guide.querySelectorAll('text').forEach(label => label.remove());
+  guide.hidden = !kanjiCopybookGuideToggle.checked;
   const canvas = document.createElement('canvas');
   canvas.setAttribute('aria-label', `Practise ${character}${mobile ? '' : `, cell ${index}`}`);
   cell.append(guide, canvas);
@@ -1317,6 +1319,11 @@ document.querySelector('#openKanjiCopybook').addEventListener('click', openKanji
 document.querySelector('#concentrationKanjiCopybook').addEventListener('click', openKanjiCopybook);
 document.querySelector('#kanjiCopybookBack').addEventListener('click', showKanjiCopybookPicker);
 document.querySelector('#clearKanjiCopybook').addEventListener('click', renderKanjiCopybookSheet);
+kanjiCopybookGuideToggle.addEventListener('change', () => {
+  document.querySelectorAll('.kanji-copybook-ghost').forEach(guide => {
+    guide.hidden = !kanjiCopybookGuideToggle.checked;
+  });
+});
 document.querySelector('#closeKanjiCopybook').addEventListener('click', () => kanjiCopybookDialog.close());
 document.querySelector('#closeKanjiCopybookPractice').addEventListener('click', () => kanjiCopybookDialog.close());
 kanjiCopybookSearch.addEventListener('input', renderKanjiCopybookDictionary);
