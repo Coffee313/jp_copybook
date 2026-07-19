@@ -1643,12 +1643,15 @@ document.querySelector('#checkDrawing').addEventListener('click', () => {
       if (reviewCharacterIndex < targets.length - 1) {
         reviewCharacterIndex += 1;
       } else {
-        if (!reviewSelfTest) {
-          const items = getDictionary();
-          const storedIndex = items.findIndex(item => item.character === reviewed.character);
-          if (storedIndex !== -1) items[storedIndex] = SRS.schedule(items[storedIndex], reviewCardRating);
-          saveDictionary(items);
-          renderDictionary();
+        const items = getDictionary();
+        const storedIndex = items.findIndex(item => item.character === reviewed.character);
+        if (storedIndex !== -1) {
+          const completed = SRS.completeReview(items[storedIndex], reviewCardRating, reviewSelfTest);
+          if (completed !== items[storedIndex]) {
+            items[storedIndex] = completed;
+            saveDictionary(items);
+            renderDictionary();
+          }
         }
         renderReviewWordCells(targets);
         const pitchShown = renderPassedPitchAccent(reviewed);
