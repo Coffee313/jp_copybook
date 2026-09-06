@@ -159,28 +159,62 @@
     }
     storeProgressOwner(userId);
     renderAccount();
-    await saveNow({ skipRemoteMerge: true });
+    await saveNow();
   }
 
-  async function saveNow({ keepalive = false, skipRemoteMerge = false } = {}) {
+  async function loadProgressRow(userId) {
+    const rows = await progressRequest(`user_progress?user_id=eq.${encodeURIComponent(userId)}&select=progress,updated_at`);
+    const row = rows?.[0];
+    return row ? { progress: row.progress || {}, updatedAt: row.updated_at } : null;
+  }
+
+  function nextUpdatedAt(previous = '') {
+    const previousTime = Date.parse(previous) || 0;
+    return new Date(Math.max(Date.now(), previousTime + 1)).toISOString();
+  }
+
+  async function mergeRemoteForSave(remote, userId) {
+    if (session?.user?.id !== userId) throw new Error('The active account changed while saving progress.');
+    cloudProgress = remote;
+    applyingRemote = true;
+    try { await applyRemoteProgress(remote); }
+    finally { applyingRemote = false; }
+    return (cloudProgress = { ...remote, ...getLocalProgress() });
+  }
+
+  async function updateProgressRow(userId, progress, expectedUpdatedAt, keepalive) {
+    const rows = await progressRequest(
+      `user_progress?user_id=eq.${encodeURIComponent(userId)}&updated_at=eq.${encodeURIComponent(expectedUpdatedAt)}&select=updated_at`,
+      {
+        method: 'PATCH',
+        keepalive,
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({ progress, updated_at: nextUpdatedAt(expectedUpdatedAt) })
+      }
+    );
+    return Array.isArray(rows) && rows.length > 0;
+  }
+
+  async function createProgressRow(userId, progress, keepalive) {
+    const rows = await progressRequest('user_progress?select=updated_at', {
+      method: 'POST',
+      keepalive,
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ user_id: userId, progress, updated_at: nextUpdatedAt() })
+    });
+    return Array.isArray(rows) && rows.length > 0;
+  }
+
+  async function saveNow({ keepalive = false } = {}) {
     if (!session?.user?.id) return;
     saveInFlight = true;
     try {
       const userId = session.user.id;
-      if (!keepalive && !skipRemoteMerge) {
-        const rows = await progressRequest(`user_progress?user_id=eq.${encodeURIComponent(userId)}&select=progress`);
-        if (session?.user?.id !== userId) return;
-        const latestRemote = rows?.[0]?.progress || {};
-        cloudProgress = latestRemote;
-        applyingRemote = true;
-        try { await applyRemoteProgress(latestRemote); }
-        finally { applyingRemote = false; }
-      }
-      await progressRequest('user_progress?on_conflict=user_id', {
-        method: 'POST',
-        keepalive,
-        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ user_id: session.user.id, progress: (cloudProgress = { ...cloudProgress, ...getLocalProgress() }), updated_at: new Date().toISOString() })
+      cloudProgress = await ProgressConflict.saveWithRetry({
+        load: () => loadProgressRow(userId),
+        merge: remote => mergeRemoteForSave(remote, userId),
+        update: (progress, expectedUpdatedAt) => updateProgressRow(userId, progress, expectedUpdatedAt, keepalive),
+        create: progress => createProgressRow(userId, progress, keepalive)
       });
       renderAccount();
       setSyncStatus('Progress saved');
