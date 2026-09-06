@@ -1037,7 +1037,8 @@ function copybookReferenceMask(path, size) {
   const layer = document.createElement('canvas');
   layer.width = layer.height = size;
   const context = layer.getContext('2d');
-  context.setTransform((size - 8) / 109, 0, 0, (size - 8) / 109, 4, 4);
+  const { inset, scale } = RecognizerGeometry.copybookReferenceTransform(size);
+  context.setTransform(scale, 0, 0, scale, inset, inset);
   context.strokeStyle = '#000';
   context.lineWidth = 4;
   context.lineCap = 'round';
@@ -1066,9 +1067,10 @@ function copybookReferencePoints(pathData, size, count = 14) {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', pathData);
   const total = path.getTotalLength();
+  const { inset, scale } = RecognizerGeometry.copybookReferenceTransform(size);
   return Array.from({ length: count }, (_, index) => {
     const point = path.getPointAtLength(total * index / (count - 1));
-    return [(4 + point.x * (size - 8) / 109) / size, (4 + point.y * (size - 8) / 109) / size];
+    return [(inset + point.x * scale) / size, (inset + point.y * scale) / size];
   });
 }
 
@@ -1083,7 +1085,8 @@ function gradeKanjiCopybookCanvas(canvas, character) {
   const targetLayer = document.createElement('canvas');
   targetLayer.width = targetLayer.height = size;
   const targetContext = targetLayer.getContext('2d');
-  targetContext.setTransform((size - 8) / 109, 0, 0, (size - 8) / 109, 4, 4);
+  const { inset, scale } = RecognizerGeometry.copybookReferenceTransform(size);
+  targetContext.setTransform(scale, 0, 0, scale, inset, inset);
   targetContext.strokeStyle = '#000';
   targetContext.lineWidth = 4;
   targetContext.lineCap = 'round';
@@ -1091,18 +1094,10 @@ function gradeKanjiCopybookCanvas(canvas, character) {
   paths.forEach(path => targetContext.stroke(new Path2D(path)));
   const user = copybookMask(userLayer.getContext('2d'), size);
   const target = copybookMask(targetLayer.getContext('2d'), size);
-  const userWide = copybookDilate(user, size, 3);
-  const targetWide = copybookDilate(target, size, 4);
-  let userPixels = 0, targetPixels = 0, userHits = 0, targetHits = 0;
-  user.forEach((value, index) => {
-    if (value) { userPixels += 1; if (targetWide[index]) userHits += 1; }
-    if (target[index]) { targetPixels += 1; if (userWide[index]) targetHits += 1; }
-  });
+  const userPixels = user.reduce((sum, value) => sum + value, 0);
   if (userPixels < 35) return;
-  const precision = userHits / userPixels;
-  const coverage = targetHits / targetPixels;
-  const rawScore = precision * .58 + coverage * .42;
-  const shapeGood = precision > .68 && coverage > .55 && rawScore > .65;
+  const shape = RecognizerGeometry.compareStrokeMasks(user, target, size);
+  const { precision, coverage, rawScore } = shape;
   let order = false;
   let direction = false;
   const strokes = canvas.__strokes || [];
@@ -1120,7 +1115,7 @@ function gradeKanjiCopybookCanvas(canvas, character) {
       return error(reference) <= error([...reference].reverse()) * .94;
     });
   }
-  const result = !shapeGood ? 'retry' : !order ? 'order' : !direction ? 'direction' : 'good';
+  const result = !shape.good ? 'retry' : !order ? 'order' : !direction ? 'direction' : 'good';
   const score = precision >= .985 && coverage >= .985 ? 100 : Math.min(99, Math.round(Math.pow(rawScore, 1.45) * 100));
   const cell = canvas.parentElement;
   cell.classList.add(`grade-${result}`);
