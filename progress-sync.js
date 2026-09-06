@@ -212,7 +212,7 @@
     renderAccount();
     if (!session) return;
     clearTimeout(saveTimer);
-    setSyncStatus('SavingвЂ¦');
+    setSyncStatus('Saving…');
     try { await saveNow(); }
     catch (error) { setSyncStatus(error.message, true); }
   }
