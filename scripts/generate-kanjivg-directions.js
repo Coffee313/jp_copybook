@@ -47,6 +47,7 @@ const strokePaths = {};
 const supportedCharacters = referenceFile
   ? new Set([...fs.readFileSync(referenceFile, 'utf8').matchAll(/\["([^"]+)","[^"]*"(?:,\d+)?\]/g)].map(match => match[1]))
   : null;
+const supplementalStrokeCharacters = new Set(['青']);
 for (const file of fs.readdirSync(sourceDir).filter(file => /^[0-9a-f]{5}\.svg$/i.test(file))) {
   const character = String.fromCodePoint(parseInt(path.basename(file, '.svg'), 16));
   const svg = fs.readFileSync(path.join(sourceDir, file), 'utf8');
@@ -54,7 +55,7 @@ for (const file of fs.readdirSync(sourceDir).filter(file => /^[0-9a-f]{5}\.svg$/
     .sort((a, b) => Number(a[1]) - Number(b[1]))
     .map(match => strokeDirection(match[2]));
   if (strokes.length) directions[character] = strokes;
-  if (strokeOutputFile && (!supportedCharacters || supportedCharacters.has(character))) {
+  if (strokeOutputFile && (!supportedCharacters || supportedCharacters.has(character) || supplementalStrokeCharacters.has(character))) {
     const paths = [...svg.matchAll(/<path\b[^>]*\bid="[^"]+-s(\d+)"[^>]*\bd="([^"]+)"/g)]
       .sort((a, b) => Number(a[1]) - Number(b[1]))
       .map(match => match[2]);
