@@ -184,7 +184,24 @@
     const canonicalSignature = expectedDirections
       ? expectedDirections.map(direction => signatureByDirection[direction] || '?').join('')
       : '';
-    const canonicalGuideMatch = canonicalSignature === strokeSignature && directionsMatch;
+    const signatureDirectionIndexes = {
+      H: [0, 4],
+      '2': [1, 5],
+      V: [2, 6],
+      '3': [3, 7]
+    };
+    let signatureDifferences = 0;
+    const signatureMatchesGuide = Boolean(expectedDirections) && canonicalSignature.length === strokeSignature.length &&
+      expectedDirections.every((direction, index) => {
+        if (canonicalSignature[index] === strokeSignature[index]) return true;
+        signatureDifferences += 1;
+        const expectedIndex = directionNames.indexOf(direction);
+        return signatureDifferences <= 1 && (signatureDirectionIndexes[strokeSignature[index]] || []).some(actualIndex => {
+          const distance = Math.abs(expectedIndex - actualIndex);
+          return Math.min(distance, directionNames.length - distance) <= 1;
+        });
+      });
+    const canonicalGuideMatch = signatureMatchesGuide && directionsMatch;
     if (canonicalGuideMatch) return 'good';
     if (exact.length && directionsMatch) return 'good';
     if (exact.length) return 'hard';

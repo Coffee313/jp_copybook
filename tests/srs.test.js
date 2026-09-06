@@ -199,3 +199,11 @@ test('drawing classification distinguishes exact, technique, and wrong answers',
   assert.equal(SRS.classifyDrawing('水', 'V3V2', ['S', 'E', 'SW', 'SE'], references, [], directions), 'hard');
   assert.equal(SRS.classifyDrawing('水', 'HV32', ['E', 'S', 'SW', 'SE'], references, [], directions), 'again');
 });
+
+test('drawing classification accepts the correct hooked second stroke in seven', () => {
+  const references = [['七', 'HV', 1]];
+  const directions = { 七: ['E', 'S'] };
+
+  assert.equal(SRS.classifyDrawing('七', 'H2', ['E', 'S'], references, [], directions), 'good');
+  assert.equal(SRS.classifyDrawing('七', 'H2', ['W', 'N'], references, [], directions), 'again');
+});
