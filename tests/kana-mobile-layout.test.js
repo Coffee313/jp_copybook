@@ -16,6 +16,6 @@ test('mobile Kana tests center the cell with I don\'t remember below it', () => 
 test('Kana page loads the updated mobile layout stylesheet', () => {
   assert.match(html, /href="styles\.css\?v=72"/);
   assert.match(kanjiHtml, /href="styles\.css\?v=72"/);
-  assert.match(html, /data-short-version="v19\.2"[^>]*>v2026\.07\.19\.2<\/span>/);
-  assert.match(kanjiHtml, /data-short-version="v19\.2"[^>]*>v2026\.07\.19\.2<\/span>/);
+  assert.match(html, /data-short-version="v19\.3"[^>]*>v2026\.09\.06\.1<\/span>/);
+  assert.match(kanjiHtml, /data-short-version="v19\.3"[^>]*>v2026\.09\.06\.1<\/span>/);
 });

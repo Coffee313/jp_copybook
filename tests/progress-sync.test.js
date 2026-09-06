@@ -17,5 +17,6 @@ test('cloud saves use optimistic concurrency on both pages', () => {
   assert.match(source, /updated_at=eq\.\$\{encodeURIComponent\(expectedUpdatedAt\)\}/);
   for (const html of [kanaHtml, kanjiHtml]) {
     assert.match(html, /progress-conflict\.js[^]*progress-sync\.js/);
+    assert.match(html, /progress-sync\.js\?v=20/);
   }
 });
