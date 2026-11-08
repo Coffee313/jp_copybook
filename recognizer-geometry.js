@@ -34,8 +34,10 @@
   }
 
   function compareStrokeMasks(user, target, size) {
-    const userWide = dilateMask(user, size, 5);
-    const targetWide = dilateMask(target, size, 5);
+    // Handwriting is not pixel-perfect. A wider comparison halo absorbs small
+    // placement and stroke-width differences without making unrelated strokes match.
+    const userWide = dilateMask(user, size, 7);
+    const targetWide = dilateMask(target, size, 7);
     let userPixels = 0, targetPixels = 0, userHits = 0, targetHits = 0;
     user.forEach((value, index) => {
       if (value) { userPixels += 1; if (targetWide[index]) userHits += 1; }

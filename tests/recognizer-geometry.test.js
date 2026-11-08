@@ -38,6 +38,14 @@ test('compareStrokeMasks accepts a close thin stroke without accepting a distant
   assert.equal(distant.good, false);
 });
 
+test('compareStrokeMasks tolerates ordinary handwriting offset in a simple stroke', () => {
+  const size = 96;
+  const reference = verticalMask(size, 48, 3);
+  const ordinaryOffset = geometry.compareStrokeMasks(verticalMask(size, 54), reference, size);
+
+  assert.equal(ordinaryOffset.good, true);
+});
+
 test('copybookReferenceTransform matches the visible six-percent guide inset', () => {
   const transform = geometry.copybookReferenceTransform(96);
   assert.equal(transform.inset, 5.76);
